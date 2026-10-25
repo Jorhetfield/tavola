@@ -4,7 +4,7 @@ import com.tavola.core.testing.data.MediterraneanSampleData
 import com.tavola.domain.model.DayPlan
 import com.tavola.domain.model.DayTask
 import com.tavola.domain.model.MealType
-import com.tavola.domain.model.RecipeRef
+import com.tavola.domain.model.PlannedMeal
 import com.tavola.domain.model.WeekPlan
 import com.tavola.domain.repository.CalendarRepository
 import com.tavola.domain.time.weekDays
@@ -41,11 +41,11 @@ class FakeCalendarRepository(initialDays: List<DayPlan> = MediterraneanSampleDat
         updateDay(date) { day -> day.copy(tasks = day.tasks + DayTask(id = "fake-task-${nextTaskId++}", text = text)) }
     }
 
-    override suspend fun setMeal(date: LocalDate, type: MealType, recipe: RecipeRef?) {
+    override suspend fun setMeal(date: LocalDate, type: MealType, meal: PlannedMeal?) {
         updateDay(date) { day ->
             when (type) {
-                MealType.Lunch -> day.copy(lunch = recipe)
-                MealType.Dinner -> day.copy(dinner = recipe)
+                MealType.Lunch -> day.copy(lunch = meal)
+                MealType.Dinner -> day.copy(dinner = meal)
             }
         }
     }

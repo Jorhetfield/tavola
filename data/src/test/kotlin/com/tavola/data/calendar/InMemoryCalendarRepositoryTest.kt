@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.tavola.core.testing.fake.FixedTodayProvider
 import com.tavola.domain.model.DayTask
 import com.tavola.domain.model.MealType
+import com.tavola.domain.model.PlannedMeal
 import com.tavola.domain.model.RecipeRef
 import com.tavola.domain.time.plusWeeks
 import com.tavola.domain.time.startOfWeek
@@ -86,7 +87,7 @@ class InMemoryCalendarRepositoryTest {
     @Test
     fun `addTask anade una tarea pendiente y setMeal la comida`() = runTest {
         val date = thisWeek.plusWeeks(3)
-        val recipe = RecipeRef("test", "Receta de prueba")
+        val recipe = PlannedMeal.FromRecipe(RecipeRef("test", "Receta de prueba"))
 
         repository.observeWeek(date).test {
             awaitItem()
@@ -101,6 +102,21 @@ class InMemoryCalendarRepositoryTest {
             assertEquals(recipe, day.dinner)
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun `a lo largo de varias semanas salen recetas y comidas rapidas`() = runTest {
+        val meals = (-8..8).flatMap { offset ->
+            var week = emptyList<PlannedMeal>()
+            repository.observeWeek(thisWeek.plusWeeks(offset)).test {
+                week = awaitItem().days.flatMap { listOfNotNull(it.lunch, it.dinner) }
+                cancelAndIgnoreRemainingEvents()
+            }
+            week
+        }
+
+        assertTrue(meals.any { it is PlannedMeal.FromRecipe })
+        assertTrue(meals.any { it is PlannedMeal.Quick })
     }
 
     private suspend fun InMemoryCalendarRepository.observeWeekTasks(start: LocalDate) = runCatching {

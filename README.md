@@ -46,10 +46,11 @@ La app está en la **Fase 2 de 5** (ver [hoja de ruta](#-hoja-de-ruta)). Hoy fun
 
 - 📅 Calendario semanal como pantalla de inicio, con la fecha real del dispositivo: el día de **hoy** se destaca, los **pasados** se apagan y los próximos tienen su propio color.
 - ⬅️➡️ Navegación entre semanas pasadas y futuras, con botón **Hoy** para volver. El contenido se desliza hacia el lado correspondiente.
-- ✔️ Marcar y desmarcar tareas, ➕ añadir tareas con un diálogo y 🍝 rellenar un hueco vacío con una receta de ejemplo.
+- ✔️ Marcar y desmarcar tareas y ➕ añadir tareas con un diálogo.
+- 🍝 Elegir qué se come desde una **hoja inferior**: una receta del recetario (con buscador por título, etiqueta o ingrediente, sin tildes) o una **comida rápida** escrita a mano («sobras», «comemos fuera»…, con nota opcional). También se puede cambiar o quitar lo ya elegido.
 - 🌗 Modo claro y oscuro, 🌍 textos en español e inglés.
 
-> Los datos son **de ejemplo y viven en memoria**: se generan para cualquier semana y se pierden al cerrar la app. Firebase, grupos compartidos, recetas, compra e IA llegan en las fases siguientes.
+> Los datos son **de ejemplo y viven en memoria**: se generan para cualquier semana y se pierden al cerrar la app. Firebase, grupos compartidos, el editor de recetas, la compra y la IA llegan en las fases siguientes.
 
 ---
 
@@ -80,6 +81,7 @@ La app está en la **Fase 2 de 5** (ver [hoja de ruta](#-hoja-de-ruta)). Hoy fun
 graph TD
     app[":app<br/>entrada, DI raíz, navegación"]
     cal[":feature:calendar<br/>landing: calendario semanal"]
+    rec[":feature:recipes<br/>selector de comida"]
     show[":feature:showcase<br/>(solo debug)"]
     ds[":core:designsystem<br/>tema y componentes"]
     domain[":domain<br/>Kotlin puro"]
@@ -87,11 +89,14 @@ graph TD
     testing[":core:testing<br/>fakes y utilidades"]
 
     app --> cal
+    app --> rec
     app --> data
     app -.->|debug| show
     app --> ds
     cal --> domain
     cal --> ds
+    rec --> domain
+    rec --> ds
     show --> ds
     data --> domain
     testing --> domain
@@ -100,18 +105,19 @@ graph TD
 | Módulo | Responsabilidad |
 |---|---|
 | `:app` | Punto de entrada (`@HiltAndroidApp`), navegación y barra flotante. **Único que conoce las rutas** y ensambla todo. |
-| `:domain` | Kotlin puro (JVM, sin `android.*`): modelos, interfaces de repositorio (`CalendarRepository`, `RecipeRepository`), `TodayProvider`, calificadores de dispatchers y utilidades de fechas. |
+| `:domain` | Kotlin puro (JVM, sin `android.*`): modelos (`PlannedMeal` —receta o comida rápida—, `Recipe` con ingredientes estructurados), interfaces de repositorio (`CalendarRepository`, `RecipeRepository`), `TodayProvider`, calificadores de dispatchers y utilidades de fechas. |
 | `:data` | Implementaciones de los repositorios. Hoy en memoria con datos generados; mañana Firestore y Room. Los módulos de Hilt son `internal`. |
 | `:core:designsystem` | Tema, tokens y componentes base. Depende solo de Compose y Material 3, **nunca del dominio**. |
 | `:core:testing` | Fakes (`FakeCalendarRepository`…), datos de ejemplo mediterráneos y `MainDispatcherExtension` para JUnit 5. |
-| `:feature:calendar` | Una funcionalidad completa: `CalendarScreen`, `CalendarViewModel` y `CalendarUiState`. |
+| `:feature:calendar` | Una funcionalidad completa: `CalendarScreen`, `CalendarViewModel` y `CalendarUiState`. Aloja la hoja del selector, pero su contenido se lo cede `:app` por un *slot*. |
+| `:feature:recipes` | El selector de comida (`MealPickerSheetContent`, `MealPickerViewModel`): busca recetas, anota comidas rápidas y escribe en el calendario a través del dominio. Crecerá con la lista y el editor de recetas. |
 | `:feature:showcase` | Pantalla de muestra del tema y los componentes. Solo existe en builds de debug. |
 
 ### Reglas de dependencia
 
 - `:domain` no depende de nadie y el compilador impide que entre Android en él.
 - `:data` depende de `:domain` e implementa sus interfaces: **inversión de dependencias**.
-- Cada `:feature:*` depende de `:domain` y `:core:designsystem`, **nunca de otra feature**.
+- Cada `:feature:*` depende de `:domain` y `:core:designsystem`, **nunca de otra feature**. Dos features se hablan por **identificadores y repositorios del dominio**, no entre sí: el calendario abre el selector (que le cede `:app` por un *slot*) y el selector escribe en el calendario a través de `CalendarRepository`.
 - `:core:*` nunca depende de `:feature:*`.
 - Una funcionalidad nueva es un módulo `:feature:<nombre>` nuevo.
 
@@ -169,7 +175,7 @@ Vive en `:core:designsystem` y se usa a través de `TavolaTheme` (nunca colores 
 - **Color**: paleta mediterránea (azafrán, limón, egeo, albahaca, terracota…). Todos los roles de superficie y contenedor están definidos en claro y oscuro, y `dynamicColor` está desactivado. Los roles propios de Tavola (`TavolaTheme.colors`) cubren tarjetas de día, huecos de comida y chips.
 - **Tipografía**: titulares en serif (carácter editorial) y texto de interfaz en sans-serif.
 - **Formas**: muy redondeadas (8, 12, 16, 20 y 28 dp) y botones en píldora.
-- **Movimiento**: `MotionScheme.expressive()` en todo el tema.
+- **Movimiento**: `MotionScheme.expressive()` en todo el tema, y los componentes lo usan en vez de animaciones sueltas: resortes **espaciales** para tamaño, posición y forma (la hoja, el cambio de semana, las filas que se reordenan al buscar) y de **efectos** para color y opacidad. Las filas y botones responden al tacto.
 
 | Componente | Qué hace |
 |---|---|
@@ -177,10 +183,13 @@ Vive en `:core:designsystem` y se usa a través de `TavolaTheme` (nunca colores 
 | `TavolaTopBar` | Barra superior grande y colapsable, con titular en serif. |
 | `TavolaFloatingNavBar` | Navegación en píldora flotante, superpuesta al contenido. |
 | `TavolaDayCard` | Tarjeta de día con tres estados (pasado, hoy, próximo) y estado «sin planificar». |
-| `TavolaMealSlot` | Hueco de comida o cena, relleno o vacío (borde discontinuo). |
+| `TavolaMealSlot` | Hueco de comida o cena, relleno o vacío (borde discontinuo), que anima el cambio entre ambos estados. |
 | `TavolaTaskChip` | Tarea rápida que se marca y se tacha con animación. |
 | `TavolaWeekSelector` | Flechas, rango de la semana y botón «Hoy». |
 | `TavolaAddTaskDialog` | Diálogo para escribir una tarea. |
+| `TavolaModalBottomSheet` | Hoja inferior con la forma y los colores del tema. |
+| `TavolaSearchField` / `TavolaTextField` | Campos de texto en píldora, con botón de borrar animado. |
+| `TavolaRecipeRow` | Fila de receta con respuesta táctil y estado seleccionado. |
 | `TavolaLoadingIndicator` | Indicador de carga expresivo. |
 
 Todos los componentes reciben **modelos de UI propios** y callbacks (no dependen del dominio) y llevan `@Preview` en claro y oscuro.
@@ -189,9 +198,9 @@ Todos los componentes reciben **modelos de UI propios** y callbacks (no dependen
 
 ## 🧪 Tests
 
-- **32 tests unitarios** con JUnit 5, Turbine y corrutinas de test: ViewModel, repositorio, formateo de fechas, utilidades de semana y el módulo de dispatchers.
+- **49 tests unitarios** con JUnit 5, Turbine y corrutinas de test: ViewModels del calendario y del selector, repositorios, buscador, formateo de fechas, utilidades de semana y el módulo de dispatchers.
 - **Fakes en lugar de mocks**, como recomienda Google. Viven en `:core:testing` y se reutilizan en los tests del ViewModel.
-- **30 capturas de referencia** con *Compose Preview Screenshot Testing* para componentes y pantallas, en móvil (claro y oscuro), plegable y tablet, y con texto grande para detectar recortes. Las referencias están en `app/src/screenshotTestDefaultDebug/reference`.
+- **44 capturas de referencia** con *Compose Preview Screenshot Testing* para componentes y pantallas, en móvil (claro y oscuro), plegable y tablet, y con texto grande para detectar recortes. Las referencias están en `app/src/screenshotTestDefaultDebug/reference`.
 
 ```bash
 ./gradlew testDebugUnitTest :domain:test :core:testing:test      # tests unitarios
@@ -203,6 +212,18 @@ Todos los componentes reciben **modelos de UI propios** y callbacks (no dependen
 
 ---
 
+## 🤖 Integración continua
+
+Cada push a `main` y cada pull request pasan por GitHub Actions ([`ci.yml`](.github/workflows/ci.yml)):
+
+1. **Formato, lint y tests**: `spotlessCheck`, compilación de debug y release, `lintDebug` y todos los tests unitarios. Si algo falla, sube los informes como artefacto.
+2. **Publicar APK** (solo en push a `main` y solo si lo anterior pasa): compila el APK de **debug**, lo firma con un keystore propio guardado como secreto del repositorio y crea una **pre-release `build-N`** con el APK adjunto (`tavola-0.1.N-debug.apk`). Se conservan las 10 últimas.
+
+Para instalar una versión, abre la pre-release en la app de GitHub (o en el navegador del móvil) y descarga el APK. Como todas las builds llevan la misma firma y el número de versión sube en cada una, se instalan unas encima de otras. Si ya tenías la app instalada desde Android Studio, desinstálala una vez antes (la firma es distinta).
+
+> Los tests de capturas **no** están en la CI todavía: sus referencias se generaron en Windows y habría que comprobarlas en Linux.
+
+---
 ## 🚀 Empezar
 
 **Requisitos:** Android Studio reciente, JDK 17 o superior (sirve el que trae Android Studio) y Android SDK 37.
@@ -235,6 +256,7 @@ tavola/
 │   └── testing/          fakes y utilidades de test
 ├── feature/
 │   ├── calendar/         landing: calendario semanal
+│   ├── recipes/          selector de comida (y, más adelante, recetario)
 │   └── showcase/         muestra de componentes (solo debug)
 ├── build-logic/          plugins de convención de Gradle
 ├── docs/                 plan, lecciones aprendidas e imágenes
@@ -249,8 +271,8 @@ tavola/
 |---|---|---|
 | 0 · Base | Catálogo de versiones, módulos, plugins de convención, strings es/en | ✅ |
 | 1 · Design system | Tema, scaffold, barras y componentes del calendario | ✅ (pendiente el checkpoint visual en dispositivo) |
-| 2 · Calendario con datos fake | Modelos, ViewModel, pantalla, selector de semana, tests | ✅ (pendiente el checkpoint en emulador) |
-| 3 · MVP real | Firebase Auth, grupos con código de invitación, calendario en tiempo real, CRUD de recetas | ⏳ |
+| 2 · Calendario con datos fake | Modelos, ViewModel, pantalla, selector de semana, selector de comida, tests | ✅ (pendiente el checkpoint en emulador) |
+| 3 · MVP real | Firebase Auth, grupos con código de invitación, calendario en tiempo real, editor de recetas | ⏳ |
 | 4 · Compra y diseño premium | Lista de la compra, fotos y carrusel de recetas, importar por URL, notificaciones | ⏳ |
 | 5 · IA | Sugerencias por ingredientes, planificador semanal y sugerencias en la compra | ⏳ |
 

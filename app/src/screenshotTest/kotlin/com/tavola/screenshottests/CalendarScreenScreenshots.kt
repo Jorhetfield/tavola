@@ -8,6 +8,7 @@ import com.tavola.core.designsystem.preview.TavolaScreenPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.domain.model.DayPlan
 import com.tavola.domain.model.DayTask
+import com.tavola.domain.model.PlannedMeal
 import com.tavola.domain.model.RecipeRef
 import com.tavola.feature.calendar.CalendarActions
 import com.tavola.feature.calendar.CalendarContent
@@ -20,10 +21,10 @@ import kotlinx.datetime.plus
 private val today = LocalDate(2026, 10, 21)
 private val currentWeek = LocalDate(2026, 10, 19)
 
-private val gazpacho = RecipeRef("gazpacho", "Gazpacho", prepTimeMinutes = 15, tags = listOf("Español"))
-private val paella = RecipeRef("paella", "Paella valenciana", prepTimeMinutes = 50, tags = listOf("Español"))
-private val moussaka = RecipeRef("moussaka", "Moussaka", prepTimeMinutes = 70, tags = listOf("Griego"))
-private val risotto = RecipeRef("risotto", "Risotto de setas", prepTimeMinutes = 40, tags = listOf("Italiano"))
+private val gazpacho = PlannedMeal.FromRecipe(RecipeRef("gazpacho", "Gazpacho", prepTimeMinutes = 15, tags = listOf("Español")))
+private val paella = PlannedMeal.FromRecipe(RecipeRef("paella", "Paella valenciana", prepTimeMinutes = 50, tags = listOf("Español")))
+private val moussaka = PlannedMeal.FromRecipe(RecipeRef("moussaka", "Moussaka", prepTimeMinutes = 70, tags = listOf("Griego")))
+private val risotto = PlannedMeal.FromRecipe(RecipeRef("risotto", "Risotto de setas", prepTimeMinutes = 40, tags = listOf("Italiano")))
 
 private fun week(weekStart: LocalDate): CalendarUiState.Success {
     val plans = listOf(
@@ -33,7 +34,7 @@ private fun week(weekStart: LocalDate): CalendarUiState.Success {
         DayPlan(weekStart.plus(3, DateTimeUnit.DAY)),
         DayPlan(weekStart.plus(4, DateTimeUnit.DAY), paella, gazpacho),
         DayPlan(weekStart.plus(5, DateTimeUnit.DAY), risotto, moussaka),
-        DayPlan(weekStart.plus(6, DateTimeUnit.DAY), moussaka),
+        DayPlan(weekStart.plus(6, DateTimeUnit.DAY), moussaka, PlannedMeal.Quick("Comemos fuera", note = "Con amigos")),
     )
     return CalendarUiState.Success(
         weekStart = weekStart,

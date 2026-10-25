@@ -66,7 +66,8 @@ dependencies {
     implementation(projects.data)
     implementation(projects.core.designsystem)
     implementation(projects.feature.calendar)
-    // La pantalla de muestra solo existe en debug (ver src/debug/.../TavolaApp.kt).
+    implementation(projects.feature.recipes)
+    // La pantalla de muestra solo existe en debug (ver src/debug/.../DebugNavigation.kt).
     debugImplementation(projects.feature.showcase)
 
     implementation(platform(libs.androidx.compose.bom))

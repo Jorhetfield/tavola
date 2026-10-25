@@ -1,8 +1,10 @@
 package com.tavola.domain.repository
 
-import com.tavola.domain.model.RecipeRef
+import com.tavola.domain.model.Recipe
+import kotlinx.coroutines.flow.Flow
 
-/** Recetas del grupo. Por ahora solo ofrece sugerencias; el CRUD llega con la Fase 3. */
+/** Recetario del grupo. Por ahora solo lectura; crear y editar recetas llega con el editor. */
 interface RecipeRepository {
-    suspend fun getSuggestions(): List<RecipeRef>
+    /** Todas las recetas, actualizadas cada vez que cambian. */
+    fun observeRecipes(): Flow<List<Recipe>>
 }

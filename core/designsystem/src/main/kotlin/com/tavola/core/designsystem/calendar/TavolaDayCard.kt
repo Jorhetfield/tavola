@@ -1,6 +1,7 @@
 package com.tavola.core.designsystem.calendar
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,7 @@ private val TodayElevation = 8.dp
  * tareas rápidas debajo. El estado del día cambia su aspecto: hoy (azafrán, destacada), próximo (azul
  * mediterráneo) y pasado (apagada).
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TavolaDayCard(
     model: DayCardModel,
@@ -59,7 +61,9 @@ fun TavolaDayCard(
         shadowElevation = if (model.state == DayState.Today) TodayElevation else 0.dp,
     ) {
         Column(
-            modifier = Modifier.padding(spacing.lg),
+            modifier = Modifier
+                .animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec())
+                .padding(spacing.lg),
             verticalArrangement = Arrangement.spacedBy(spacing.lg),
         ) {
             DayCardHeader(model, palette, onAddTaskClick)

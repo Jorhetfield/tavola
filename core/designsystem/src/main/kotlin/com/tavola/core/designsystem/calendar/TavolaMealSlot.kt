@@ -1,5 +1,13 @@
 package com.tavola.core.designsystem.calendar
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,10 +24,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,11 +49,15 @@ import com.tavola.core.designsystem.theme.TavolaTheme
 private val BadgeSize = 32.dp
 private val BadgeIconSize = 18.dp
 private val SlotMinHeight = 112.dp
+private const val EMPTY_BORDER_ALPHA = 0.4f
+private const val ENTER_OFFSET_DIVISOR = 4
 
 /**
- * Hueco de comida o cena. Lleno: título de la receta y detalle. Vacío: borde discontinuo con "Añadir".
- * [containerColor] y [contentColor] permiten a la tarjeta de día adaptarlo a su estado.
+ * Hueco de comida o cena. Lleno: título de la receta o comida y detalle. Vacío: borde discontinuo con "Añadir".
+ * Al rellenarse o vaciarse, el borde se desvanece, el fondo cambia de color (animación de efectos) y el contenido entra
+ * deslizándose con un resorte espacial. [containerColor] y [contentColor] permiten a la tarjeta de día adaptarlo a su estado.
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TavolaMealSlot(
     model: MealSlotModel,
@@ -54,28 +68,44 @@ fun TavolaMealSlot(
 ) {
     val spacing = TavolaTheme.spacing
     val shape = MaterialTheme.shapes.large
+    val motion = MaterialTheme.motionScheme
+    val background by animateColorAsState(
+        if (model.isEmpty) Color.Transparent else containerColor,
+        motion.defaultEffectsSpec(),
+        label = "slotBackground",
+    )
+    val borderAlpha by animateFloatAsState(
+        if (model.isEmpty) EMPTY_BORDER_ALPHA else 0f,
+        motion.defaultEffectsSpec(),
+        label = "slotBorder",
+    )
 
     Column(
         modifier = modifier
             .clip(shape)
-            .then(
-                if (model.isEmpty) {
-                    Modifier.dashedBorder(contentColor.copy(alpha = 0.4f), shape)
-                } else {
-                    Modifier.background(containerColor)
-                },
-            )
+            .background(background)
+            .dashedBorder(contentColor.copy(alpha = borderAlpha), shape)
             .clickable(onClick = onClick)
+            .animateContentSize(motion.defaultSpatialSpec())
             .defaultMinSize(minHeight = SlotMinHeight)
             .padding(spacing.md),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
         SlotHeader(type = model.type, contentColor = contentColor)
         Spacer(Modifier.height(spacing.xxs))
-        if (model.isEmpty) {
-            EmptySlotBody(contentColor)
-        } else {
-            FilledSlotBody(model, contentColor)
+        AnimatedContent(
+            targetState = model.title to model.subtitle,
+            transitionSpec = {
+                (
+                    fadeIn(motion.defaultEffectsSpec()) + slideInVertically(motion.defaultSpatialSpec()) {
+                        it / ENTER_OFFSET_DIVISOR
+                    }
+                    ) togetherWith
+                    fadeOut(motion.fastEffectsSpec())
+            },
+            label = "slotBody",
+        ) { (title, subtitle) ->
+            if (title == null) EmptySlotBody(contentColor) else FilledSlotBody(title, subtitle, contentColor)
         }
     }
 }
@@ -98,7 +128,7 @@ private fun SlotHeader(type: MealType, contentColor: Color) {
             Icon(
                 imageVector = if (isLunch) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
                 contentDescription = null,
-                tint = if (isLunch) Color(0xFF3D2200) else Color.White,
+                tint = if (isLunch) colors.onDayCardActive else MaterialTheme.colorScheme.onSecondary,
                 modifier = Modifier.size(BadgeIconSize),
             )
         }
@@ -111,17 +141,17 @@ private fun SlotHeader(type: MealType, contentColor: Color) {
 }
 
 @Composable
-private fun FilledSlotBody(model: MealSlotModel, contentColor: Color) {
+private fun FilledSlotBody(title: String, subtitle: String?, contentColor: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.xxs)) {
         Text(
-            text = model.title.orEmpty(),
+            text = title,
             style = MaterialTheme.typography.titleSmall,
             color = contentColor,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
-        model.subtitle?.let { detail ->
-            Text(text = detail, style = MaterialTheme.typography.bodySmall, color = contentColor.copy(alpha = 0.7f))
+        subtitle?.let {
+            Text(text = it, style = MaterialTheme.typography.bodySmall, color = contentColor.copy(alpha = 0.7f))
         }
     }
 }
@@ -149,7 +179,7 @@ private fun Modifier.dashedBorder(color: Color, shape: Shape): Modifier = drawWi
     )
     onDrawWithContent {
         drawContent()
-        drawOutline(outline, color, style = stroke)
+        if (color.alpha > 0f) drawOutline(outline, color, style = stroke)
     }
 }
 

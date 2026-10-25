@@ -6,7 +6,6 @@ import com.tavola.core.designsystem.calendar.DayState
 import com.tavola.domain.model.MealType
 import com.tavola.domain.model.WeekPlan
 import com.tavola.domain.repository.CalendarRepository
-import com.tavola.domain.repository.RecipeRepository
 import com.tavola.domain.time.TodayProvider
 import com.tavola.domain.time.plusWeeks
 import com.tavola.domain.time.startOfWeek
@@ -26,13 +25,11 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
 @HiltViewModel
-class CalendarViewModel @Inject constructor(
-    private val calendarRepository: CalendarRepository,
-    private val recipeRepository: RecipeRepository,
-    private val todayProvider: TodayProvider,
-) : ViewModel() {
+class CalendarViewModel @Inject constructor(private val calendarRepository: CalendarRepository, private val todayProvider: TodayProvider) :
+    ViewModel() {
     private val selectedWeekStart = MutableStateFlow(todayProvider.today().startOfWeek())
     private val addTaskDate = MutableStateFlow<LocalDate?>(null)
+    private val pickerSlot = MutableStateFlow<Pair<LocalDate, MealType>?>(null)
     private val retryCount = MutableStateFlow(0)
 
     /** La semana elegida; `null` si el repositorio falló al cargarla. */
@@ -40,39 +37,35 @@ class CalendarViewModel @Inject constructor(
     private val week = combine(selectedWeekStart, retryCount) { start, _ -> start }
         .flatMapLatest { start ->
             calendarRepository.observeWeek(start)
-                .map<WeekPlan, WeekPlan?> { weekPlan -> weekPlan }
+                .map<WeekPlan, WeekPlan?> { it }
                 .catch { emit(null) }
         }
 
-    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate) { week, dialogDate ->
-        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate)
+    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate, pickerSlot) { week, dialogDate, slot ->
+        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CalendarUiState.Loading)
 
-    fun onPreviousWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(-1) }
+    fun onPreviousWeekClick() = selectedWeekStart.update { it.plusWeeks(-1) }
 
-    fun onNextWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(1) }
+    fun onNextWeekClick() = selectedWeekStart.update { it.plusWeeks(1) }
 
     fun onTodayClick() {
         selectedWeekStart.value = todayProvider.today().startOfWeek()
     }
 
-    fun onRetryClick() = retryCount.update { count -> count + 1 }
+    fun onRetryClick() = retryCount.update { it + 1 }
 
     fun onTaskCheckedChange(date: LocalDate, taskId: String, checked: Boolean) {
         viewModelScope.launch { calendarRepository.setTaskDone(date, taskId, checked) }
     }
 
-    /** Un hueco vacío se rellena con una receta sugerida (provisional hasta que exista el selector de recetas). */
+    /** Abre el selector de comida para este hueco (vacío o lleno). Quien elige y guarda es la pantalla del selector. */
     fun onMealClick(date: LocalDate, type: MealType) {
-        val day = (uiState.value as? CalendarUiState.Success)?.days?.firstOrNull { item -> item.date == date }
-        if (day?.plan?.meal(type) != null) return
+        pickerSlot.value = date to type
+    }
 
-        viewModelScope.launch {
-            val suggestions = recipeRepository.getSuggestions()
-            if (suggestions.isEmpty()) return@launch
-            val index = Math.floorMod(date.toEpochDays().toInt() + type.ordinal, suggestions.size)
-            calendarRepository.setMeal(date, type, suggestions[index])
-        }
+    fun onMealPickerDismiss() {
+        pickerSlot.value = null
     }
 
     fun onAddTaskClick(date: LocalDate) {
@@ -92,20 +85,24 @@ class CalendarViewModel @Inject constructor(
         viewModelScope.launch { calendarRepository.addTask(date, task) }
     }
 
-    private fun WeekPlan.toSuccess(dialogDate: LocalDate?): CalendarUiState.Success {
+    private fun WeekPlan.toSuccess(dialogDate: LocalDate?, slot: Pair<LocalDate, MealType>?): CalendarUiState.Success {
         val today = todayProvider.today()
+        val items = days.map { plan ->
+            val state = when {
+                plan.date < today -> DayState.Past
+                plan.date == today -> DayState.Today
+                else -> DayState.Upcoming
+            }
+            DayItem(plan, state)
+        }
         return CalendarUiState.Success(
             weekStart = weekStart,
-            days = days.map { plan ->
-                val state = when {
-                    plan.date < today -> DayState.Past
-                    plan.date == today -> DayState.Today
-                    else -> DayState.Upcoming
-                }
-                DayItem(plan, state)
-            },
+            days = items,
             isCurrentWeek = weekStart == today.startOfWeek(),
             addTaskDate = dialogDate,
+            mealPicker = slot?.let { (date, type) ->
+                MealPickerTarget(date, type, items.firstOrNull { it.date == date }?.plan?.meal(type))
+            },
         )
     }
 

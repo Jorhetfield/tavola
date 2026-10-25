@@ -5,10 +5,10 @@ import app.cash.turbine.test
 import com.tavola.core.designsystem.calendar.DayState
 import com.tavola.core.testing.data.MediterraneanSampleData
 import com.tavola.core.testing.fake.FakeCalendarRepository
-import com.tavola.core.testing.fake.FakeRecipeRepository
 import com.tavola.core.testing.fake.FixedTodayProvider
 import com.tavola.core.testing.rule.MainDispatcherExtension
 import com.tavola.domain.model.MealType
+import com.tavola.domain.model.PlannedMeal
 import com.tavola.domain.model.WeekPlan
 import com.tavola.domain.repository.CalendarRepository
 import kotlinx.coroutines.flow.Flow
@@ -35,8 +35,7 @@ class CalendarViewModelTest {
     private val calendarRepository = FakeCalendarRepository()
     private val todayProvider = FixedTodayProvider(today)
 
-    private fun viewModel(repository: CalendarRepository = calendarRepository) =
-        CalendarViewModel(repository, FakeRecipeRepository(), todayProvider)
+    private fun viewModel(repository: CalendarRepository = calendarRepository) = CalendarViewModel(repository, todayProvider)
 
     @Test
     fun `arranca en la semana actual marcando pasado, hoy y proximos`() = runTest {
@@ -55,7 +54,7 @@ class CalendarViewModelTest {
                     DayState.Upcoming,
                     DayState.Upcoming,
                 ),
-                state.days.map { day -> day.state },
+                state.days.map { it.state },
             )
             cancelAndIgnoreRemainingEvents()
         }
@@ -68,14 +67,14 @@ class CalendarViewModelTest {
             awaitSuccess()
 
             viewModel.onNextWeekClick()
-            val next = awaitSuccess { success -> success.weekStart == LocalDate(2026, 10, 26) }
+            val next = awaitSuccess { it.weekStart == LocalDate(2026, 10, 26) }
             assertFalse(next.isCurrentWeek)
-            assertTrue(next.days.all { day -> day.state == DayState.Upcoming })
+            assertTrue(next.days.all { it.state == DayState.Upcoming })
 
             viewModel.onPreviousWeekClick()
             viewModel.onPreviousWeekClick()
-            val previous = awaitSuccess { success -> success.weekStart == LocalDate(2026, 10, 12) }
-            assertTrue(previous.days.all { day -> day.state == DayState.Past })
+            val previous = awaitSuccess { it.weekStart == LocalDate(2026, 10, 12) }
+            assertTrue(previous.days.all { it.state == DayState.Past })
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -87,11 +86,11 @@ class CalendarViewModelTest {
             awaitSuccess()
             viewModel.onNextWeekClick()
             viewModel.onNextWeekClick()
-            awaitSuccess { success -> success.weekStart == LocalDate(2026, 11, 2) }
+            awaitSuccess { it.weekStart == LocalDate(2026, 11, 2) }
 
             viewModel.onTodayClick()
 
-            val state = awaitSuccess { success -> success.isCurrentWeek }
+            val state = awaitSuccess { it.isCurrentWeek }
             assertEquals(monday, state.weekStart)
             cancelAndIgnoreRemainingEvents()
         }
@@ -105,24 +104,48 @@ class CalendarViewModelTest {
 
             viewModel.onTaskCheckedChange(LocalDate(2026, 10, 20), "t-pollo", checked = true)
 
-            val state = awaitSuccess { success -> success.days[1].plan.tasks.any { task -> task.id == "t-pollo" && task.done } }
-            assertTrue(state.days[1].plan.tasks.first { task -> task.id == "t-pollo" }.done)
+            val state = awaitSuccess { day -> day.days[1].plan.tasks.any { it.id == "t-pollo" && it.done } }
+            assertTrue(state.days[1].plan.tasks.first { it.id == "t-pollo" }.done)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `pulsar un hueco vacio lo rellena y pulsar uno lleno no cambia nada`() = runTest {
+    fun `pulsar un hueco abre el selector con lo que hay ahora y descartar lo cierra`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {
-            assertNull(awaitSuccess().days[3].plan.lunch)
+            assertNull(awaitSuccess().mealPicker)
 
             viewModel.onMealClick(thursday, MealType.Lunch)
-            awaitSuccess { success -> success.days[3].plan.lunch != null }
+            assertEquals(
+                MealPickerTarget(thursday, MealType.Lunch, current = null),
+                awaitSuccess { it.mealPicker != null }.mealPicker,
+            )
 
-            val before = viewModel.uiState.value
-            viewModel.onMealClick(today, MealType.Lunch)
-            assertEquals(before, viewModel.uiState.value)
+            viewModel.onMealClick(today, MealType.Dinner)
+            val risotto = PlannedMeal.FromRecipe(MediterraneanSampleData.risotto.toRef())
+            assertEquals(
+                MealPickerTarget(today, MealType.Dinner, current = risotto),
+                awaitSuccess { it.mealPicker?.date == today }.mealPicker,
+            )
+
+            viewModel.onMealPickerDismiss()
+            assertNull(awaitSuccess { it.mealPicker == null }.mealPicker)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `el selector se actualiza si la comida cambia mientras esta abierto`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+            viewModel.onMealClick(thursday, MealType.Lunch)
+            awaitSuccess { it.mealPicker != null }
+
+            calendarRepository.setMeal(thursday, MealType.Lunch, PlannedMeal.Quick("Sobras"))
+
+            assertEquals(PlannedMeal.Quick("Sobras"), awaitSuccess { it.mealPicker?.current != null }.mealPicker?.current)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -134,14 +157,14 @@ class CalendarViewModelTest {
             awaitSuccess()
 
             viewModel.onAddTaskClick(thursday)
-            awaitSuccess { success -> success.addTaskDate == thursday }
+            awaitSuccess { it.addTaskDate == thursday }
 
             viewModel.onAddTaskConfirm("   ")
             expectNoEvents()
             assertEquals(thursday, (viewModel.uiState.value as CalendarUiState.Success).addTaskDate)
 
             viewModel.onAddTaskConfirm("  Comprar limones ")
-            val state = awaitSuccess { success -> success.days[3].plan.tasks.isNotEmpty() }
+            val state = awaitSuccess { it.days[3].plan.tasks.isNotEmpty() }
             assertNull(state.addTaskDate)
             assertEquals("Comprar limones", state.days[3].plan.tasks.last().text)
             cancelAndIgnoreRemainingEvents()
@@ -154,11 +177,11 @@ class CalendarViewModelTest {
         viewModel.uiState.test {
             awaitSuccess()
             viewModel.onAddTaskClick(thursday)
-            awaitSuccess { success -> success.addTaskDate != null }
+            awaitSuccess { it.addTaskDate != null }
 
             viewModel.onAddTaskDismiss()
 
-            val state = awaitSuccess { success -> success.addTaskDate == null }
+            val state = awaitSuccess { it.addTaskDate == null }
             assertTrue(state.days[3].plan.tasks.isEmpty())
             cancelAndIgnoreRemainingEvents()
         }

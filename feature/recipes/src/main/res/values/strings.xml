@@ -1,0 +1,28 @@
+<resources>
+    <string name="meal_picker_title_lunch">Comida</string>
+    <string name="meal_picker_title_dinner">Cena</string>
+    <string name="meal_picker_date_format">%1$s %2$d de %3$s</string>
+    <string name="meal_picker_prep_time">%1$d min</string>
+    <string name="meal_picker_clear">Quitar</string>
+
+    <string name="meal_picker_mode_recipes">Recetas</string>
+    <string name="meal_picker_mode_quick">Comida rápida</string>
+
+    <string name="meal_picker_search_placeholder">Buscar receta o ingrediente</string>
+    <string name="meal_picker_search_clear">Borrar búsqueda</string>
+    <string name="meal_picker_empty_no_results">Sin resultados para «%1$s»</string>
+    <string name="meal_picker_empty_no_recipes">Todavía no hay recetas</string>
+    <string name="meal_picker_empty_write_query">Anotar «%1$s» sin receta</string>
+    <string name="meal_picker_empty_write">Anotar sin receta</string>
+
+    <string name="meal_picker_quick_title_label">¿Qué vais a comer?</string>
+    <string name="meal_picker_quick_note_label">Nota (opcional)</string>
+    <string name="meal_picker_quick_save">Guardar</string>
+    <string name="meal_picker_quick_leftovers">Sobras</string>
+    <string name="meal_picker_quick_eat_out">Comemos fuera</string>
+    <string name="meal_picker_quick_sandwich">Bocadillo</string>
+    <string name="meal_picker_quick_takeaway">Pedimos comida</string>
+
+    <string name="meal_picker_error">No se han podido cargar las recetas</string>
+    <string name="meal_picker_retry">Reintentar</string>
+</resources>

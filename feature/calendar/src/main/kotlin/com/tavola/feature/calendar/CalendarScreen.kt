@@ -34,12 +34,14 @@ import com.tavola.core.designsystem.topbar.TavolaTopBarAction
  *
  * @param floatingBar barra de navegación flotante; la aporta `:app`, que es quien conoce los destinos.
  * @param onOpenDebugMenu si no es `null` (solo en debug) añade un botón a la barra superior.
+ * @param mealPicker contenido del selector de comida, que aporta `:app` (ver [MealPickerSlot]).
  */
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
     floatingBar: (@Composable () -> Unit)? = null,
     onOpenDebugMenu: (() -> Unit)? = null,
+    mealPicker: MealPickerSlot? = null,
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -50,13 +52,14 @@ fun CalendarScreen(
             onTodayClick = viewModel::onTodayClick,
             onRetryClick = viewModel::onRetryClick,
             onMealClick = viewModel::onMealClick,
+            onMealPickerDismiss = viewModel::onMealPickerDismiss,
             onTaskCheckedChange = viewModel::onTaskCheckedChange,
             onAddTaskClick = viewModel::onAddTaskClick,
             onAddTaskDismiss = viewModel::onAddTaskDismiss,
             onAddTaskConfirm = viewModel::onAddTaskConfirm,
         )
     }
-    CalendarContent(state, actions, modifier, floatingBar, onOpenDebugMenu)
+    CalendarContent(state, actions, modifier, floatingBar, onOpenDebugMenu, mealPicker)
 }
 
 /** Parte sin estado de la pantalla: recibe el estado y las acciones, así se puede previsualizar y testear. */
@@ -68,6 +71,7 @@ fun CalendarContent(
     modifier: Modifier = Modifier,
     floatingBar: (@Composable () -> Unit)? = null,
     onOpenDebugMenu: (() -> Unit)? = null,
+    mealPicker: MealPickerSlot? = null,
 ) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     TavolaScaffold(
@@ -82,7 +86,7 @@ fun CalendarContent(
 
             CalendarUiState.Error -> CenteredState(contentPadding) { CalendarError(actions.onRetryClick) }
 
-            is CalendarUiState.Success -> WeekContent(state, actions, contentPadding)
+            is CalendarUiState.Success -> WeekContent(state, actions, contentPadding, mealPicker)
         }
     }
 }

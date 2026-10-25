@@ -1,7 +1,7 @@
 package com.tavola.domain.repository
 
 import com.tavola.domain.model.MealType
-import com.tavola.domain.model.RecipeRef
+import com.tavola.domain.model.PlannedMeal
 import com.tavola.domain.model.WeekPlan
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
@@ -16,6 +16,6 @@ interface CalendarRepository {
     /** Añade una tarea rápida (pendiente) al día [date]. */
     suspend fun addTask(date: LocalDate, text: String)
 
-    /** Pone [recipe] en la comida o cena de [date]; con `null` deja el hueco vacío. */
-    suspend fun setMeal(date: LocalDate, type: MealType, recipe: RecipeRef?)
+    /** Pone [meal] (receta o comida rápida) en la comida o cena de [date]; con `null` deja el hueco vacío. */
+    suspend fun setMeal(date: LocalDate, type: MealType, meal: PlannedMeal?)
 }

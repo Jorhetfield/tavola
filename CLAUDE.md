@@ -21,6 +21,9 @@ Requieren `JAVA_HOME` apuntando al JDK de Android Studio (`%LOCALAPPDATA%\Progra
 ```
 Antes de dar una tarea por terminada: `spotlessApply` + `assembleDebug` + tests.
 
+### CI
+Cada push a `main` ejecuta `.github/workflows/ci.yml` (spotlessCheck, compilación, lint y tests) y, si pasa, publica una pre-release `build-N` con el APK de debug firmado. Antes de subir cambios, ejecuta en local lo mismo que la CI. Los tests de capturas no están en la CI.
+
 ### Tests de capturas (Compose Preview Screenshot Testing, experimental)
 ```bash
 ./gradlew :app:updateDebugScreenshotTestDefaultTestSuite   # genera/actualiza las imágenes de referencia
@@ -74,9 +77,10 @@ Clean Architecture multi-módulo por capas:
 :data                  Firestore/Room, implementaciones de repositorio
 :core:designsystem     tema, tokens, TavolaScaffold, componentes base (paquete com.tavola.core.designsystem)
 :feature:<nombre>      una funcionalidad: pantallas + ViewModels (paquete com.tavola.feature.<nombre>)
+                       hoy: calendar (landing), recipes (selector de comida) y showcase (solo debug)
 :core:testing          fakes (FakeCalendarRepository), datos de ejemplo mediterráneos y MainDispatcherExtension (JUnit 5)
 ```
-Dependencias: `:domain` no depende de nadie; `:data` depende de `:domain`; `:core:*` nunca depende de `:feature:*`; `:core:designsystem` solo de Compose/M3 (ni `:domain`); cada `:feature:*` depende de `:domain` y `:core:designsystem`, **nunca de otra feature**; `:app` ensambla todo y es el único que conoce las rutas de navegación.
+Dependencias: `:domain` no depende de nadie; `:data` depende de `:domain`; `:core:*` nunca depende de `:feature:*`; `:core:designsystem` solo de Compose/M3 (ni `:domain`); cada `:feature:*` depende de `:domain` y `:core:designsystem`, **nunca de otra feature**. Para que una feature use a otra, `:app` le cede el contenido por un *slot* (p. ej. la hoja del selector en el calendario) y la comunicación va por IDs y repositorios del dominio; `:app` ensambla todo y es el único que conoce las rutas de navegación.
 Hoy existen `:feature:calendar` (landing: calendario semanal con datos fake) y `:feature:showcase` (pantalla temporal para ver el tema y los componentes; `:app` la incluye solo en debug y se abre desde el botón de depuración del calendario, ver `src/debug/.../DebugNavigation.kt`). Una funcionalidad nueva = un módulo `:feature:<nombre>` nuevo.
 
 **UI:** MVVM clásico. `ViewModel` + `StateFlow<UiState>` con `UiState` como `sealed class` (Loading / Success / Error).
@@ -103,13 +107,15 @@ Convenciones de estado (guía de arquitectura de Google):
 8. Todo UseCase, ViewModel y repositorio con tests.
 9. Nunca `Dispatchers.IO/Default/Main` directos en código de producción: inyecta `@IoDispatcher`, `@DefaultDispatcher` o `@MainDispatcher` (`com.tavola.domain.dispatcher`; los provee `DispatchersModule` en `:data`). En tests, pasa un `StandardTestDispatcher`/`UnconfinedTestDispatcher`.
 10. Hilt: `TavolaApplication` (`@HiltAndroidApp`) y `MainActivity` (`@AndroidEntryPoint`) en `:app`. Los módulos de DI de `:data` son `internal` y usan `@Binds` (implementación `XRepositoryImpl` → interfaz `XRepository` de `:domain`). Los ViewModels llevan `@HiltViewModel`. `:domain` solo usa `javax.inject` (`@Inject constructor`), nunca Hilt.
-11. Nomenclatura: `XScreen`, `XViewModel`, `XUiState`, `GetXUseCase`, `XRepository` / `XRepositoryImpl`, componentes base `TavolaX`.
+11. Animaciones y movimiento: siempre con `MaterialTheme.motionScheme` (`defaultSpatialSpec`/`fastSpatialSpec` para tamaño, posición y forma; `defaultEffectsSpec`/`fastEffectsSpec` para color y opacidad), nunca `tween`/`spring` sueltos. Todo elemento pulsable tiene respuesta táctil. Solo tokens del tema (claro y oscuro), y cada pantalla o componente nuevo lleva capturas en claro, oscuro y con texto grande.
+12. Nomenclatura: `XScreen`, `XViewModel`, `XUiState`, `GetXUseCase`, `XRepository` / `XRepositoryImpl`, componentes base `TavolaX`.
 
 ## Modelo de datos (Firestore)
 ```
 Group        { id, name, memberIds[], inviteCode }
-WeekPlan     { groupId, weekStart, days[{ date, lunch: RecipeRef, dinner: RecipeRef, tasks[] }] }
-Recipe       { id, ownerId, title, photoUrl, ingredients[], steps[], tags[], prepTimeMinutes }
+WeekPlan     { groupId, weekStart, days[{ date, lunch: PlannedMeal?, dinner: PlannedMeal?, tasks[] }] }
+PlannedMeal  FromRecipe(RecipeRef: recipeId + título copiado) | Quick(title, note?)
+Recipe       { id, ownerId, title, photoUrl, ingredients[{ name, quantity?, unit }], steps[], tags[], prepTimeMinutes }
 ShoppingList { groupId, items[{ name, category, checked, addedBy }] }
 GroupMember  { userId, displayName, avatarUrl, color }
 ```

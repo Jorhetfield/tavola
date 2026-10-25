@@ -25,7 +25,12 @@ private const val SLIDE_DIVISOR = 4
 
 /** Lista de días de la semana. Al cambiar de semana, el contenido se desliza hacia el lado correspondiente. */
 @Composable
-internal fun WeekContent(state: CalendarUiState.Success, actions: CalendarActions, contentPadding: PaddingValues) {
+internal fun WeekContent(
+    state: CalendarUiState.Success,
+    actions: CalendarActions,
+    contentPadding: PaddingValues,
+    mealPicker: MealPickerSlot? = null,
+) {
     AnimatedContent(
         targetState = state,
         contentKey = { week -> week.weekStart },
@@ -38,6 +43,10 @@ internal fun WeekContent(state: CalendarUiState.Success, actions: CalendarAction
         label = "week",
     ) { week ->
         DayList(week, actions, contentPadding)
+    }
+
+    state.mealPicker?.let { target ->
+        if (mealPicker != null) MealPickerHost(target, actions.onMealPickerDismiss, mealPicker)
     }
 
     state.addTaskDate?.let {

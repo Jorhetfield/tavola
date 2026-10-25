@@ -8,6 +8,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.tavola.feature.calendar.CalendarScreen
+import com.tavola.feature.recipes.MealPickerSheetContent
 
 /** Raíz de la navegación (Navigation 3). El calendario es la landing. */
 @Composable
@@ -26,6 +27,9 @@ fun TavolaNavigation() {
                 CalendarScreen(
                     floatingBar = { TopLevelNavBar(selectedKey = "calendar", onItemClick = {}) },
                     onOpenDebugMenu = debugMenuAction(backStack),
+                    mealPicker = { target, onClose ->
+                        MealPickerSheetContent(date = target.date, type = target.type, current = target.current, onClose = onClose)
+                    },
                 )
             }
             debugEntries(backStack)

@@ -10,6 +10,7 @@ data class CalendarActions(
     val onTodayClick: () -> Unit = {},
     val onRetryClick: () -> Unit = {},
     val onMealClick: (date: LocalDate, type: MealType) -> Unit = { _, _ -> },
+    val onMealPickerDismiss: () -> Unit = {},
     val onTaskCheckedChange: (date: LocalDate, taskId: String, checked: Boolean) -> Unit = { _, _, _ -> },
     val onAddTaskClick: (date: LocalDate) -> Unit = {},
     val onAddTaskDismiss: () -> Unit = {},

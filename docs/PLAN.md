@@ -23,6 +23,7 @@ Marca `[x]` al terminar. Una tarea por vez; compilar y verificar antes de la sig
 ## Fase 2 — Calendario con datos fake
 - [x] Modelos y repositorio en `:domain` (calendario: `WeekPlan`, `DayPlan`, `CalendarRepository`; faltan recetas, grupos y compra)
 - [x] `CalendarUiState`, `CalendarViewModel`, `CalendarScreen` (`:feature:calendar`, landing de la app con Navigation 3)
+- [x] Selector de comida: receta o comida rápida (`PlannedMeal`), hoja inferior con buscador, cambiar y quitar (`:feature:recipes`)
 - [x] Datos fake mediterráneos (`MediterraneanSampleData` y `FakeCalendarRepository` en `:core:testing`)
 - [x] Tests de ViewModel (8 del ViewModel, 5 de formato de fechas, 6 del repositorio en memoria)
 - [ ] **Checkpoint:** build en emulador, light y dark
@@ -30,7 +31,7 @@ Marca `[x]` al terminar. Una tarea por vez; compilar y verificar antes de la sig
 ## Fase 3 — MVP real (Fase 1 del producto)
 - [ ] Firebase + Auth + grupos con código de invitación
 - [ ] Calendario compartido en tiempo real (Firestore)
-- [ ] CRUD de recetas (ingredientes, pasos)
+- [ ] CRUD de recetas: lista, detalle y editor (el modelo ya tiene ingredientes estructurados y pasos)
 - [ ] Tareas por día
 
 ## Fase 4 — Lista de la compra y diseño premium

@@ -2,7 +2,10 @@ package com.tavola.core.testing.data
 
 import com.tavola.domain.model.DayPlan
 import com.tavola.domain.model.DayTask
-import com.tavola.domain.model.RecipeRef
+import com.tavola.domain.model.Ingredient
+import com.tavola.domain.model.IngredientUnit
+import com.tavola.domain.model.PlannedMeal
+import com.tavola.domain.model.Recipe
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
@@ -12,47 +15,44 @@ object MediterraneanSampleData {
     /** Un lunes: la semana de ejemplo va del 19 al 25 de octubre de 2026. */
     val weekStart = LocalDate(2026, 10, 19)
 
-    val gazpacho = RecipeRef("gazpacho", "Gazpacho", prepTimeMinutes = 15, tags = listOf("Español"))
-    val tortilla = RecipeRef("tortilla", "Tortilla de patatas", prepTimeMinutes = 30, tags = listOf("Español"))
-    val paella = RecipeRef("paella", "Paella valenciana", prepTimeMinutes = 50, tags = listOf("Español"))
-    val moussaka = RecipeRef("moussaka", "Moussaka", prepTimeMinutes = 70, tags = listOf("Griego"))
-    val risotto = RecipeRef("risotto", "Risotto de setas", prepTimeMinutes = 40, tags = listOf("Italiano"))
-    val greekSalad = RecipeRef("greek-salad", "Ensalada griega", prepTimeMinutes = 10, tags = listOf("Griego"))
-    val pomodoro = RecipeRef("pomodoro", "Pasta al pomodoro", prepTimeMinutes = 25, tags = listOf("Italiano"))
-    val pizza = RecipeRef("pizza", "Pizza margarita", prepTimeMinutes = 45, tags = listOf("Italiano"))
-    val tiramisu = RecipeRef("tiramisu", "Tiramisú", prepTimeMinutes = 30, tags = listOf("Italiano"))
-    val tzatziki = RecipeRef("tzatziki", "Tzatziki con pita", prepTimeMinutes = 15, tags = listOf("Griego"))
+    val gazpacho = recipe("gazpacho", "Gazpacho", 15, "Español", Ingredient("Tomates maduros", 1.0, IngredientUnit.Kilogram))
+    val tortilla = recipe("tortilla", "Tortilla de patatas", 30, "Español", Ingredient("Huevos", 6.0, IngredientUnit.Piece))
+    val paella = recipe("paella", "Paella valenciana", 50, "Español", Ingredient("Arroz bomba", 400.0, IngredientUnit.Gram))
+    val moussaka = recipe("moussaka", "Moussaka", 70, "Griego", Ingredient("Berenjenas", 3.0, IngredientUnit.Piece))
+    val risotto = recipe("risotto", "Risotto de setas", 40, "Italiano", Ingredient("Setas variadas", 300.0, IngredientUnit.Gram))
+    val greekSalad = recipe("greek-salad", "Ensalada griega", 10, "Griego", Ingredient("Queso feta", 150.0, IngredientUnit.Gram))
+    val pomodoro = recipe("pomodoro", "Pasta al pomodoro", 25, "Italiano", Ingredient("Espaguetis", 400.0, IngredientUnit.Gram))
+    val pizza = recipe("pizza", "Pizza margarita", 45, "Italiano", Ingredient("Mozzarella", 250.0, IngredientUnit.Gram))
+    val tiramisu = recipe("tiramisu", "Tiramisú", 30, "Italiano", Ingredient("Mascarpone", 500.0, IngredientUnit.Gram))
+    val tzatziki = recipe("tzatziki", "Tzatziki con pita", 15, "Griego", Ingredient("Yogur griego", 400.0, IngredientUnit.Gram))
 
-    val allRecipes = listOf(
-        gazpacho,
-        tortilla,
-        paella,
-        moussaka,
-        risotto,
-        greekSalad,
-        pomodoro,
-        pizza,
-        tiramisu,
-        tzatziki,
-    )
+    val allRecipes = listOf(gazpacho, tortilla, paella, moussaka, risotto, greekSalad, pomodoro, pizza, tiramisu, tzatziki)
 
-    /** Semana completa de [start]; el jueves queda sin planificar a propósito. */
+    val eatingOut = PlannedMeal.Quick("Comemos fuera")
+
+    /** La receta como lo que ocupa un hueco del calendario. */
+    fun Recipe.asMeal(): PlannedMeal = PlannedMeal.FromRecipe(toRef())
+
+    /** Semana completa de [start]; el jueves queda sin planificar a propósito y el domingo cena fuera. */
     fun week(start: LocalDate = weekStart): List<DayPlan> = listOf(
-        DayPlan(start.day(0), gazpacho, tortilla, listOf(DayTask("t-huevos", "Comprar huevos", done = true))),
+        DayPlan(start.day(0), gazpacho.asMeal(), tortilla.asMeal(), listOf(DayTask("t-huevos", "Comprar huevos", done = true))),
         DayPlan(
             date = start.day(1),
-            lunch = paella,
+            lunch = paella.asMeal(),
             tasks = listOf(
                 DayTask("t-pollo", "Sacar pollo a descongelar"),
                 DayTask("t-pimientos", "Comprar pimientos", done = true),
             ),
         ),
-        DayPlan(start.day(2), moussaka, risotto, listOf(DayTask("t-masa", "Preparar la masa"))),
+        DayPlan(start.day(2), moussaka.asMeal(), risotto.asMeal(), listOf(DayTask("t-masa", "Preparar la masa"))),
         DayPlan(start.day(3)),
-        DayPlan(start.day(4), greekSalad, pomodoro),
-        DayPlan(start.day(5), pizza, tiramisu),
-        DayPlan(start.day(6), paella, tzatziki),
+        DayPlan(start.day(4), greekSalad.asMeal(), pomodoro.asMeal()),
+        DayPlan(start.day(5), pizza.asMeal(), tiramisu.asMeal()),
+        DayPlan(start.day(6), paella.asMeal(), eatingOut),
     )
+
+    private fun recipe(id: String, title: String, minutes: Int, tag: String, ingredient: Ingredient) =
+        Recipe(id = id, title = title, prepTimeMinutes = minutes, tags = listOf(tag), ingredients = listOf(ingredient))
 
     private fun LocalDate.day(offset: Int): LocalDate = plus(offset, DateTimeUnit.DAY)
 }

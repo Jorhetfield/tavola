@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.tavola.core.testing.data.MediterraneanSampleData
 import com.tavola.domain.model.DayPlan
 import com.tavola.domain.model.MealType
+import com.tavola.domain.model.PlannedMeal
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -73,14 +74,19 @@ class FakeCalendarRepositoryTest {
     }
 
     @Test
-    fun `setMeal rellena un hueco y con null lo vacia`() = runTest {
+    fun `setMeal rellena un hueco con una receta o una comida rapida y con null lo vacia`() = runTest {
         val repository = FakeCalendarRepository(initialDays = listOf(DayPlan(weekStart)))
+        val risotto = PlannedMeal.FromRecipe(MediterraneanSampleData.risotto.toRef())
+        val sobras = PlannedMeal.Quick("Sobras de ayer", note = "Con ensalada")
 
         repository.observeWeek(weekStart).test {
             awaitItem()
 
-            repository.setMeal(weekStart, MealType.Dinner, MediterraneanSampleData.risotto)
-            assertEquals(MediterraneanSampleData.risotto, awaitItem().days.first().dinner)
+            repository.setMeal(weekStart, MealType.Dinner, risotto)
+            assertEquals(risotto, awaitItem().days.first().dinner)
+
+            repository.setMeal(weekStart, MealType.Lunch, sobras)
+            assertEquals(sobras, awaitItem().days.first().lunch)
 
             repository.setMeal(weekStart, MealType.Dinner, null)
             assertNull(awaitItem().days.first().dinner)

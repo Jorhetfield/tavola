@@ -12,8 +12,23 @@ android {
     namespace = "com.tavola"
     defaultConfig {
         applicationId = "com.tavola"
-        versionCode = 1
-        versionName = "1.0"
+        // La CI pasa el número de ejecución (-Ptavola.versionCode=N) para que cada build instale encima de la anterior.
+        versionCode = providers.gradleProperty("tavola.versionCode").map(String::toInt).getOrElse(1)
+        versionName = providers.gradleProperty("tavola.versionName").getOrElse("1.0")
+    }
+
+    // Firma estable para las builds de la CI: solo existe si la CI define estas variables de entorno.
+    // En local se sigue usando la clave de debug de Android Studio.
+    val ciKeystorePath = providers.environmentVariable("TAVOLA_KEYSTORE_PATH").orNull
+    if (ciKeystorePath != null) {
+        signingConfigs {
+            create("ci") {
+                storeFile = file(ciKeystorePath)
+                storePassword = providers.environmentVariable("TAVOLA_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("TAVOLA_KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("TAVOLA_KEYSTORE_PASSWORD").get()
+            }
+        }
     }
 
     // Tests de capturas de todo el design system: src/screenshotTest/kotlin, referencias en
@@ -34,6 +49,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfigs.findByName("ci")?.let { signingConfig = it }
+        }
         release {
             optimization {
                 enable = true

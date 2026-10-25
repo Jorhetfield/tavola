@@ -289,6 +289,14 @@ El detalle vive en [`docs/PLAN.md`](docs/PLAN.md).
 
 ---
 
+## 🤝 Flujo de trabajo
+
+- **`main` solo se actualiza con pull requests.** Cada trabajo nuevo va en una rama `feature/<nombre-corto>` creada desde `main` actualizado.
+- La CI se ejecuta en cada pull request hacia `main`; al fusionar, publica la pre-release con el APK.
+- Normas de código del proyecto: **sin `it` en las lambdas** (cada parámetro con un nombre legible) y **sin nombres de clase completos en mitad del código** (siempre `import` arriba).
+- El detalle de estas normas está en [`CLAUDE.md`](CLAUDE.md).
+
+---
 ## 📚 Documentación del proyecto
 
 - [`CLAUDE.md`](CLAUDE.md): contexto, identidad visual, arquitectura y reglas de oro para trabajar con agentes de código.

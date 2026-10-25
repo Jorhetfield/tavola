@@ -11,6 +11,40 @@ Cada día: comida y cena, tareas rápidas ("sacar a descongelar", "comprar pimie
 - Compila y verifica antes de pasar a la siguiente tarea. Marca el checklist de `docs/PLAN.md`.
 - Si algo es ambiguo, pregunta antes de asumir.
 
+## Normas de código y de git (OBLIGATORIAS)
+Estas normas no se negocian y no tienen excepciones salvo que el usuario diga lo contrario. Aplican a todo código y a todo trabajo nuevo.
+
+### Kotlin: nada de `it`
+Prohibido el nombre implícito `it` en lambdas. Nombra siempre el parámetro con algo legible que diga qué es, también en lambdas de un solo parámetro y en las anidadas.
+```kotlin
+// MAL
+recipes.filter { it.matches(query) }.map { it.title }
+// BIEN
+recipes.filter { recipe -> recipe.matches(query) }.map { recipe -> recipe.title }
+```
+Con pares o destructuring, nombra cada parte (`{ (date, type) -> ... }`). El código antiguo que lo incumple se corrige al tocarlo; el nuevo nunca lo incumple.
+
+### Kotlin: imports arriba, nunca nombres calificados en el código
+Prohibido escribir nombres completos de clase en mitad del código (`androidx.compose.ui.graphics.Color`, `java.time.LocalDate.now()`, `com.tavola.domain.model.DayTask`...). Si necesitas una clase de otro sitio, pon su `import` en la zona de imports y usa el nombre corto. Si dos clases chocan de nombre, usa un alias **en el import** (`import com.tavola.domain.model.MealType as DomainMealType`), nunca el nombre completo en el cuerpo.
+```kotlin
+// MAL
+val effects = MaterialTheme.motionScheme.defaultEffectsSpec<androidx.compose.ui.graphics.Color>()
+// BIEN (con `import androidx.compose.ui.graphics.Color` arriba)
+val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Color>()
+```
+
+### Git: nunca directo a `main`
+- **No se hace commit ni push directo a `main`.** `main` solo recibe cambios mediante pull request.
+- Cada trabajo nuevo (feature, mejora, refactor) empieza **en una rama creada desde `main` actualizado**, con el nombre `feature/<nombre-corto-en-kebab-case>` (p. ej. `feature/meal-picker`, `feature/recipe-editor`). Se trabaja y se commitea ahí:
+  ```bash
+  git switch main
+  git pull
+  git switch -c feature/nombre-de-lo-que-hagamos
+  ```
+- Antes de empezar a editar, comprueba en qué rama estás (`git status -sb`). Si estás en `main`, crea la rama primero.
+- Commits pequeños y con mensaje claro. Antes de proponer una PR: `spotlessCheck`, compilación y tests en verde.
+- **Nunca se hace push, PR ni merge sin confirmación explícita del usuario**: publicar es difícil de deshacer. Si el usuario no ha indicado el tipo de rama (arreglo, docs, build), se pregunta; hasta entonces se usa `feature/`.
+- La CI corre en cada pull request hacia `main` y, tras el merge, publica la pre-release con el APK.
 ## Comandos
 Requieren `JAVA_HOME` apuntando al JDK de Android Studio (`%LOCALAPPDATA%\Programs\Android Studio\jbr`).
 ```bash

@@ -1,0 +1,20 @@
+<resources>
+    <string name="topbar_back">Volver</string>
+    <string name="topbar_today">Ir a hoy</string>
+    <string name="topbar_settings">Ajustes</string>
+
+    <string name="nav_calendar">Calendario</string>
+    <string name="nav_recipes">Recetas</string>
+    <string name="nav_shopping">Compra</string>
+
+    <string name="calendar_meal_lunch">Comida</string>
+    <string name="calendar_meal_dinner">Cena</string>
+    <string name="calendar_meal_add">Añadir</string>
+    <string name="calendar_day_today">HOY</string>
+    <string name="calendar_day_unplanned">Sin planificar</string>
+    <string name="calendar_add_task">Añadir tarea</string>
+
+    <string name="week_selector_previous">Semana anterior</string>
+    <string name="week_selector_next">Semana siguiente</string>
+    <string name="week_selector_today">Hoy</string>
+</resources>

@@ -1,0 +1,22 @@
+# Gradle y compilación (en todos los módulos)
+.gradle/
+**/build/
+/captures
+.kotlin/
+.externalNativeBuild
+.cxx
+*.apk
+*.aab
+
+# Android Studio
+*.iml
+.idea/
+
+# Locales y secretos
+local.properties
+*.jks
+*.keystore
+
+# Sistema
+.DS_Store
+Thumbs.db

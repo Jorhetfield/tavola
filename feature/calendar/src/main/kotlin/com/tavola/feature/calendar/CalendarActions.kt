@@ -1,0 +1,17 @@
+package com.tavola.feature.calendar
+
+import com.tavola.domain.model.MealType
+import kotlinx.datetime.LocalDate
+
+/** Todo lo que la pantalla puede pedirle al ViewModel. Por defecto no hace nada (previews y capturas). */
+data class CalendarActions(
+    val onPreviousWeekClick: () -> Unit = {},
+    val onNextWeekClick: () -> Unit = {},
+    val onTodayClick: () -> Unit = {},
+    val onRetryClick: () -> Unit = {},
+    val onMealClick: (date: LocalDate, type: MealType) -> Unit = { _, _ -> },
+    val onTaskCheckedChange: (date: LocalDate, taskId: String, checked: Boolean) -> Unit = { _, _, _ -> },
+    val onAddTaskClick: (date: LocalDate) -> Unit = {},
+    val onAddTaskDismiss: () -> Unit = {},
+    val onAddTaskConfirm: (text: String) -> Unit = {},
+)

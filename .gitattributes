@@ -1,0 +1,6 @@
+# Saltos de línea LF en el repo (igual que Spotless/ktlint); solo los scripts de Windows usan CRLF.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.jar binary
+*.webp binary

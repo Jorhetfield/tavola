@@ -1,0 +1,14 @@
+<resources>
+    <string name="calendar_title">Calendar</string>
+    <string name="calendar_week_number">Week %1$d</string>
+    <string name="calendar_prep_time">%1$d min</string>
+    <string name="calendar_loading">Preparing your week…</string>
+    <string name="calendar_error">The week could not be loaded</string>
+    <string name="calendar_retry">Retry</string>
+    <string name="calendar_debug_menu">Debug menu</string>
+
+    <string name="calendar_add_task_title">New task</string>
+    <string name="calendar_add_task_label">What needs to be done?</string>
+    <string name="calendar_add_task_confirm">Add</string>
+    <string name="calendar_add_task_dismiss">Cancel</string>
+</resources>

@@ -1,0 +1,41 @@
+<resources>
+
+    <string name="showcase_title">Tavola</string>
+    <string name="showcase_subtitle">Material 3 Expressive in action</string>
+
+    <string name="showcase_buttons_title">Buttons</string>
+    <string name="showcase_button_filled">Filled</string>
+    <string name="showcase_button_tonal">Tonal</string>
+    <string name="showcase_button_outlined">Outlined</string>
+    <string name="showcase_button_elevated">Elevated</string>
+    <string name="showcase_button_big">Add meal</string>
+    <string name="showcase_group_breakfast">Lunch</string>
+    <string name="showcase_group_dinner">Dinner</string>
+    <string name="showcase_group_snack">Snack</string>
+    <string name="showcase_split_main">New recipe</string>
+    <string name="showcase_split_toggle">More options</string>
+
+    <string name="showcase_chips_title">Chips and switches</string>
+    <string name="showcase_chip_vegetarian">Vegetarian</string>
+    <string name="showcase_chip_quick">Quick</string>
+    <string name="showcase_chip_greek">Greek</string>
+    <string name="showcase_chip_italian">Italian</string>
+    <string name="showcase_switch_label">Remind me to defrost</string>
+
+    <string name="showcase_indicators_title">Loading indicators</string>
+
+    <string name="showcase_shapes_title">Expressive shapes</string>
+
+    <string name="showcase_carousel_title">Recipe carousel</string>
+    <string name="showcase_recipe_paella">Valencian paella</string>
+    <string name="showcase_recipe_moussaka">Moussaka</string>
+    <string name="showcase_recipe_risotto">Mushroom risotto</string>
+    <string name="showcase_recipe_tzatziki">Tzatziki</string>
+    <string name="showcase_recipe_gazpacho">Gazpacho</string>
+    <string name="showcase_recipe_tiramisu">Tiramisu</string>
+
+
+
+    <string name="showcase_calendar_title">Calendar</string>
+    <string name="showcase_loading_label">Preparing your week…</string>
+</resources>

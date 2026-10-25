@@ -109,14 +109,14 @@ class InMemoryCalendarRepositoryTest {
         val meals = (-8..8).flatMap { offset ->
             var week = emptyList<PlannedMeal>()
             repository.observeWeek(thisWeek.plusWeeks(offset)).test {
-                week = awaitItem().days.flatMap { listOfNotNull(it.lunch, it.dinner) }
+                week = awaitItem().days.flatMap { day -> listOfNotNull(day.lunch, day.dinner) }
                 cancelAndIgnoreRemainingEvents()
             }
             week
         }
 
-        assertTrue(meals.any { it is PlannedMeal.FromRecipe })
-        assertTrue(meals.any { it is PlannedMeal.Quick })
+        assertTrue(meals.any { meal -> meal is PlannedMeal.FromRecipe })
+        assertTrue(meals.any { meal -> meal is PlannedMeal.Quick })
     }
 
     private suspend fun InMemoryCalendarRepository.observeWeekTasks(start: LocalDate) = runCatching {

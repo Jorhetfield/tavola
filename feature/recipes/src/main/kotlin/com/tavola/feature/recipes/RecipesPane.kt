@@ -103,10 +103,10 @@ private fun RecipesContent(
                     modifier = Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(spacing.sm),
                 ) {
-                    items(rows, key = { it.id }) { row ->
+                    items(rows, key = { rowModel -> rowModel.id }) { row ->
                         TavolaRecipeRow(
                             model = row,
-                            onClick = { state.recipes.firstOrNull { it.id == row.id }?.let(actions.onRecipeClick) },
+                            onClick = { state.recipes.firstOrNull { recipe -> recipe.id == row.id }?.let(actions.onRecipeClick) },
                             modifier = Modifier.animateItem(
                                 fadeInSpec = motion.defaultEffectsSpec(),
                                 placementSpec = motion.defaultSpatialSpec(),

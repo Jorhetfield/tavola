@@ -13,8 +13,8 @@ class InMemoryRecipeRepositoryTest {
             val recipes = awaitItem()
 
             assertEquals(12, recipes.size)
-            assertEquals(recipes.size, recipes.map { it.id }.toSet().size)
-            assertTrue(recipes.all { it.ingredients.isNotEmpty() && it.steps.isNotEmpty() })
+            assertEquals(recipes.size, recipes.map { recipe -> recipe.id }.toSet().size)
+            assertTrue(recipes.all { recipe -> recipe.ingredients.isNotEmpty() && recipe.steps.isNotEmpty() })
             cancelAndIgnoreRemainingEvents()
         }
     }

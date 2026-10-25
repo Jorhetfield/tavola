@@ -74,22 +74,15 @@ fun MealPickerContent(
         verticalArrangement = Arrangement.spacedBy(spacing.lg),
     ) {
         PickerHeader(date = date, type = type, hasMeal = current != null, onClearClick = actions.onClearClick)
-        ModeToggle(mode = mode, onModeChange = { mode = it })
+        ModeToggle(mode = mode, onModeChange = { newMode -> mode = newMode })
         AnimatedContent(
             targetState = mode,
             modifier = Modifier.weight(1f),
             transitionSpec = {
-                val toQuick = targetState == PickerMode.Quick
-                val direction = if (toQuick) 1 else -1
-                (
-                    slideInHorizontally(motion.defaultSpatialSpec()) {
-                        direction * it / SLIDE_DIVISOR
-                    } + fadeIn(motion.defaultEffectsSpec())
-                    ) togetherWith
-                    (
-                        slideOutHorizontally(motion.defaultSpatialSpec()) { -direction * it / SLIDE_DIVISOR } +
-                            fadeOut(motion.fastEffectsSpec())
-                        )
+                val direction = if (targetState == PickerMode.Quick) 1 else -1
+                val slideIn = slideInHorizontally(motion.defaultSpatialSpec()) { fullWidth -> direction * fullWidth / SLIDE_DIVISOR }
+                val slideOut = slideOutHorizontally(motion.defaultSpatialSpec()) { fullWidth -> -direction * fullWidth / SLIDE_DIVISOR }
+                (slideIn + fadeIn(motion.defaultEffectsSpec())) togetherWith (slideOut + fadeOut(motion.fastEffectsSpec()))
             },
             label = "pickerMode",
         ) { target ->
@@ -107,8 +100,8 @@ fun MealPickerContent(
                 PickerMode.Quick -> QuickMealPane(
                     title = quickTitle,
                     note = quickNote,
-                    onTitleChange = { quickTitle = it },
-                    onNoteChange = { quickNote = it },
+                    onTitleChange = { newTitle -> quickTitle = newTitle },
+                    onNoteChange = { newNote -> quickNote = newNote },
                     onConfirm = { actions.onQuickConfirm(quickTitle, quickNote) },
                 )
             }

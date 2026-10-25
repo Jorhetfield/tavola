@@ -15,6 +15,6 @@ internal fun Recipe.matches(query: String): Boolean {
     val needle = query.normalizedForSearch().trim()
     if (needle.isEmpty()) return true
     return title.normalizedForSearch().contains(needle) ||
-        tags.any { it.normalizedForSearch().contains(needle) } ||
-        ingredients.any { it.name.normalizedForSearch().contains(needle) }
+        tags.any { tag -> tag.normalizedForSearch().contains(needle) } ||
+        ingredients.any { ingredient -> ingredient.name.normalizedForSearch().contains(needle) }
 }

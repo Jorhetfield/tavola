@@ -36,7 +36,7 @@ class MealPickerViewModel @Inject constructor(recipeRepository: RecipeRepository
     @OptIn(ExperimentalCoroutinesApi::class)
     private val recipes = retryCount.flatMapLatest {
         recipeRepository.observeRecipes()
-            .map<List<Recipe>, List<Recipe>?> { it }
+            .map<List<Recipe>, List<Recipe>?> { loaded -> loaded }
             .catch { emit(null) }
     }
 
@@ -46,7 +46,7 @@ class MealPickerViewModel @Inject constructor(recipeRepository: RecipeRepository
         } else {
             MealPickerUiState.Success(
                 query = text,
-                recipes = all.filter { it.matches(text) }.sortedBy { it.title.normalizedForSearch() },
+                recipes = all.filter { recipe -> recipe.matches(text) }.sortedBy { recipe -> recipe.title.normalizedForSearch() },
                 totalRecipes = all.size,
             )
         }
@@ -54,7 +54,7 @@ class MealPickerViewModel @Inject constructor(recipeRepository: RecipeRepository
 
     fun onQueryChange(text: String) = query.update { text }
 
-    fun onRetryClick() = retryCount.update { it + 1 }
+    fun onRetryClick() = retryCount.update { count -> count + 1 }
 
     /** Pone [recipe] en el hueco y avisa con [onDone] cuando se ha guardado (para cerrar la hoja). */
     fun onRecipeSelected(date: LocalDate, type: MealType, recipe: Recipe, onDone: () -> Unit) {

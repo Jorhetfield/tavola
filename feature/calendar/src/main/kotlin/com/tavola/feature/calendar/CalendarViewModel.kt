@@ -37,7 +37,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
     private val week = combine(selectedWeekStart, retryCount) { start, _ -> start }
         .flatMapLatest { start ->
             calendarRepository.observeWeek(start)
-                .map<WeekPlan, WeekPlan?> { it }
+                .map<WeekPlan, WeekPlan?> { weekPlan -> weekPlan }
                 .catch { emit(null) }
         }
 
@@ -45,15 +45,15 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CalendarUiState.Loading)
 
-    fun onPreviousWeekClick() = selectedWeekStart.update { it.plusWeeks(-1) }
+    fun onPreviousWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(-1) }
 
-    fun onNextWeekClick() = selectedWeekStart.update { it.plusWeeks(1) }
+    fun onNextWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(1) }
 
     fun onTodayClick() {
         selectedWeekStart.value = todayProvider.today().startOfWeek()
     }
 
-    fun onRetryClick() = retryCount.update { it + 1 }
+    fun onRetryClick() = retryCount.update { count -> count + 1 }
 
     fun onTaskCheckedChange(date: LocalDate, taskId: String, checked: Boolean) {
         viewModelScope.launch { calendarRepository.setTaskDone(date, taskId, checked) }
@@ -101,7 +101,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
             isCurrentWeek = weekStart == today.startOfWeek(),
             addTaskDate = dialogDate,
             mealPicker = slot?.let { (date, type) ->
-                MealPickerTarget(date, type, items.firstOrNull { it.date == date }?.plan?.meal(type))
+                MealPickerTarget(date, type, items.firstOrNull { item -> item.date == date }?.plan?.meal(type))
             },
         )
     }

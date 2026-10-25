@@ -96,12 +96,9 @@ fun TavolaMealSlot(
         AnimatedContent(
             targetState = model.title to model.subtitle,
             transitionSpec = {
-                (
-                    fadeIn(motion.defaultEffectsSpec()) + slideInVertically(motion.defaultSpatialSpec()) {
-                        it / ENTER_OFFSET_DIVISOR
-                    }
-                    ) togetherWith
-                    fadeOut(motion.fastEffectsSpec())
+                val slideUp = slideInVertically(motion.defaultSpatialSpec()) { fullHeight -> fullHeight / ENTER_OFFSET_DIVISOR }
+                val enter = fadeIn(motion.defaultEffectsSpec()) + slideUp
+                enter togetherWith fadeOut(motion.fastEffectsSpec())
             },
             label = "slotBody",
         ) { (title, subtitle) ->
@@ -150,8 +147,8 @@ private fun FilledSlotBody(title: String, subtitle: String?, contentColor: Color
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
-        subtitle?.let {
-            Text(text = it, style = MaterialTheme.typography.bodySmall, color = contentColor.copy(alpha = 0.7f))
+        subtitle?.let { detail ->
+            Text(text = detail, style = MaterialTheme.typography.bodySmall, color = contentColor.copy(alpha = 0.7f))
         }
     }
 }

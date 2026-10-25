@@ -12,7 +12,7 @@ import kotlinx.datetime.LocalDate
  * (pasada o futura). Los días pasados tienen sus tareas hechas. Se sustituye por Firestore en la Fase 3.
  */
 internal object FakeDayGenerator {
-    private val recipeMeals = MediterraneanCatalog.recipes.map { PlannedMeal.FromRecipe(it.toRef()) }
+    private val recipeMeals = MediterraneanCatalog.recipes.map { recipe -> PlannedMeal.FromRecipe(recipe.toRef()) }
     private val quickMeals = listOf(
         PlannedMeal.Quick("Sobras de ayer"),
         PlannedMeal.Quick("Bocadillo de tortilla", note = "Para llevar"),

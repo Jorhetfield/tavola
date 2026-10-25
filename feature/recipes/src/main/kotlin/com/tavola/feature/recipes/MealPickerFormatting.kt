@@ -31,7 +31,7 @@ internal fun rememberRecipeRows(recipes: List<Recipe>, selectedRecipeId: String?
     return remember(recipes, selectedRecipeId, resources) {
         recipes.map { recipe ->
             val details = listOfNotNull(
-                recipe.prepTimeMinutes?.let { resources.getString(R.string.meal_picker_prep_time, it) },
+                recipe.prepTimeMinutes?.let { minutes -> resources.getString(R.string.meal_picker_prep_time, minutes) },
                 recipe.tags.firstOrNull(),
             )
             RecipeRowModel(

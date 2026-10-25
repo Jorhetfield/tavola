@@ -116,8 +116,8 @@ fun TavolaRecipeRow(model: RecipeRowModel, onClick: () -> Unit, modifier: Modifi
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                model.subtitle?.let {
-                    Text(text = it, style = MaterialTheme.typography.bodyMedium, color = content.copy(alpha = 0.75f))
+                model.subtitle?.let { detail ->
+                    Text(text = detail, style = MaterialTheme.typography.bodyMedium, color = content.copy(alpha = 0.75f))
                 }
             }
             AnimatedVisibility(

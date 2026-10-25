@@ -34,7 +34,7 @@ class MealPickerViewModelTest {
     private suspend fun mealAt(type: MealType): PlannedMeal? {
         var meal: PlannedMeal? = null
         calendarRepository.observeWeek(date).test {
-            meal = awaitItem().days.first { it.date == date }.meal(type)
+            meal = awaitItem().days.first { day -> day.date == date }.meal(type)
             cancelAndIgnoreRemainingEvents()
         }
         return meal
@@ -47,7 +47,12 @@ class MealPickerViewModelTest {
 
             assertEquals(MediterraneanSampleData.allRecipes.size, state.recipes.size)
             assertEquals(MediterraneanSampleData.allRecipes.size, state.totalRecipes)
-            assertEquals(state.recipes.map { it.title }.sortedBy { it.normalizedForSearch() }, state.recipes.map { it.title })
+            assertEquals(
+                state.recipes.map { recipe ->
+                    recipe.title
+                }.sortedBy { title -> title.normalizedForSearch() },
+                state.recipes.map { recipe -> recipe.title },
+            )
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -60,8 +65,8 @@ class MealPickerViewModelTest {
 
             viewModel.onQueryChange("tiramisu")
 
-            val state = awaitSuccess { it.query == "tiramisu" }
-            assertEquals(listOf("Tiramisú"), state.recipes.map { it.title })
+            val state = awaitSuccess { success -> success.query == "tiramisu" }
+            assertEquals(listOf("Tiramisú"), state.recipes.map { recipe -> recipe.title })
             assertEquals(MediterraneanSampleData.allRecipes.size, state.totalRecipes)
             cancelAndIgnoreRemainingEvents()
         }
@@ -75,7 +80,7 @@ class MealPickerViewModelTest {
 
             viewModel.onQueryChange("sushi")
 
-            assertTrue(awaitSuccess { it.query == "sushi" }.recipes.isEmpty())
+            assertTrue(awaitSuccess { success -> success.query == "sushi" }.recipes.isEmpty())
             cancelAndIgnoreRemainingEvents()
         }
     }

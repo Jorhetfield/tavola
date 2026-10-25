@@ -37,4 +37,4 @@ internal fun isoWeekNumber(weekStart: LocalDate): Int = weekStart.toJavaLocalDat
 internal fun LocalDate.weekdayName(locale: Locale): String =
     dayOfWeek.toJavaDayOfWeek().getDisplayName(TextStyle.FULL, locale).capitalized(locale)
 
-private fun String.capitalized(locale: Locale): String = replaceFirstChar { it.titlecase(locale) }
+private fun String.capitalized(locale: Locale): String = replaceFirstChar { firstChar -> firstChar.titlecase(locale) }

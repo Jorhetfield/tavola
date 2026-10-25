@@ -21,7 +21,7 @@ internal fun rememberLocale(): Locale = LocalConfiguration.current.locales[0]
 internal fun rememberDayCardModels(days: List<DayItem>): List<DayCardModel> {
     val locale = rememberLocale()
     val resources = LocalResources.current
-    return remember(days, locale) { days.map { it.toCardModel(locale, resources) } }
+    return remember(days, locale) { days.map { day -> day.toCardModel(locale, resources) } }
 }
 
 internal fun DayItem.toCardModel(locale: Locale, resources: Resources): DayCardModel = DayCardModel(
@@ -31,13 +31,13 @@ internal fun DayItem.toCardModel(locale: Locale, resources: Resources): DayCardM
     state = state,
     lunch = plan.lunch.toSlotModel(UiMealType.Lunch, resources),
     dinner = plan.dinner.toSlotModel(UiMealType.Dinner, resources),
-    tasks = plan.tasks.map { TaskChipModel(id = it.id, text = it.text, done = it.done) },
+    tasks = plan.tasks.map { task -> TaskChipModel(id = task.id, text = task.text, done = task.done) },
 )
 
 private fun RecipeRef?.toSlotModel(type: UiMealType, resources: Resources): MealSlotModel {
     if (this == null) return MealSlotModel(type)
     val details = listOfNotNull(
-        prepTimeMinutes?.let { resources.getString(R.string.calendar_prep_time, it) },
+        prepTimeMinutes?.let { minutes -> resources.getString(R.string.calendar_prep_time, minutes) },
         tags.firstOrNull(),
     )
     return MealSlotModel(type = type, title = title, subtitle = details.joinToString(" · ").ifEmpty { null })

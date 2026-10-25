@@ -108,7 +108,7 @@ private fun SplitButtonDemo() {
             }
         },
         trailingButton = {
-            SplitButtonDefaults.TrailingButton(checked = checked, onCheckedChange = { checked = it }) {
+            SplitButtonDefaults.TrailingButton(checked = checked, onCheckedChange = { isChecked -> checked = isChecked }) {
                 Icon(
                     imageVector = if (checked) Icons.Rounded.KeyboardArrowUp else Icons.Rounded.KeyboardArrowDown,
                     contentDescription = stringResource(R.string.showcase_split_toggle),

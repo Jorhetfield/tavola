@@ -20,7 +20,7 @@ import kotlinx.datetime.LocalDate
  */
 class FakeCalendarRepository(initialDays: List<DayPlan> = MediterraneanSampleData.week(), private val groupId: String = FAKE_GROUP_ID) :
     CalendarRepository {
-    private val days = MutableStateFlow(initialDays.associateBy { it.date })
+    private val days = MutableStateFlow(initialDays.associateBy { day -> day.date })
     private var nextTaskId = 0
 
     override fun observeWeek(weekStart: LocalDate): Flow<WeekPlan> = days.map { stored ->
@@ -33,7 +33,7 @@ class FakeCalendarRepository(initialDays: List<DayPlan> = MediterraneanSampleDat
 
     override suspend fun setTaskDone(date: LocalDate, taskId: String, done: Boolean) {
         updateDay(date) { day ->
-            day.copy(tasks = day.tasks.map { if (it.id == taskId) it.copy(done = done) else it })
+            day.copy(tasks = day.tasks.map { task -> if (task.id == taskId) task.copy(done = done) else task })
         }
     }
 

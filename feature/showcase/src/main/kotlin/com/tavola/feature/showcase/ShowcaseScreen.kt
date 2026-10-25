@@ -62,7 +62,7 @@ fun ShowcaseScreen(modifier: Modifier = Modifier) {
             TavolaFloatingNavBar(
                 items = NavItems,
                 selectedKey = selectedKey,
-                onItemClick = { selectedKey = it },
+                onItemClick = { key -> selectedKey = key },
             )
         },
     ) { contentPadding ->

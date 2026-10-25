@@ -51,7 +51,7 @@ fun TavolaTopBar(
         },
         actions = {
             Row {
-                actions.forEach { TopBarIconButton(it, Modifier.padding(end = spacing.sm)) }
+                actions.forEach { action -> TopBarIconButton(action, Modifier.padding(end = spacing.sm)) }
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(

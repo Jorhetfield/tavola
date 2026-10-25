@@ -35,7 +35,7 @@ internal class InMemoryCalendarRepository @Inject constructor(private val todayP
 
     override suspend fun setTaskDone(date: LocalDate, taskId: String, done: Boolean) {
         updateDay(date) { day ->
-            day.copy(tasks = day.tasks.map { if (it.id == taskId) it.copy(done = done) else it })
+            day.copy(tasks = day.tasks.map { task -> if (task.id == taskId) task.copy(done = done) else task })
         }
     }
 

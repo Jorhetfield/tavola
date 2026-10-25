@@ -46,7 +46,7 @@ private fun List<DayCardModel>.checkTask(dayId: String, taskId: String, checked:
     if (day.id != dayId) {
         day
     } else {
-        day.copy(tasks = day.tasks.map { if (it.id == taskId) it.copy(done = checked) else it })
+        day.copy(tasks = day.tasks.map { task -> if (task.id == taskId) task.copy(done = checked) else task })
     }
 }
 

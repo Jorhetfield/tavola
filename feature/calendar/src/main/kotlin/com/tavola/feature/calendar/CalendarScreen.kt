@@ -3,6 +3,7 @@ package com.tavola.feature.calendar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -96,14 +97,14 @@ private fun CalendarTopBar(
 ) {
     val locale = rememberLocale()
     val success = state as? CalendarUiState.Success
-    val debugAction = onOpenDebugMenu?.let {
-        TavolaTopBarAction(Icons.Rounded.BugReport, R.string.calendar_debug_menu, it)
+    val debugAction = onOpenDebugMenu?.let { openDebugMenu ->
+        TavolaTopBarAction(Icons.Rounded.BugReport, R.string.calendar_debug_menu, openDebugMenu)
     }
 
     Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
         TavolaTopBar(
-            title = success?.let { monthYearTitle(it.weekStart, locale) } ?: stringResource(R.string.calendar_title),
-            subtitle = success?.let { stringResource(R.string.calendar_week_number, isoWeekNumber(it.weekStart)) },
+            title = success?.let { loaded -> monthYearTitle(loaded.weekStart, locale) } ?: stringResource(R.string.calendar_title),
+            subtitle = success?.let { loaded -> stringResource(R.string.calendar_week_number, isoWeekNumber(loaded.weekStart)) },
             actions = listOfNotNull(debugAction),
             scrollBehavior = scrollBehavior,
         )
@@ -120,7 +121,7 @@ private fun CalendarTopBar(
 }
 
 @Composable
-private fun CenteredState(contentPadding: androidx.compose.foundation.layout.PaddingValues, content: @Composable () -> Unit) {
+private fun CenteredState(contentPadding: PaddingValues, content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxSize()

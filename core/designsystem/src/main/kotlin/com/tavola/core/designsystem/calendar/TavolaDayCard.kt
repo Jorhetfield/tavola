@@ -178,7 +178,7 @@ private fun DayCardTasks(tasks: List<TaskChipModel>, onTaskCheckedChange: (Strin
         verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
     ) {
         tasks.forEach { task ->
-            TavolaTaskChip(model = task, onCheckedChange = { onTaskCheckedChange(task.id, it) })
+            TavolaTaskChip(model = task, onCheckedChange = { checked -> onTaskCheckedChange(task.id, checked) })
         }
     }
 }

@@ -120,8 +120,8 @@ private fun FilledSlotBody(model: MealSlotModel, contentColor: Color) {
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
-        model.subtitle?.let {
-            Text(text = it, style = MaterialTheme.typography.bodySmall, color = contentColor.copy(alpha = 0.7f))
+        model.subtitle?.let { detail ->
+            Text(text = detail, style = MaterialTheme.typography.bodySmall, color = contentColor.copy(alpha = 0.7f))
         }
     }
 }

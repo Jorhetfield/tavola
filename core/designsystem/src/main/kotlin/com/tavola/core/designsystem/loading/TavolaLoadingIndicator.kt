@@ -35,8 +35,8 @@ fun TavolaLoadingIndicator(modifier: Modifier = Modifier, label: String? = null,
         } else {
             LoadingIndicator(color = colors.primary)
         }
-        label?.let {
-            Text(text = it, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
+        label?.let { labelText ->
+            Text(text = labelText, style = MaterialTheme.typography.bodyMedium, color = colors.onSurfaceVariant)
         }
     }
 }

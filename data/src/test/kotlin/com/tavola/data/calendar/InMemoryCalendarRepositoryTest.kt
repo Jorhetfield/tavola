@@ -2,6 +2,7 @@ package com.tavola.data.calendar
 
 import app.cash.turbine.test
 import com.tavola.core.testing.fake.FixedTodayProvider
+import com.tavola.domain.model.DayTask
 import com.tavola.domain.model.MealType
 import com.tavola.domain.model.RecipeRef
 import com.tavola.domain.time.plusWeeks
@@ -47,10 +48,10 @@ class InMemoryCalendarRepositoryTest {
     @Test
     fun `semanas distintas generan comidas distintas`() = runTest {
         repository.observeWeek(thisWeek).test {
-            val current = awaitItem().days.map { it.lunch }
+            val current = awaitItem().days.map { day -> day.lunch }
             cancelAndIgnoreRemainingEvents()
             repository.observeWeek(thisWeek.plusWeeks(1)).test {
-                assertNotEquals(current, awaitItem().days.map { it.lunch })
+                assertNotEquals(current, awaitItem().days.map { day -> day.lunch })
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -61,8 +62,8 @@ class InMemoryCalendarRepositoryTest {
         val past = repository.observeWeekTasks(thisWeek.plusWeeks(-2))
         val future = repository.observeWeekTasks(thisWeek.plusWeeks(2))
 
-        assertTrue(past.isNotEmpty() && past.all { it.done })
-        assertTrue(future.isNotEmpty() && future.none { it.done })
+        assertTrue(past.isNotEmpty() && past.all { task -> task.done })
+        assertTrue(future.isNotEmpty() && future.none { task -> task.done })
     }
 
     @Test
@@ -76,7 +77,7 @@ class InMemoryCalendarRepositoryTest {
 
             repository.setTaskDone(taskDate, task.id, done = true)
 
-            val updated = awaitItem().days.first { it.date == taskDate }.tasks.first { it.id == task.id }
+            val updated = awaitItem().days.first { day -> day.date == taskDate }.tasks.first { candidate -> candidate.id == task.id }
             assertTrue(updated.done)
             cancelAndIgnoreRemainingEvents()
         }
@@ -103,9 +104,9 @@ class InMemoryCalendarRepositoryTest {
     }
 
     private suspend fun InMemoryCalendarRepository.observeWeekTasks(start: LocalDate) = runCatching {
-        var tasks = emptyList<com.tavola.domain.model.DayTask>()
+        var tasks = emptyList<DayTask>()
         observeWeek(start).test {
-            tasks = awaitItem().days.flatMap { it.tasks }
+            tasks = awaitItem().days.flatMap { day -> day.tasks }
             cancelAndIgnoreRemainingEvents()
         }
         tasks
@@ -114,7 +115,7 @@ class InMemoryCalendarRepositoryTest {
     private suspend fun InMemoryCalendarRepository.dateOf(start: LocalDate, taskId: String): LocalDate {
         var found: LocalDate? = null
         observeWeek(start).test {
-            found = awaitItem().days.first { day -> day.tasks.any { it.id == taskId } }.date
+            found = awaitItem().days.first { day -> day.tasks.any { task -> task.id == taskId } }.date
             cancelAndIgnoreRemainingEvents()
         }
         return found!!

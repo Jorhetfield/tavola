@@ -18,4 +18,4 @@ fun LocalDate.startOfWeek(firstDay: DayOfWeek = DayOfWeek.MONDAY): LocalDate {
 fun LocalDate.plusWeeks(weeks: Int): LocalDate = plus(weeks * DAYS_IN_WEEK, DateTimeUnit.DAY)
 
 /** Los siete días consecutivos a partir de esta fecha. */
-fun LocalDate.weekDays(): List<LocalDate> = (0 until DAYS_IN_WEEK).map { plus(it, DateTimeUnit.DAY) }
+fun LocalDate.weekDays(): List<LocalDate> = (0 until DAYS_IN_WEEK).map { dayOffset -> plus(dayOffset, DateTimeUnit.DAY) }

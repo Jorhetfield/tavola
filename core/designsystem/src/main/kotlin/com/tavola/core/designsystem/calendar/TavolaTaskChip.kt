@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,7 +40,7 @@ private val ChipMinHeight = 40.dp
 fun TavolaTaskChip(model: TaskChipModel, onCheckedChange: (checked: Boolean) -> Unit, modifier: Modifier = Modifier) {
     val spacing = TavolaTheme.spacing
     val colors = TavolaTheme.colors
-    val effects = MaterialTheme.motionScheme.defaultEffectsSpec<androidx.compose.ui.graphics.Color>()
+    val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Color>()
     val container by animateColorAsState(if (model.done) colors.taskChipDone else colors.taskChip, effects, label = "taskChipContainer")
     val content by animateColorAsState(if (model.done) colors.onTaskChipDone else colors.onTaskChip, effects, label = "taskChipContent")
 

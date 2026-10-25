@@ -59,7 +59,7 @@ fun TavolaScaffold(
             enabled = hideFloatingBarOnScroll,
             maxHidden = { floatingBarHeightPx.toFloat() },
             hidden = { hiddenPx },
-            onHiddenChange = { hiddenPx = it },
+            onHiddenChange = { newHidden -> hiddenPx = newHidden },
         )
     }
 
@@ -81,7 +81,7 @@ fun TavolaScaffold(
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .onSizeChanged { floatingBarHeightPx = it.height }
+                        .onSizeChanged { size -> floatingBarHeightPx = size.height }
                         .graphicsLayer { translationY = hiddenPx }
                         .navigationBarsPadding()
                         .padding(bottom = spacing.lg),

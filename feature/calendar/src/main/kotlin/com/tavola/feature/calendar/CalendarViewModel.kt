@@ -40,7 +40,7 @@ class CalendarViewModel @Inject constructor(
     private val week = combine(selectedWeekStart, retryCount) { start, _ -> start }
         .flatMapLatest { start ->
             calendarRepository.observeWeek(start)
-                .map<WeekPlan, WeekPlan?> { it }
+                .map<WeekPlan, WeekPlan?> { weekPlan -> weekPlan }
                 .catch { emit(null) }
         }
 
@@ -48,15 +48,15 @@ class CalendarViewModel @Inject constructor(
         if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CalendarUiState.Loading)
 
-    fun onPreviousWeekClick() = selectedWeekStart.update { it.plusWeeks(-1) }
+    fun onPreviousWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(-1) }
 
-    fun onNextWeekClick() = selectedWeekStart.update { it.plusWeeks(1) }
+    fun onNextWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(1) }
 
     fun onTodayClick() {
         selectedWeekStart.value = todayProvider.today().startOfWeek()
     }
 
-    fun onRetryClick() = retryCount.update { it + 1 }
+    fun onRetryClick() = retryCount.update { count -> count + 1 }
 
     fun onTaskCheckedChange(date: LocalDate, taskId: String, checked: Boolean) {
         viewModelScope.launch { calendarRepository.setTaskDone(date, taskId, checked) }
@@ -64,7 +64,7 @@ class CalendarViewModel @Inject constructor(
 
     /** Un hueco vacío se rellena con una receta sugerida (provisional hasta que exista el selector de recetas). */
     fun onMealClick(date: LocalDate, type: MealType) {
-        val day = (uiState.value as? CalendarUiState.Success)?.days?.firstOrNull { it.date == date }
+        val day = (uiState.value as? CalendarUiState.Success)?.days?.firstOrNull { item -> item.date == date }
         if (day?.plan?.meal(type) != null) return
 
         viewModelScope.launch {

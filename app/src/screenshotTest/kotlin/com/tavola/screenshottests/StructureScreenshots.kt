@@ -72,7 +72,7 @@ fun CalendarScaffoldScreenshot() {
                     bottom = contentPadding.calculateBottomPadding(),
                 ),
             ) {
-                items(ScreenshotSamples.days, key = { it.id }) { day ->
+                items(ScreenshotSamples.days, key = { day -> day.id }) { day ->
                     TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onAddTaskClick = {})
                 }
             }

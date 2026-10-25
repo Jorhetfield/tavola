@@ -61,7 +61,7 @@ internal fun ChipsSection(modifier: Modifier = Modifier) {
         ) {
             Switch(
                 checked = reminder,
-                onCheckedChange = { reminder = it },
+                onCheckedChange = { isOn -> reminder = isOn },
                 thumbContent = if (reminder) {
                     {
                         Icon(

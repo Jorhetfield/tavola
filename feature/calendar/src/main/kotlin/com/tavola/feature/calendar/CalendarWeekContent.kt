@@ -28,12 +28,12 @@ private const val SLIDE_DIVISOR = 4
 internal fun WeekContent(state: CalendarUiState.Success, actions: CalendarActions, contentPadding: PaddingValues) {
     AnimatedContent(
         targetState = state,
-        contentKey = { it.weekStart },
+        contentKey = { week -> week.weekStart },
         transitionSpec = {
             val forward = targetState.weekStart > initialState.weekStart
             val direction = if (forward) 1 else -1
-            (slideInHorizontally { direction * it / SLIDE_DIVISOR } + fadeIn()) togetherWith
-                (slideOutHorizontally { -direction * it / SLIDE_DIVISOR } + fadeOut())
+            (slideInHorizontally { fullWidth -> direction * fullWidth / SLIDE_DIVISOR } + fadeIn()) togetherWith
+                (slideOutHorizontally { fullWidth -> -direction * fullWidth / SLIDE_DIVISOR } + fadeOut())
         },
         label = "week",
     ) { week ->
@@ -67,7 +67,7 @@ private fun DayList(week: CalendarUiState.Success, actions: CalendarActions, con
         ),
         verticalArrangement = Arrangement.spacedBy(spacing.lg),
     ) {
-        items(cards, key = { it.id }) { card ->
+        items(cards, key = { cardModel -> cardModel.id }) { card ->
             val date = LocalDate.parse(card.id)
             TavolaDayCard(
                 model = card,

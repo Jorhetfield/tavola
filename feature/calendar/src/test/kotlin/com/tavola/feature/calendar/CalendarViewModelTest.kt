@@ -111,7 +111,7 @@ class CalendarViewModelTest {
     }
 
     @Test
-    fun `eliminar una tarea la quita y deshacer la devuelve a su sitio`() = runTest {
+    fun `removing a task takes it out and undo puts it back in place`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {
             val original = awaitSuccess().days[1].plan.tasks
@@ -129,7 +129,7 @@ class CalendarViewModelTest {
     }
 
     @Test
-    fun `cuando el aviso termina sin deshacer ya no queda nada que restaurar`() = runTest {
+    fun `when the notice ends without undo there is nothing left to restore`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {
             awaitSuccess()
@@ -231,6 +231,27 @@ class CalendarViewModelTest {
             viewModel.onRetryClick()
 
             assertEquals(monday, awaitSuccess().weekStart)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `retrying after an error drops the stale undo`() = runTest {
+        val flaky = FlakyCalendarRepository(calendarRepository).apply { shouldFail = false }
+        val viewModel = viewModel(flaky)
+        viewModel.uiState.test {
+            awaitSuccess()
+            viewModel.onTaskRemove(LocalDate(2026, 10, 20), "t-pollo")
+            awaitSuccess { success -> success.removedTask != null }
+
+            flaky.shouldFail = true
+            viewModel.onNextWeekClick()
+            while (awaitItem() != CalendarUiState.Error) continue
+
+            flaky.shouldFail = false
+            viewModel.onRetryClick()
+
+            assertNull(awaitSuccess().removedTask)
             cancelAndIgnoreRemainingEvents()
         }
     }

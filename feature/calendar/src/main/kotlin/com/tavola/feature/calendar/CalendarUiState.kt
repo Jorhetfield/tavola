@@ -18,7 +18,7 @@ data class DayItem(val plan: DayPlan, val state: DayState) {
 @Immutable
 data class MealPickerTarget(val date: LocalDate, val type: MealType, val current: PlannedMeal?)
 
-/** Tarea eliminada de [date] que estaba en la posición [index]; guarda lo necesario para deshacerlo. */
+/** Task removed from [date] that was at position [index]; keeps what is needed to undo it. */
 @Immutable
 data class RemovedTask(val date: LocalDate, val task: DayTask, val index: Int)
 
@@ -32,7 +32,7 @@ sealed interface CalendarUiState {
      * @property isCurrentWeek true si la semana mostrada contiene el día de hoy.
      * @property addTaskDate día para el que está abierto el diálogo de nueva tarea, o `null` si está cerrado.
      * @property mealPicker hueco para el que está abierto el selector de comida, o `null` si está cerrado.
-     * @property removedTask última tarea eliminada, mientras se puede deshacer; `null` si no hay nada que deshacer.
+     * @property removedTask last removed task while it can still be undone; `null` if there is nothing to undo.
      */
     @Immutable
     data class Success(

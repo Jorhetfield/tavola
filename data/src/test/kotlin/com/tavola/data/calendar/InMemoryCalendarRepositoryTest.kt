@@ -85,7 +85,7 @@ class InMemoryCalendarRepositoryTest {
     }
 
     @Test
-    fun `removeTask quita la tarea y restoreTask la devuelve en su sitio`() = runTest {
+    fun `removeTask removes the task and restoreTask puts it back in place`() = runTest {
         val date = thisWeek.plusWeeks(4)
         repository.addTask(date, "Comprar limones")
 

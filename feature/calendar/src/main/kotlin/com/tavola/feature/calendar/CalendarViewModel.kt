@@ -54,13 +54,17 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         selectedWeekStart.value = todayProvider.today().startOfWeek()
     }
 
-    fun onRetryClick() = retryCount.update { count -> count + 1 }
+    fun onRetryClick() {
+        // The failure cancelled the notice, so the pending undo is stale.
+        removedTask.value = null
+        retryCount.update { count -> count + 1 }
+    }
 
     fun onTaskCheckedChange(date: LocalDate, taskId: String, checked: Boolean) {
         viewModelScope.launch { calendarRepository.setTaskDone(date, taskId, checked) }
     }
 
-    /** Elimina la tarea y la guarda en [removedTask] para poder deshacerlo. */
+    /** Removes the task and keeps it in [removedTask] so it can be undone. */
     fun onTaskRemove(date: LocalDate, taskId: String) {
         val success = uiState.value as? CalendarUiState.Success ?: return
         val tasks = success.days.firstOrNull { item -> item.date == date }?.plan?.tasks ?: return
@@ -77,7 +81,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         viewModelScope.launch { calendarRepository.restoreTask(removed.date, removed.task, removed.index) }
     }
 
-    /** El aviso de "tarea eliminada" terminó sin deshacer: ya no hay nada que restaurar. */
+    /** The "task removed" notice ended without undo: there is nothing left to restore. */
     fun onTaskRemovedShown() {
         removedTask.value = null
     }

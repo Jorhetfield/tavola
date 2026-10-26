@@ -17,10 +17,10 @@ interface CalendarRepository {
     /** Añade una tarea rápida (pendiente) al día [date]. */
     suspend fun addTask(date: LocalDate, text: String)
 
-    /** Elimina la tarea [taskId] del día [date]. */
+    /** Removes the task [taskId] from the day [date]. */
     suspend fun removeTask(date: LocalDate, taskId: String)
 
-    /** Devuelve [task] al día [date] en la posición [index] (deshacer de [removeTask]). */
+    /** Puts [task] back on the day [date] at position [index] (undo of [removeTask]). */
     suspend fun restoreTask(date: LocalDate, task: DayTask, index: Int)
 
     /** Pone [meal] (receta o comida rápida) en la comida o cena de [date]; con `null` deja el hueco vacío. */

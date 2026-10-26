@@ -1,5 +1,6 @@
 package com.tavola.feature.calendar
 
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
@@ -7,9 +8,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.res.stringResource
 
 /**
- * Muestra "Tarea eliminada · Deshacer" mientras [removedTask] no sea `null`. Si se pulsa Deshacer avisa con
- * [onUndo]; si el aviso se cierra solo, con [onShown], porque ya no hay nada que restaurar. Si llega otra
- * eliminación antes de que acabe, el aviso se sustituye por el nuevo.
+ * Shows "Task removed · Undo" while [removedTask] is not `null`. Tapping Undo calls [onUndo]; if the notice
+ * closes on its own (timeout or dismiss icon) it calls [onShown], since there is nothing left to restore.
+ * If another task is removed before it ends, the notice is replaced by the new one.
  */
 @Composable
 internal fun RemovedTaskSnackbarEffect(
@@ -23,7 +24,13 @@ internal fun RemovedTaskSnackbarEffect(
 
     LaunchedEffect(removedTask) {
         if (removedTask != null) {
-            val result = snackbarHostState.showSnackbar(message = message, actionLabel = undoLabel, withDismissAction = true)
+            // With an action label M3 defaults to Indefinite, so the duration is explicit.
+            val result = snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = undoLabel,
+                withDismissAction = true,
+                duration = SnackbarDuration.Long,
+            )
             if (result == SnackbarResult.ActionPerformed) onUndo() else onShown()
         }
     }

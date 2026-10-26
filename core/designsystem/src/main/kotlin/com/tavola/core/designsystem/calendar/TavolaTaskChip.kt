@@ -45,9 +45,9 @@ private val RemoveTargetWidth = 40.dp
 private val ChipMinHeight = 40.dp
 
 /**
- * Tarea rápida del día ("sacar a descongelar", "comprar pimientos"). Se marca al pulsar el texto y se elimina
- * con la X de la derecha, que es una zona táctil aparte para no borrar por error al marcar. Las tareas hechas
- * no muestran la X.
+ * Quick task of the day ("take the chicken out to thaw", "buy peppers"). It is checked by tapping the text and
+ * removed with the X on the right, a separate touch target so it is not removed by mistake. Done tasks do not
+ * show the X.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -71,7 +71,7 @@ fun TavolaTaskChip(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TaskChipLabel(model, content, onCheckedChange, modifier = Modifier.weight(1f, fill = false))
-        // Una tarea hecha no se elimina desde aquí: primero se desmarca.
+        // A done task is not removed from here: uncheck it first.
         if (model.done) {
             Spacer(Modifier.width(TavolaTheme.spacing.lg))
         } else {
@@ -85,7 +85,6 @@ private fun TaskChipLabel(model: TaskChipModel, content: Color, onCheckedChange:
     val spacing = TavolaTheme.spacing
     Row(
         modifier = modifier
-            .clip(CircleShape)
             .toggleable(value = model.done, role = Role.Checkbox, onValueChange = onCheckedChange)
             .heightIn(min = ChipMinHeight)
             .padding(start = spacing.md),

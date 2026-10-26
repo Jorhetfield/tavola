@@ -1,5 +1,6 @@
 package com.tavola.data.sample
 
+import androidx.room.withTransaction
 import com.tavola.data.TavolaDatabase
 import com.tavola.data.calendar.CalendarDao
 import com.tavola.data.calendar.toEntity
@@ -18,7 +19,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-@Suppress("LongParameterList")
 internal class DebugSampleDataLoader @Inject constructor(
     private val database: TavolaDatabase,
     private val recipeDao: RecipeDao,
@@ -26,14 +26,17 @@ internal class DebugSampleDataLoader @Inject constructor(
     private val todayProvider: TodayProvider,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : SampleDataLoader {
+    // One transaction, so observers see a single change instead of dozens of half-loaded states.
     override suspend fun loadSampleData() = withContext(ioDispatcher) {
-        recipeDao.upsertAll(MediterraneanCatalog.recipes.map { recipe -> recipe.toEntity() })
+        database.withTransaction {
+            recipeDao.upsertAll(MediterraneanCatalog.recipes.map { recipe -> recipe.toEntity() })
 
-        val today = todayProvider.today()
-        val firstDay = today.startOfWeek().plusWeeks(-WEEKS_BEFORE)
-        (0 until WEEKS_BEFORE + WEEKS_AFTER + 1).flatMap { week -> firstDay.plusWeeks(week).weekDays() }
-            .map { date -> SampleDayGenerator.day(date, today) }
-            .forEach { day -> save(day) }
+            val today = todayProvider.today()
+            val firstDay = today.startOfWeek().plusWeeks(-WEEKS_BEFORE)
+            (0 until WEEKS_BEFORE + WEEKS_AFTER + 1).flatMap { week -> firstDay.plusWeeks(week).weekDays() }
+                .map { date -> SampleDayGenerator.day(date, today) }
+                .forEach { day -> save(day) }
+        }
     }
 
     override suspend fun clearAllData() = withContext(ioDispatcher) {

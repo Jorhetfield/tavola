@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.tavola.android.library)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room)
     alias(libs.plugins.hilt)
     alias(libs.plugins.android.junit5)
 }
@@ -39,6 +40,8 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
 }
 
-ksp {
-    arg("room.schemaLocation", layout.projectDirectory.dir("schemas").asFile.path)
+room {
+    // The Room Gradle plugin wires the schema directory as a proper task input/output, so the debug and release
+    // KSP tasks cannot read and write the same file at the same time.
+    schemaDirectory("$projectDir/schemas")
 }

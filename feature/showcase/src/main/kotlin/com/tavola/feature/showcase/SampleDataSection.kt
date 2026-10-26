@@ -32,7 +32,7 @@ internal fun SampleDataSection(state: SampleDataUiState, onLoadClick: () -> Unit
         }
         state.lastResult?.let { result ->
             Text(
-                text = stringResource(result.messageRes()),
+                text = result.message(state.failureMessage),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -40,10 +40,11 @@ internal fun SampleDataSection(state: SampleDataUiState, onLoadClick: () -> Unit
     }
 }
 
-private fun SampleDataResult.messageRes(): Int = when (this) {
-    SampleDataResult.Loaded -> R.string.showcase_sample_data_loaded
-    SampleDataResult.Cleared -> R.string.showcase_sample_data_cleared
-    SampleDataResult.Failed -> R.string.showcase_sample_data_failed
+@Composable
+private fun SampleDataResult.message(failureMessage: String?): String = when (this) {
+    SampleDataResult.Loaded -> stringResource(R.string.showcase_sample_data_loaded)
+    SampleDataResult.Cleared -> stringResource(R.string.showcase_sample_data_cleared)
+    SampleDataResult.Failed -> stringResource(R.string.showcase_sample_data_failed, failureMessage.orEmpty())
 }
 
 @TavolaPreviews

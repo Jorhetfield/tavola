@@ -44,5 +44,5 @@
     <string name="showcase_sample_data_clear">Delete everything</string>
     <string name="showcase_sample_data_loaded">Sample recipes and weeks loaded.</string>
     <string name="showcase_sample_data_cleared">All data deleted.</string>
-    <string name="showcase_sample_data_failed">The action could not be completed.</string>
+    <string name="showcase_sample_data_failed">The action could not be completed: %1$s</string>
 </resources>

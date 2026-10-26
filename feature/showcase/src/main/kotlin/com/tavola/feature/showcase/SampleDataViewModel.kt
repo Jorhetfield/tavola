@@ -26,15 +26,15 @@ class SampleDataViewModel @Inject constructor(private val sampleDataLoader: Samp
 
         _uiState.update { state -> state.copy(isWorking = true) }
         viewModelScope.launch {
-            val result = try {
+            val finished = try {
                 action()
-                success
+                SampleDataUiState(lastResult = success)
             } catch (cancellation: CancellationException) {
                 throw cancellation
             } catch (failure: Exception) {
-                SampleDataResult.Failed
+                SampleDataUiState(lastResult = SampleDataResult.Failed, failureMessage = failure.message ?: failure::class.simpleName)
             }
-            _uiState.update { SampleDataUiState(isWorking = false, lastResult = result) }
+            _uiState.value = finished
         }
     }
 }

@@ -1,14 +1,12 @@
 package com.tavola.data.recipe
 
+import com.tavola.data.JsonColumns
 import com.tavola.domain.model.Ingredient
 import com.tavola.domain.model.IngredientUnit
 import com.tavola.domain.model.Recipe
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.json.Json
-
-private val json = Json { ignoreUnknownKeys = true }
 
 private val stringListSerializer = ListSerializer(String.serializer())
 private val ingredientListSerializer = ListSerializer(IngredientJson.serializer())
@@ -21,23 +19,24 @@ internal fun Recipe.toEntity(): RecipeEntity = RecipeEntity(
     id = id,
     title = title,
     prepTimeMinutes = prepTimeMinutes,
-    tagsJson = json.encodeToString(stringListSerializer, tags),
-    ingredientsJson = json.encodeToString(
+    tagsJson = JsonColumns.encode(stringListSerializer, tags),
+    ingredientsJson = JsonColumns.encode(
         ingredientListSerializer,
         ingredients.map { ingredient -> IngredientJson(ingredient.name, ingredient.quantity, ingredient.unit.name) },
     ),
-    stepsJson = json.encodeToString(stringListSerializer, steps),
+    stepsJson = JsonColumns.encode(stringListSerializer, steps),
 )
 
+/** A malformed JSON column is read as an empty list instead of failing, so the recipe still opens. */
 internal fun RecipeEntity.toDomain(): Recipe = Recipe(
     id = id,
     title = title,
     prepTimeMinutes = prepTimeMinutes,
-    tags = json.decodeFromString(stringListSerializer, tagsJson),
-    ingredients = json.decodeFromString(ingredientListSerializer, ingredientsJson).map { stored ->
+    tags = JsonColumns.decodeOrElse(stringListSerializer, tagsJson, fallback = emptyList()),
+    ingredients = JsonColumns.decodeOrElse(ingredientListSerializer, ingredientsJson, fallback = emptyList()).map { stored ->
         Ingredient(stored.name, stored.quantity, unitNamed(stored.unit))
     },
-    steps = json.decodeFromString(stringListSerializer, stepsJson),
+    steps = JsonColumns.decodeOrElse(stringListSerializer, stepsJson, fallback = emptyList()),
 )
 
 /** An unknown unit name (for example from a newer app version) falls back to "to taste" instead of failing. */

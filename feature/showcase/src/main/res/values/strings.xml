@@ -44,5 +44,5 @@
     <string name="showcase_sample_data_clear">Borrar todo</string>
     <string name="showcase_sample_data_loaded">Recetas y semanas de ejemplo cargadas.</string>
     <string name="showcase_sample_data_cleared">Todos los datos borrados.</string>
-    <string name="showcase_sample_data_failed">No se pudo completar la acción.</string>
+    <string name="showcase_sample_data_failed">No se pudo completar la acción: %1$s</string>
 </resources>

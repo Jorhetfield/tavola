@@ -68,7 +68,10 @@ class SampleDataViewModelTest {
 
         viewModel.onLoadClick()
 
-        assertEquals(SampleDataUiState(isWorking = false, lastResult = SampleDataResult.Failed), viewModel.uiState.value)
+        assertEquals(
+            SampleDataUiState(isWorking = false, lastResult = SampleDataResult.Failed, failureMessage = "boom"),
+            viewModel.uiState.value,
+        )
     }
 
     private class RecordingSampleDataLoader : SampleDataLoader {

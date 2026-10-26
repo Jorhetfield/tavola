@@ -37,6 +37,14 @@ class CalendarMappersTest {
     }
 
     @Test
+    fun `malformed tags are read as empty and the meal keeps the rest of its data`() {
+        val meal = PlannedMeal.FromRecipe(RecipeRef("paella", "Paella", 50, listOf("Español")))
+        val damaged = meal.toEntity(date, MealType.Lunch).copy(tagsJson = "[broken")
+
+        assertEquals(PlannedMeal.FromRecipe(RecipeRef("paella", "Paella", 50, emptyList())), damaged.toDomain())
+    }
+
+    @Test
     fun `a task round trips keeping its done state`() {
         val task = DayTask("t1", "Comprar pan", done = true)
 

@@ -40,6 +40,15 @@ class RecipeMappersTest {
     }
 
     @Test
+    fun `a malformed json column is read as empty instead of failing`() {
+        val damaged = recipe.toEntity().copy(tagsJson = "", ingredientsJson = "not json", stepsJson = "{\"oops\":1}")
+
+        val read = damaged.toDomain()
+
+        assertEquals(recipe.copy(tags = emptyList(), ingredients = emptyList(), steps = emptyList()), read)
+    }
+
+    @Test
     fun `unknown json keys from a newer version are ignored`() {
         val entity = recipe.toEntity().copy(ingredientsJson = """[{"name":"Sal","unit":"ToTaste","note":"fine"}]""")
 

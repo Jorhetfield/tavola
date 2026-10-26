@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
 import com.tavola.core.designsystem.motion.PlayedEntrances
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val STAGGER_STEP_MILLIS = 50L
 private const val MAX_STAGGERED_ITEMS = 8
@@ -40,12 +41,7 @@ internal fun Modifier.staggeredEntrance(key: String, index: Int, played: PlayedE
     LaunchedEffect(key) {
         if (firstTime) {
             delay(entranceDelayMillis(index))
-            opacity.animateTo(1f, motion.defaultEffectsSpec())
-        }
-    }
-    LaunchedEffect(key) {
-        if (firstTime) {
-            delay(entranceDelayMillis(index))
+            launch { opacity.animateTo(1f, motion.defaultEffectsSpec()) }
             lift.animateTo(0f, motion.defaultSpatialSpec())
         }
     }

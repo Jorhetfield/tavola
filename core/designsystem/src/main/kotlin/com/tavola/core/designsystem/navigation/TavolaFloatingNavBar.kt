@@ -113,6 +113,8 @@ private fun opennessAt(index: Int, position: Float): Float = (1f - abs(position 
 @Composable
 private fun NavBarLayout(position: () -> Float, content: @Composable () -> Unit) {
     Layout(content = content) { measurables, constraints ->
+        if (measurables.size <= 1) return@Layout layout(0, 0) {}
+
         val itemConstraints = constraints.copy(minWidth = 0, minHeight = 0)
         val items = measurables.drop(1).map { measurable -> measurable.measure(itemConstraints) }
         val height = items.maxOf { item -> item.height }
@@ -164,7 +166,8 @@ private fun NavBarItem(item: TavolaNavItem, selected: Boolean, openness: () -> F
             },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PoppingIcon(item = item, selected = selected, tint = contentColor, contentDescription = if (selected) null else label)
+        // The label is always in the tree (only clipped), so it names the item; the icon must not repeat it for screen readers.
+        PoppingIcon(item = item, selected = selected, tint = contentColor)
         Row(
             modifier = Modifier
                 .clipToBounds()
@@ -185,7 +188,7 @@ private fun NavBarItem(item: TavolaNavItem, selected: Boolean, openness: () -> F
 /** The icon grows from a little smaller with a spring each time its item becomes the selected one. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun PoppingIcon(item: TavolaNavItem, selected: Boolean, tint: Color, contentDescription: String?) {
+private fun PoppingIcon(item: TavolaNavItem, selected: Boolean, tint: Color) {
     val motion = MaterialTheme.motionScheme
     val scale = remember { Animatable(1f) }
     val wasSelected = remember { booleanArrayOf(selected) }
@@ -200,7 +203,7 @@ private fun PoppingIcon(item: TavolaNavItem, selected: Boolean, tint: Color, con
 
     Icon(
         imageVector = if (selected) item.selectedIcon else item.icon,
-        contentDescription = contentDescription,
+        contentDescription = null,
         tint = tint,
         modifier = Modifier.scale(scale.value),
     )

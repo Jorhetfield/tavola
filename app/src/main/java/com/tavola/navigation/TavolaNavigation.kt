@@ -7,10 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -43,9 +40,10 @@ fun TavolaNavigation() {
     val playedEntrances = rememberPlayedEntrances()
 
     val currentTabKey = backStack.lastOrNull().topLevelKey()
-    // While a detail covers the bar it keeps showing the tab it will come back to.
-    var lastTabKey by remember { mutableStateOf(CALENDAR_KEY) }
-    if (currentTabKey != null) lastTabKey = currentTabKey
+    // While a detail covers the bar it keeps showing the tab it will come back to. A plain holder, not state: it only
+    // has to survive recompositions and the bar reads it in this same pass, so nothing is written during composition.
+    val lastTab = remember { LastTab(CALENDAR_KEY) }
+    if (currentTabKey != null) lastTab.key = currentTabKey
 
     // A new destination starts with the bar fully visible, even if the previous one had it hidden by scrolling.
     LaunchedEffect(currentTabKey) { barState.show() }
@@ -85,7 +83,10 @@ fun TavolaNavigation() {
             visible = currentTabKey != null,
             modifier = Modifier.align(Alignment.BottomCenter),
         ) {
-            TopLevelNavBar(selectedKey = lastTabKey, onItemClick = { key -> backStack.navigateToTopLevel(key) })
+            TopLevelNavBar(selectedKey = lastTab.key, onItemClick = { key -> backStack.navigateToTopLevel(key) })
         }
     }
 }
+
+/** The last tab that was on screen, kept so the bar can keep showing it while a detail covers it. */
+private class LastTab(var key: String)

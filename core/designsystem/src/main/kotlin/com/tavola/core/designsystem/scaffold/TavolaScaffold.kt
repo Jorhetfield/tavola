@@ -67,7 +67,9 @@ fun TavolaScaffold(
     val spacing = TavolaTheme.spacing
     val density = LocalDensity.current
     val shellBarState = LocalFloatingBarState.current
-    val barState = shellBarState ?: rememberFloatingBarState()
+    // A scaffold that draws its own bar keeps its own state; only one that relies on the shell shares the shell's.
+    val ownBarState = rememberFloatingBarState()
+    val barState = if (floatingBar == null) shellBarState ?: ownBarState else ownBarState
     val hasFloatingBar = floatingBar != null || (shellBarState != null && reservesFloatingBarSpace)
 
     val scrollConnection = remember(hideFloatingBarOnScroll, hasFloatingBar, barState) {

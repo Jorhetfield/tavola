@@ -13,6 +13,12 @@ class RecipeMotionTest {
     }
 
     @Test
+    fun `each item waits 50 ms more than the one before`() {
+        assertEquals(50L, entranceDelayMillis(1))
+        assertEquals(100L, entranceDelayMillis(2))
+    }
+
+    @Test
     fun `the delay is capped so a long list does not drag on`() {
         assertEquals(entranceDelayMillis(8), entranceDelayMillis(100))
     }

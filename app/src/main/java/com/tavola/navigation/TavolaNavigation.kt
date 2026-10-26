@@ -19,6 +19,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.tavola.core.designsystem.motion.LocalPlayedEntrances
+import com.tavola.core.designsystem.motion.rememberPlayedEntrances
 import com.tavola.core.designsystem.scaffold.LocalFloatingBarState
 import com.tavola.core.designsystem.scaffold.TavolaFloatingBarLayer
 import com.tavola.core.designsystem.scaffold.rememberFloatingBarState
@@ -38,6 +40,7 @@ fun TavolaNavigation() {
     val backStack = rememberNavBackStack(CalendarRoute)
     val barState = rememberFloatingBarState()
     val motion = rememberNavigationMotion()
+    val playedEntrances = rememberPlayedEntrances()
 
     val currentTabKey = backStack.lastOrNull().topLevelKey()
     // While a detail covers the bar it keeps showing the tab it will come back to.
@@ -48,7 +51,7 @@ fun TavolaNavigation() {
     LaunchedEffect(currentTabKey) { barState.show() }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        CompositionLocalProvider(LocalFloatingBarState provides barState) {
+        CompositionLocalProvider(LocalFloatingBarState provides barState, LocalPlayedEntrances provides playedEntrances) {
             NavDisplay(
                 backStack = backStack,
                 onBack = { backStack.removeLastOrNull() },

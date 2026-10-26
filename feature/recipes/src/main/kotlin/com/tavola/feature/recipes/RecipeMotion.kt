@@ -11,9 +11,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
+import com.tavola.core.designsystem.motion.PlayedEntrances
 import kotlinx.coroutines.delay
 
-private const val STAGGER_STEP_MILLIS = 30L
+private const val STAGGER_STEP_MILLIS = 50L
 private const val MAX_STAGGERED_ITEMS = 8
 private const val POP_START_SCALE = 0.6f
 private val EntranceLift = 12.dp
@@ -23,17 +24,16 @@ private val WIGGLE_DEGREES = listOf(-12f, 10f, -6f, 3f, 0f)
 internal fun entranceDelayMillis(index: Int): Long = index.coerceIn(0, MAX_STAGGERED_ITEMS) * STAGGER_STEP_MILLIS
 
 /**
- * Fades the item in while it rises a little, after the delay for its [index]. It plays only the first time a [key] shows
- * up in [played] (a set that lives as long as the list), so scrolling back or re-filtering never replays it. A `null`
- * [played] means the screen was already shown before, so nothing plays.
+ * Fades the item in while it rises a little, after the delay for its [index]. It plays only the first time a [key]
+ * is asked for in [played], so scrolling back, re-filtering or coming back to the screen never replays it.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun Modifier.staggeredEntrance(key: Any, index: Int, played: MutableSet<Any>?): Modifier {
+internal fun Modifier.staggeredEntrance(key: String, index: Int, played: PlayedEntrances): Modifier {
     val motion = MaterialTheme.motionScheme
     val liftPx = with(LocalDensity.current) { EntranceLift.toPx() }
     val inspecting = LocalInspectionMode.current
-    val firstTime = remember(key) { played != null && played.add(key) && !inspecting }
+    val firstTime = remember(key) { !inspecting && played.isFirstTime(key) }
     val opacity = remember(key) { Animatable(if (firstTime) 0f else 1f) }
     val lift = remember(key) { Animatable(if (firstTime) 1f else 0f) }
 

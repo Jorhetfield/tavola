@@ -48,14 +48,17 @@ fun RecipeListScreen(
 fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modifier: Modifier = Modifier) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val resources = LocalResources.current
-    val total = (state as? RecipeListUiState.Success)?.totalRecipes ?: 0
+    val success = state as? RecipeListUiState.Success
+    // The subtitle counts what the search shows; it is hidden only when the recipe book itself is empty.
+    val shown = success?.recipes?.size ?: 0
+    val hasRecipes = (success?.totalRecipes ?: 0) > 0
 
     TavolaScaffold(
         modifier = modifier.nestedScroll(topBarScroll.nestedScrollConnection),
         topBar = {
             TavolaTopBar(
                 title = stringResource(R.string.recipe_list_title),
-                subtitle = if (total > 0) resources.getQuantityString(R.plurals.recipe_list_count, total, total) else null,
+                subtitle = if (hasRecipes) resources.getQuantityString(R.plurals.recipe_list_count, shown, shown) else null,
                 scrollBehavior = topBarScroll,
             )
         },

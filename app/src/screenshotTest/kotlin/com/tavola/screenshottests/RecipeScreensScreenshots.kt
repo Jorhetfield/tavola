@@ -108,3 +108,12 @@ fun RecipeDetailNotFoundScreenshot() = RecipeDetail(RecipeDetailUiState.NotFound
 @TavolaFontScalePreviews
 @Composable
 fun RecipeDetailLargeFontScreenshot() = RecipeDetail(RecipeDetailUiState.Success(paella))
+
+/** A search in progress: the count in the top bar is the number of matches, not the size of the whole recipe book. */
+@PreviewTest
+@TavolaScreenPreviews
+@Composable
+fun RecipeListFilteredScreenshot() {
+    val italian = recipes.filter { recipe -> recipe.tags.contains("Italiano") }
+    RecipeList(RecipeListUiState.Success(query = "italiano", recipes = italian, totalRecipes = recipes.size))
+}

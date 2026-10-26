@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.tavola.core.designsystem.motion.PlayedEntrances
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.domain.model.Ingredient
 import com.tavola.domain.model.Recipe
@@ -37,7 +38,7 @@ private val InfoIconSize = 18.dp
 @Composable
 internal fun RecipeDetailBody(recipe: Recipe, contentPadding: PaddingValues) {
     val spacing = TavolaTheme.spacing
-    val played = remember { mutableSetOf<Any>() }
+    val played = remember { PlayedEntrances() }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(

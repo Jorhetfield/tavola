@@ -34,14 +34,12 @@ import com.tavola.core.designsystem.topbar.TavolaTopBarAction
 /**
  * Landing de la app: calendario semanal.
  *
- * @param floatingBar barra de navegación flotante; la aporta `:app`, que es quien conoce los destinos.
  * @param onOpenDebugMenu si no es `null` (solo en debug) añade un botón a la barra superior.
  * @param mealPicker contenido del selector de comida, que aporta `:app` (ver [MealPickerSlot]).
  */
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
-    floatingBar: (@Composable () -> Unit)? = null,
     onOpenDebugMenu: (() -> Unit)? = null,
     mealPicker: MealPickerSlot? = null,
     viewModel: CalendarViewModel = hiltViewModel(),
@@ -64,7 +62,7 @@ fun CalendarScreen(
             onAddTaskConfirm = viewModel::onAddTaskConfirm,
         )
     }
-    CalendarContent(state, actions, modifier, floatingBar, onOpenDebugMenu, mealPicker)
+    CalendarContent(state, actions, modifier, onOpenDebugMenu, mealPicker)
 }
 
 /** Parte sin estado de la pantalla: recibe el estado y las acciones, así se puede previsualizar y testear. */
@@ -74,7 +72,6 @@ fun CalendarContent(
     state: CalendarUiState,
     actions: CalendarActions,
     modifier: Modifier = Modifier,
-    floatingBar: (@Composable () -> Unit)? = null,
     onOpenDebugMenu: (() -> Unit)? = null,
     mealPicker: MealPickerSlot? = null,
 ) {
@@ -89,7 +86,7 @@ fun CalendarContent(
     TavolaScaffold(
         modifier = modifier.nestedScroll(topBarScroll.nestedScrollConnection),
         topBar = { CalendarTopBar(state, actions, onOpenDebugMenu, topBarScroll) },
-        floatingBar = floatingBar,
+        reservesFloatingBarSpace = true,
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {

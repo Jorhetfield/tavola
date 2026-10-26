@@ -1,5 +1,11 @@
 package com.tavola.core.designsystem.topbar
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,6 +25,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.IntOffset
 import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
@@ -42,7 +49,7 @@ fun TavolaTopBar(
         title = { Text(text = title, style = MaterialTheme.typography.headlineLarge) },
         modifier = modifier,
         subtitle = subtitle?.let { text ->
-            { Text(text = text, style = MaterialTheme.typography.titleSmall) }
+            { AnimatedSubtitle(text) }
         },
         navigationIcon = {
             if (navigationAction != null) {
@@ -62,6 +69,27 @@ fun TavolaTopBar(
         ),
         scrollBehavior = scrollBehavior,
     )
+}
+
+/** The subtitle changes with a vertical slide (the old text leaves upwards, the new one comes from below). */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun AnimatedSubtitle(text: String) {
+    val motion = MaterialTheme.motionScheme
+    AnimatedContent(
+        targetState = text,
+        transitionSpec = {
+            (
+                slideInVertically(motion.defaultSpatialSpec<IntOffset>()) { height ->
+                    height
+                } + fadeIn(motion.defaultEffectsSpec())
+                ) togetherWith
+                (slideOutVertically(motion.fastSpatialSpec<IntOffset>()) { height -> -height } + fadeOut(motion.fastEffectsSpec()))
+        },
+        label = "topBarSubtitle",
+    ) { subtitle ->
+        Text(text = subtitle, style = MaterialTheme.typography.titleSmall)
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

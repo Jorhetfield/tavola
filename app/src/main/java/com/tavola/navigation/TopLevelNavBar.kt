@@ -53,3 +53,19 @@ internal fun MutableList<NavKey>.navigateToTopLevel(key: String) {
         }
     }
 }
+
+/** The tabs, in the order they sit in the bar (which is also the way they slide). */
+private val TopLevelOrder = listOf(CALENDAR_KEY, RECIPES_KEY)
+
+/**
+ * Bar key of the tab this is: either the route of a tab or the content key its entry was registered with. `null` for
+ * anything that is not a tab (a detail, the debug screens).
+ */
+internal fun Any?.topLevelKey(): String? = when (this) {
+    CalendarRoute, CALENDAR_KEY -> CALENDAR_KEY
+    RecipesRoute, RECIPES_KEY -> RECIPES_KEY
+    else -> null
+}
+
+/** Position of a tab in the bar (so which way the tabs slide), or `null` if this is not a tab. */
+internal fun Any?.topLevelIndex(): Int? = TopLevelOrder.indexOf(topLevelKey()).takeIf { index -> index >= 0 }

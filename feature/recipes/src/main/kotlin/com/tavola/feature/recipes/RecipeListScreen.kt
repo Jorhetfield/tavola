@@ -24,13 +24,11 @@ import com.tavola.core.designsystem.topbar.TavolaTopBar
  * The recipe book tab.
  *
  * @param onRecipeClick opens the detail of the recipe; `:app` owns the navigation.
- * @param floatingBar floating navigation bar, provided by `:app`, which knows the destinations.
  */
 @Composable
 fun RecipeListScreen(
     onRecipeClick: (recipeId: String) -> Unit,
     modifier: Modifier = Modifier,
-    floatingBar: (@Composable () -> Unit)? = null,
     viewModel: RecipeListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -41,18 +39,13 @@ fun RecipeListScreen(
             onRetryClick = viewModel::onRetryClick,
         )
     }
-    RecipeListContent(state, actions, modifier, floatingBar)
+    RecipeListContent(state, actions, modifier)
 }
 
 /** Stateless part of the screen: it receives the state and the actions, so it can be previewed and tested. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeListContent(
-    state: RecipeListUiState,
-    actions: RecipeListActions,
-    modifier: Modifier = Modifier,
-    floatingBar: (@Composable () -> Unit)? = null,
-) {
+fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modifier: Modifier = Modifier) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val resources = LocalResources.current
     val total = (state as? RecipeListUiState.Success)?.totalRecipes ?: 0
@@ -66,7 +59,7 @@ fun RecipeListContent(
                 scrollBehavior = topBarScroll,
             )
         },
-        floatingBar = floatingBar,
+        reservesFloatingBarSpace = true,
     ) { contentPadding ->
         when (state) {
             RecipeListUiState.Loading -> CenteredBox(contentPadding) { TavolaLoadingIndicator() }

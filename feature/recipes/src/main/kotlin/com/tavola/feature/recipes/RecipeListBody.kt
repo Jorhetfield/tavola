@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.SearchOff
@@ -18,6 +18,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -35,6 +41,10 @@ internal fun RecipeListBody(state: RecipeListUiState.Success, actions: RecipeLis
     val motion = MaterialTheme.motionScheme
     val focusManager = LocalFocusManager.current
     val rows = rememberRecipeRows(state.recipes, selectedRecipeId = null)
+    // The cascade plays only the first time the list is shown, not every time the user comes back from a detail.
+    var entered by rememberSaveable { mutableStateOf(false) }
+    val played = remember { if (entered) null else mutableSetOf<Any>() }
+    LaunchedEffect(Unit) { entered = true }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -61,15 +71,17 @@ internal fun RecipeListBody(state: RecipeListUiState.Success, actions: RecipeLis
         if (rows.isEmpty()) {
             item(key = EMPTY_KEY) { RecipeListEmpty(state) }
         } else {
-            items(rows, key = { rowModel -> rowModel.id }) { row ->
+            itemsIndexed(rows, key = { _, rowModel -> rowModel.id }) { index, row ->
                 TavolaRecipeRow(
                     model = row,
                     onClick = { actions.onRecipeClick(row.id) },
-                    modifier = Modifier.animateItem(
-                        fadeInSpec = motion.defaultEffectsSpec(),
-                        placementSpec = motion.defaultSpatialSpec(),
-                        fadeOutSpec = motion.fastEffectsSpec(),
-                    ),
+                    modifier = Modifier
+                        .staggeredEntrance(key = row.id, index = index, played = played)
+                        .animateItem(
+                            fadeInSpec = motion.defaultEffectsSpec(),
+                            placementSpec = motion.defaultSpatialSpec(),
+                            fadeOutSpec = motion.fastEffectsSpec(),
+                        ),
                 )
             }
         }
@@ -92,6 +104,7 @@ private fun RecipeListEmpty(state: RecipeListUiState.Success) {
             imageVector = if (noRecipes) Icons.Rounded.MenuBook else Icons.Rounded.SearchOff,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = if (noRecipes) Modifier else Modifier.wiggleOnAppear(),
         )
         Text(
             text = if (noRecipes) {

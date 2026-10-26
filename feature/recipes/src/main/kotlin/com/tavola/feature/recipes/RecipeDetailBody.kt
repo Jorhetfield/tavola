@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
@@ -36,6 +37,7 @@ private val InfoIconSize = 18.dp
 @Composable
 internal fun RecipeDetailBody(recipe: Recipe, contentPadding: PaddingValues) {
     val spacing = TavolaTheme.spacing
+    val played = remember { mutableSetOf<Any>() }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -47,16 +49,17 @@ internal fun RecipeDetailBody(recipe: Recipe, contentPadding: PaddingValues) {
         verticalArrangement = Arrangement.spacedBy(spacing.xl),
     ) {
         if (recipe.prepTimeMinutes != null || recipe.tags.isNotEmpty()) {
-            item { RecipeInfo(recipe) }
+            item { RecipeInfo(recipe, Modifier.staggeredEntrance(INFO_KEY, index = 0, played = played)) }
         }
-        item { IngredientsSection(recipe.ingredients) }
-        item { StepsSection(recipe.steps) }
+        item { IngredientsSection(recipe.ingredients, Modifier.staggeredEntrance(INGREDIENTS_KEY, index = 1, played = played)) }
+        item { StepsSection(recipe.steps, Modifier.staggeredEntrance(STEPS_KEY, index = 2, played = played)) }
     }
 }
 
 @Composable
-private fun RecipeInfo(recipe: Recipe) {
+private fun RecipeInfo(recipe: Recipe, modifier: Modifier = Modifier) {
     FlowRow(
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
     ) {
@@ -85,9 +88,9 @@ private fun InfoPill(text: String, showClock: Boolean = false) {
 }
 
 @Composable
-private fun IngredientsSection(ingredients: List<Ingredient>) {
+private fun IngredientsSection(ingredients: List<Ingredient>, modifier: Modifier = Modifier) {
     val spacing = TavolaTheme.spacing
-    SectionHeader(R.string.recipe_detail_ingredients) {
+    SectionHeader(R.string.recipe_detail_ingredients, modifier) {
         if (ingredients.isEmpty()) {
             EmptySection(R.string.recipe_detail_no_ingredients)
         } else {
@@ -117,24 +120,32 @@ private fun IngredientRow(ingredient: Ingredient) {
 }
 
 @Composable
-private fun StepsSection(steps: List<String>) {
+private fun StepsSection(steps: List<String>, modifier: Modifier = Modifier) {
     val spacing = TavolaTheme.spacing
-    SectionHeader(R.string.recipe_detail_steps) {
+    SectionHeader(R.string.recipe_detail_steps, modifier) {
         if (steps.isEmpty()) {
             EmptySection(R.string.recipe_detail_no_steps)
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-                steps.forEachIndexed { index, step -> StepRow(number = index + 1, text = step) }
+                steps.forEachIndexed { index, step ->
+                    StepRow(
+                        number = index + 1,
+                        text = step,
+                        popDelayMillis =
+                            STEPS_POP_BASE_MILLIS + entranceDelayMillis(index),
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun StepRow(number: Int, text: String) {
+private fun StepRow(number: Int, text: String, popDelayMillis: Long) {
     Row(horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md), verticalAlignment = Alignment.Top) {
         Box(
             modifier = Modifier
+                .popOnAppear(popDelayMillis)
                 .size(StepBadgeSize)
                 .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
             contentAlignment = Alignment.Center,
@@ -150,8 +161,8 @@ private fun StepRow(number: Int, text: String) {
 }
 
 @Composable
-private fun SectionHeader(titleRes: Int, content: @Composable () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md)) {
+private fun SectionHeader(titleRes: Int, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md)) {
         Text(text = stringResource(titleRes), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
         content()
     }
@@ -165,3 +176,8 @@ private fun EmptySection(messageRes: Int) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
+
+private const val INFO_KEY = "info"
+private const val INGREDIENTS_KEY = "ingredients"
+private const val STEPS_KEY = "steps"
+private const val STEPS_POP_BASE_MILLIS = 120L

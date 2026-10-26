@@ -1,33 +1,34 @@
-## Qué cambia
-<!-- Una o dos frases: qué hace esta PR y por qué. Enlaza el punto de docs/PLAN.md si aplica. -->
+## What changes
+<!-- One or two sentences: what this PR does and why. Link the docs/PLAN.md item if it applies. -->
 
-## Tipo de cambio
+## Type of change
 - [ ] Feature
-- [ ] Mejora / refactor
-- [ ] Arreglo
+- [ ] Improvement / refactor
+- [ ] Fix
 - [ ] Docs / build / CI
 
-## Cómo se ha hecho
-<!-- Decisiones relevantes, alternativas descartadas y módulos tocados. -->
+## How it was done
+<!-- Relevant decisions, discarded alternatives and modules touched. -->
 
-## Capturas / vídeo
-<!-- Obligatorio si hay cambios de UI: claro, oscuro y texto grande. Antes / después si es un cambio de diseño. -->
+## Screenshots / video
+<!-- Required for UI changes: light, dark and large text. Before / after for design changes. -->
 
-## Comprobaciones
+## Checks
 - [ ] `./gradlew spotlessCheck`
 - [ ] `./gradlew assembleDebug`
 - [ ] `./gradlew testDebugUnitTest :domain:test :core:testing:test`
 - [ ] `./gradlew lintDebug`
-- [ ] Probado a mano en emulador o dispositivo (indica cuál)
+- [ ] Tested manually on an emulator or device (say which)
 
-## Normas del proyecto (CLAUDE.md)
-- [ ] Sin `it` implícito en lambdas; sin nombres calificados en el cuerpo (imports arriba)
-- [ ] Sin colores, dimensiones ni strings hardcodeados (tokens del tema y `stringResource`, es y en)
-- [ ] Animaciones con `MaterialTheme.motionScheme` y respuesta táctil en lo pulsable
-- [ ] Sin lógica de negocio en composables; ViewModel, UseCase o repositorio con tests
-- [ ] Dependencias entre módulos respetadas (`:domain` puro, features sin depender entre sí)
-- [ ] Capturas de referencia regeneradas y revisadas si cambia la UI (`updateDebugScreenshotTestDefaultTestSuite`)
-- [ ] `docs/PLAN.md` actualizado si se completa un punto
+## Project rules (CLAUDE.md)
+- [ ] No implicit `it` in lambdas; no fully qualified names in code bodies (imports at the top)
+- [ ] No hardcoded colors, dimensions or strings (theme tokens and `stringResource`, es and en)
+- [ ] Animations use `MaterialTheme.motionScheme` and clickable elements give touch feedback
+- [ ] No business logic in composables; ViewModels, UseCases and repositories have tests
+- [ ] Module dependencies respected (`:domain` stays pure, features never depend on each other)
+- [ ] Reference screenshots regenerated and reviewed if the UI changes (`updateDebugScreenshotTestDefaultTestSuite`)
+- [ ] `docs/PLAN.md` updated if an item is completed
+- [ ] Everything written in the repo (docs, templates, comments, commits, PRs) is in English
 
-## Notas para quien revise
-<!-- Riesgos, partes dudosas, deuda que queda, trabajo pendiente en otras PRs. -->
+## Notes for reviewers
+<!-- Risks, doubtful parts, remaining debt, work left for other PRs. -->

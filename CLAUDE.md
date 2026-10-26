@@ -33,6 +33,9 @@ val effects = MaterialTheme.motionScheme.defaultEffectsSpec<androidx.compose.ui.
 val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Color>()
 ```
 
+### Idioma del repositorio: inglés
+Todo lo que se escriba en el repo va en **inglés**: plantillas, documentación nueva, comentarios y KDoc, mensajes de commit, títulos y descripciones de PR. Excepciones: los textos de la app para el usuario, que siguen en `values/` (es) y `values-en/` (en), y la conversación con Claude, que puede ser en español. Lo existente en español se traduce al tocarlo.
+
 ### Git: nunca directo a `main`
 - **No se hace commit ni push directo a `main`.** `main` solo recibe cambios mediante pull request.
 - Cada trabajo nuevo (feature, mejora, refactor) empieza **en una rama creada desde `main` actualizado**, con el nombre `feature/<nombre-corto-en-kebab-case>` (p. ej. `feature/meal-picker`, `feature/recipe-editor`). Se trabaja y se commitea ahí:

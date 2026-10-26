@@ -1,3 +1,8 @@
+## Target branch
+- [ ] Feature, fix, docs or build PR: targets the latest open `release/x.y.z`
+- [ ] Release PR (`release/x.y.z` into `main`): merge with a merge commit, `VERSION` already bumped
+- [ ] Hotfix: targets `main`, `VERSION` bumped, to be brought into the open release afterwards
+
 ## What changes
 <!-- One or two sentences: what this PR does and why. Link the docs/PLAN.md item if it applies. -->
 

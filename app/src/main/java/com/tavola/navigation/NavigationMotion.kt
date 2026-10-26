@@ -98,16 +98,18 @@ private fun Scene<*>.topLevelIndex(): Int? = entries.lastOrNull()?.contentKey.to
 internal fun SheetEntrySurface(content: @Composable () -> Unit) {
     val motion = MaterialTheme.motionScheme
     val transition = LocalNavAnimatedContentScope.current.transition
+    // The spatial springs overshoot, which for a size would go below zero (a negative corner radius crashes), so it is clamped.
     val corner by transition.animateDp(transitionSpec = { motion.defaultSpatialSpec() }, label = "sheetCorner") { state ->
         if (state == EnterExitState.Visible) 0.dp else SheetCornerRadius
     }
     val elevation by transition.animateDp(transitionSpec = { motion.defaultEffectsSpec() }, label = "sheetElevation") { state ->
         if (state == EnterExitState.Visible) 0.dp else SheetElevation
     }
+    val safeCorner = corner.coerceAtLeast(0.dp)
     Surface(
-        shape = RoundedCornerShape(topStart = corner, topEnd = corner),
+        shape = RoundedCornerShape(topStart = safeCorner, topEnd = safeCorner),
         color = MaterialTheme.colorScheme.background,
-        shadowElevation = elevation,
+        shadowElevation = elevation.coerceAtLeast(0.dp),
     ) {
         content()
     }

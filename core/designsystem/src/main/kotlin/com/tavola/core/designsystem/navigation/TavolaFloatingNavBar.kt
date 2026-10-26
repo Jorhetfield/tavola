@@ -1,16 +1,12 @@
 package com.tavola.core.designsystem.navigation
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -30,30 +26,31 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.boundsInParent
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.util.lerp
 import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
+import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 
 private const val ICON_POP_START_SCALE = 0.7f
 
@@ -64,8 +61,10 @@ private const val ICON_POP_START_SCALE = 0.7f
  * contextual actions) is used as the main navigation. It overlaps the content (see `TavolaScaffold`, which also hides
  * it on scroll) and does NOT use `fillMaxWidth()`: it works out its own width.
  *
- * The selection is one pill that slides to the chosen item with a spatial spring while its label opens, and the
- * chosen icon pops. Choosing another destination gives a light haptic tick.
+ * The selection is one number (a position along the bar) animated with a spatial spring. Every item opens or closes
+ * its label according to how close that position is to it, and the pill is placed between the two items the position
+ * is between, all in the same layout pass, so the pill always sits exactly under the icon it is moving to. The chosen
+ * icon pops and choosing another destination gives a light haptic tick.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -75,90 +74,78 @@ fun TavolaFloatingNavBar(
     onItemClick: (key: String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val motion = MaterialTheme.motionScheme
     val haptics = LocalHapticFeedback.current
-    val itemBounds = remember { mutableStateMapOf<String, Rect>() }
-    // Until the pill has been measured and placed, the selected item paints its own background so there is no blank frame.
-    var pillPlaced by remember { mutableStateOf(false) }
+    val selectedIndex = items.indexOfFirst { item -> item.key == selectedKey }.coerceAtLeast(0)
+    val position = remember { Animatable(selectedIndex.toFloat()) }
+
+    LaunchedEffect(selectedIndex) { position.animateTo(selectedIndex.toFloat(), motion.defaultSpatialSpec()) }
 
     HorizontalFloatingToolbar(
         expanded = true,
         modifier = modifier,
         colors = FloatingToolbarDefaults.standardFloatingToolbarColors(),
     ) {
-        Box(contentAlignment = Alignment.CenterStart) {
-            SelectionPill(bounds = itemBounds[selectedKey], onPlaced = { pillPlaced = true })
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                items.forEach { item ->
-                    NavBarItem(
-                        item = item,
-                        selected = item.key == selectedKey,
-                        paintsOwnBackground = !pillPlaced,
-                        onClick = {
-                            if (item.key != selectedKey) haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
-                            onItemClick(item.key)
-                        },
-                        modifier = Modifier.onGloballyPositioned { coordinates -> itemBounds[item.key] = coordinates.boundsInParent() },
-                    )
-                }
+        NavBarLayout(position = { position.value }) {
+            Box(Modifier.background(MaterialTheme.colorScheme.primary, CircleShape))
+            items.forEachIndexed { index, item ->
+                NavBarItem(
+                    item = item,
+                    selected = index == selectedIndex,
+                    openness = { opennessAt(index, position.value) },
+                    onClick = {
+                        if (index != selectedIndex) haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        onItemClick(item.key)
+                    },
+                )
             }
         }
     }
 }
 
-/** The filled pill behind the selected item. It follows the item's bounds with a spring, so it slides and stretches. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+/** 1 when the animated [position] is exactly on item [index], 0 when it is a whole item or more away. */
+private fun opennessAt(index: Int, position: Float): Float = (1f - abs(position - index)).coerceIn(0f, 1f)
+
+/**
+ * Places the items in a row and the pill (the first child) between the two items that [position] lies between,
+ * growing or shrinking with them. Reading [position] here keeps the animation in the layout phase.
+ */
 @Composable
-private fun SelectionPill(bounds: Rect?, onPlaced: () -> Unit) {
-    val motion = MaterialTheme.motionScheme
-    val density = LocalDensity.current
-    val left = remember { Animatable(0f) }
-    val width = remember { Animatable(0f) }
-    val height = remember { Animatable(0f) }
-    val placed = remember { booleanArrayOf(false) }
+private fun NavBarLayout(position: () -> Float, content: @Composable () -> Unit) {
+    Layout(content = content) { measurables, constraints ->
+        val itemConstraints = constraints.copy(minWidth = 0, minHeight = 0)
+        val items = measurables.drop(1).map { measurable -> measurable.measure(itemConstraints) }
+        val height = items.maxOf { item -> item.height }
+        val lefts = items.runningFold(0) { left, item -> left + item.width }
+        val last = items.lastIndex
 
-    LaunchedEffect(bounds) {
-        if (bounds == null) return@LaunchedEffect
-        if (!placed[0]) {
-            // The first measurement just puts the pill in place: it must not slide in from the corner.
-            left.snapTo(bounds.left)
-            width.snapTo(bounds.width)
-            height.snapTo(bounds.height)
-            placed[0] = true
-            onPlaced()
-        } else {
-            launch { left.animateTo(bounds.left, motion.defaultSpatialSpec()) }
-            launch { width.animateTo(bounds.width, motion.defaultSpatialSpec()) }
-            launch { height.animateTo(bounds.height, motion.defaultSpatialSpec()) }
+        val clamped = position().coerceIn(0f, last.toFloat())
+        val lower = floor(clamped).toInt()
+        val upper = min(lower + 1, last)
+        val fraction = clamped - lower
+        val pillLeft = lerp(lefts[lower].toFloat(), lefts[upper].toFloat(), fraction)
+        val pillWidth = lerp(items[lower].width.toFloat(), items[upper].width.toFloat(), fraction)
+        val pill = measurables.first().measure(Constraints.fixed(pillWidth.roundToInt(), height))
+
+        layout(lefts.last(), height) {
+            pill.place(pillLeft.roundToInt(), 0)
+            items.forEachIndexed { index, item -> item.place(lefts[index], (height - item.height) / 2) }
         }
-    }
-
-    if (bounds != null) {
-        Box(
-            modifier = Modifier
-                .offset { IntOffset(left.value.roundToInt(), 0) }
-                .width(with(density) { width.value.toDp() })
-                .defaultMinSize(minHeight = with(density) { height.value.toDp() })
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary),
-        )
     }
 }
 
+/**
+ * One destination. [openness] says how much it is the selected one (0 to 1): its horizontal padding and its label
+ * grow with it, measured in the layout phase so they stay in step with the pill.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun NavBarItem(
-    item: TavolaNavItem,
-    selected: Boolean,
-    paintsOwnBackground: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun NavBarItem(item: TavolaNavItem, selected: Boolean, openness: () -> Float, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val spacing = TavolaTheme.spacing
     val colors = MaterialTheme.colorScheme
-    val motion = MaterialTheme.motionScheme
     val contentColor by animateColorAsState(
         targetValue = if (selected) colors.onPrimary else colors.onSurfaceVariant,
-        animationSpec = motion.defaultEffectsSpec(),
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
         label = "navItemContent",
     )
     val label = stringResource(item.labelRes)
@@ -166,24 +153,31 @@ private fun NavBarItem(
     Row(
         modifier = modifier
             .clip(CircleShape)
-            .background(if (selected && paintsOwnBackground) colors.primary else Color.Transparent)
             .selectable(selected = selected, role = Role.Tab, onClick = onClick)
             .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-            .padding(horizontal = if (selected) spacing.lg else spacing.md)
-            .animateContentSize(motion.defaultSpatialSpec()),
+            .layout { measurable, constraints ->
+                val padding = lerp(spacing.md, spacing.lg, openness()).roundToPx()
+                val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = Constraints.Infinity))
+                val width = (placeable.width + 2 * padding).coerceAtLeast(constraints.minWidth)
+                val height = placeable.height.coerceAtLeast(constraints.minHeight)
+                layout(width, height) { placeable.place((width - placeable.width) / 2, (height - placeable.height) / 2) }
+            },
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PoppingIcon(item = item, selected = selected, tint = contentColor, contentDescription = if (selected) null else label)
-        AnimatedVisibility(visible = selected) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Spacer(Modifier.width(spacing.sm))
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = contentColor,
-                    maxLines = 1,
-                )
-            }
+        Row(
+            modifier = Modifier
+                .clipToBounds()
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = Constraints.Infinity))
+                    val width = (placeable.width * openness()).roundToInt()
+                    layout(width, placeable.height) { placeable.place(0, 0) }
+                }
+                .graphicsLayer { alpha = openness() },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Spacer(Modifier.width(spacing.sm))
+            Text(text = label, style = MaterialTheme.typography.labelLarge, color = contentColor, maxLines = 1)
         }
     }
 }

@@ -12,9 +12,12 @@ android {
     namespace = "com.tavola"
     defaultConfig {
         applicationId = "com.tavola"
-        // La CI pasa el número de ejecución (-Ptavola.versionCode=N) para que cada build instale encima de la anterior.
+        // CI passes the run number (-Ptavola.versionCode=N) so every build installs over the previous one.
         versionCode = providers.gradleProperty("tavola.versionCode").map(String::toInt).getOrElse(1)
-        versionName = providers.gradleProperty("tavola.versionName").getOrElse("1.0")
+        // The version lives in the root VERSION file, which is bumped when a release/x.y.z branch is cut.
+        versionName = providers.gradleProperty("tavola.versionName").orElse(
+            providers.fileContents(rootProject.layout.projectDirectory.file("VERSION")).asText.map(String::trim),
+        ).get()
     }
 
     // Firma estable para las builds de la CI: solo existe si la CI define estas variables de entorno.

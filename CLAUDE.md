@@ -36,18 +36,28 @@ val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Color>()
 ### Idioma del repositorio: inglés
 Todo lo que se escriba en el repo va en **inglés**: plantillas, documentación nueva, comentarios y KDoc, mensajes de commit, títulos y descripciones de PR. Excepciones: los textos de la app para el usuario, que siguen en `values/` (es) y `values-en/` (en), y la conversación con Claude, que puede ser en español. Lo existente en español se traduce al tocarlo.
 
-### Git: nunca directo a `main`
-- **No se hace commit ni push directo a `main`.** `main` solo recibe cambios mediante pull request.
-- Cada trabajo nuevo (feature, mejora, refactor) empieza **en una rama creada desde `main` actualizado**, con el nombre `feature/<nombre-corto-en-kebab-case>` (p. ej. `feature/meal-picker`, `feature/recipe-editor`). Se trabaja y se commitea ahí:
-  ```bash
-  git switch main
-  git pull
-  git switch -c feature/nombre-de-lo-que-hagamos
-  ```
-- Antes de empezar a editar, comprueba en qué rama estás (`git status -sb`). Si estás en `main`, crea la rama primero.
-- Commits pequeños y con mensaje claro. Antes de proponer una PR: `spotlessCheck`, compilación y tests en verde.
-- **Nunca se hace push, PR ni merge sin confirmación explícita del usuario**: publicar es difícil de deshacer. Si el usuario no ha indicado el tipo de rama (arreglo, docs, build), se pregunta; hasta entonces se usa `feature/`.
-- La CI corre en cada pull request hacia `main` y, tras el merge, publica la pre-release con el APK.
+### Git flow: release train
+Branches:
+- `main` only receives a finished `release/x.y.z` and is what publishes an APK. Never commit or push to it directly.
+- `release/x.y.z` is the **integration branch**. Exactly one is open at a time (the latest one). It is cut from an up-to-date `main`, and its first commit sets the `VERSION` file to `x.y.z`.
+- `feature/<short-kebab-name>` (also `fix/`, `docs/`, `build/`) branches start **from the latest open release** and go back **into it** through a pull request (squash merge).
+
+```bash
+git switch release/0.0.1        # the latest open release
+git pull
+git switch -c feature/what-we-are-building
+```
+
+Rules:
+- Check the branch before editing (`git status -sb`). On `main` or `release/**`, create the feature branch first. Neither accepts direct commits.
+- PRs always target the latest release (`gh pr create --base release/x.y.z`), never `main`, except hotfixes.
+- Small commits with a clear message. Before proposing a PR: `spotlessCheck`, build and tests green.
+- **Never push, open a PR or merge without the user's explicit confirmation**: publishing is hard to undo. If the user did not say the branch type, ask; until then use `feature/`.
+- **After a successful merge the merged branch is deleted** (remote and local): `gh pr merge <n> --squash --delete-branch`, then `git switch <release> && git pull`.
+- Closing a release: open a PR `release/x.y.z` -> `main` and merge it with a **merge commit** (not squash, so the branches do not diverge). CI then publishes the APK as the pre-release `vX.Y.Z`. Afterwards delete the release branch (the tag stays) and cut the next `release/x.y.z+1` from `main`. Merge to `main` on milestones (a block of `docs/PLAN.md`, or when we want an APK), not on a timer.
+- Hotfix: branch from `main`, PR into `main` with a bumped `VERSION`, then bring the fix into the open release.
+- Repo protection is not available (private repo, free plan), so these rules are convention only.
+
 ## Comandos
 Requieren `JAVA_HOME` apuntando al JDK de Android Studio (`%LOCALAPPDATA%\Programs\Android Studio\jbr`).
 ```bash
@@ -59,7 +69,7 @@ Requieren `JAVA_HOME` apuntando al JDK de Android Studio (`%LOCALAPPDATA%\Progra
 Antes de dar una tarea por terminada: `spotlessApply` + `assembleDebug` + tests.
 
 ### CI
-Cada push a `main` ejecuta `.github/workflows/ci.yml` (spotlessCheck, compilación, lint y tests) y, si pasa, publica una pre-release `build-N` con el APK de debug firmado. Antes de subir cambios, ejecuta en local lo mismo que la CI. Los tests de capturas no están en la CI.
+Every pull request into `main` or `release/**`, and every push to them, runs `.github/workflows/ci.yml` (spotlessCheck, build, lint and tests). Only a push to `main` (a release merge) also builds the signed debug APK and publishes the pre-release `vX.Y.Z`, with the version read from the `VERSION` file; it fails if that version is already published. Before pushing, run locally the same as CI. Screenshot tests are not in CI.
 
 ### Tests de capturas (Compose Preview Screenshot Testing, experimental)
 ```bash

@@ -12,6 +12,7 @@ import com.tavola.domain.model.PlannedMeal
 import com.tavola.domain.model.Recipe
 import com.tavola.domain.repository.RecipeRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
@@ -147,12 +148,12 @@ class MealPickerViewModelTest {
         }
     }
 
-    private class FlakyRecipeRepository : RecipeRepository {
+    private class FlakyRecipeRepository(private val delegate: RecipeRepository = FakeRecipeRepository()) : RecipeRepository by delegate {
         var shouldFail = true
 
         override fun observeRecipes(): Flow<List<Recipe>> = flow {
             check(!shouldFail) { "sin conexion" }
-            emit(MediterraneanSampleData.allRecipes)
+            emitAll(delegate.observeRecipes())
         }
     }
 

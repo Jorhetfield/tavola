@@ -10,7 +10,7 @@ import com.tavola.domain.model.IngredientUnit.Tablespoon
 import com.tavola.domain.model.IngredientUnit.ToTaste
 import com.tavola.domain.model.Recipe
 
-/** Recetas de ejemplo (España, Italia, Grecia) mientras no exista el editor de recetas. */
+/** Sample recipes (Spain, Italy, Greece) seeded into the database in debug builds only. */
 internal object MediterraneanCatalog {
     private val spain = listOf("Español")
     private val greece = listOf("Griego")

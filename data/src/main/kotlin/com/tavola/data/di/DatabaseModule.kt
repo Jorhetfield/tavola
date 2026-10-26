@@ -19,8 +19,10 @@ private const val DATABASE_NAME = "tavola.db"
 internal object DatabaseModule {
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): TavolaDatabase =
-        Room.databaseBuilder(context, TavolaDatabase::class.java, DATABASE_NAME).build()
+    fun provideDatabase(@ApplicationContext context: Context, migrationPolicy: DatabaseMigrationPolicy): TavolaDatabase =
+        Room.databaseBuilder(context, TavolaDatabase::class.java, DATABASE_NAME)
+            .apply { if (migrationPolicy.destructive) fallbackToDestructiveMigration(dropAllTables = true) }
+            .build()
 
     @Provides
     fun provideRecipeDao(database: TavolaDatabase): RecipeDao = database.recipeDao()

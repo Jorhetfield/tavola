@@ -23,6 +23,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tavola.core.designsystem.R as DesignSystemR
 import com.tavola.core.designsystem.navigation.TavolaFloatingNavBar
 import com.tavola.core.designsystem.navigation.TavolaNavItem
@@ -42,7 +44,20 @@ private val NavItems = listOf(
 /** Pantalla temporal para ver el tema y los componentes de Material 3 Expressive. */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ShowcaseScreen(modifier: Modifier = Modifier) {
+fun ShowcaseScreen(modifier: Modifier = Modifier, viewModel: SampleDataViewModel = hiltViewModel()) {
+    val sampleData by viewModel.uiState.collectAsStateWithLifecycle()
+    ShowcaseScreenContent(sampleData, viewModel::onLoadClick, viewModel::onClearClick, modifier)
+}
+
+/** Stateless part of the screen: it receives the sample-data state and actions, so it can be previewed. */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+internal fun ShowcaseScreenContent(
+    sampleData: SampleDataUiState,
+    onLoadSampleData: () -> Unit,
+    onClearData: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var selectedKey by remember { mutableStateOf(NavItems.first().key) }
 
@@ -66,12 +81,17 @@ fun ShowcaseScreen(modifier: Modifier = Modifier) {
             )
         },
     ) { contentPadding ->
-        ShowcaseContent(contentPadding)
+        ShowcaseContent(sampleData, onLoadSampleData, onClearData, contentPadding)
     }
 }
 
 @Composable
-private fun ShowcaseContent(contentPadding: PaddingValues) {
+private fun ShowcaseContent(
+    sampleData: SampleDataUiState,
+    onLoadSampleData: () -> Unit,
+    onClearData: () -> Unit,
+    contentPadding: PaddingValues,
+) {
     val spacing = TavolaTheme.spacing
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(spacing.xl),
@@ -81,6 +101,7 @@ private fun ShowcaseContent(contentPadding: PaddingValues) {
         ),
         modifier = Modifier.fillMaxSize(),
     ) {
+        item { SampleDataSection(sampleData, onLoadSampleData, onClearData) }
         item { CalendarSection() }
         item { ButtonsSection() }
         item { ChipsSection() }
@@ -93,5 +114,5 @@ private fun ShowcaseContent(contentPadding: PaddingValues) {
 @TavolaScreenPreviews
 @Composable
 private fun ShowcaseScreenPreview() {
-    TavolaTheme { ShowcaseScreen() }
+    TavolaTheme { ShowcaseScreenContent(SampleDataUiState(), onLoadSampleData = {}, onClearData = {}) }
 }

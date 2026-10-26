@@ -1,31 +1,18 @@
-package com.tavola.data.calendar
+package com.tavola.data.sample
 
+import com.tavola.data.recipe.MediterraneanCatalog
 import com.tavola.domain.model.DayPlan
 import com.tavola.domain.model.DayTask
 import com.tavola.domain.model.PlannedMeal
-import com.tavola.domain.model.RecipeRef
 import kotlin.random.Random
 import kotlinx.datetime.LocalDate
 
 /**
- * Genera un día de ejemplo a partir de su fecha: la misma fecha da siempre el mismo día, en cualquier semana
- * (pasada o futura). Los días pasados tienen sus tareas hechas. Se sustituye por Firestore en la Fase 3.
+ * Generates a sample day from its date: the same date always gives the same day, in any week
+ * (past or future). Past days have their tasks done. Debug builds only: it feeds the "load sample data" action.
  */
-internal object FakeDayGenerator {
-    private val recipeMeals = listOf(
-        RecipeRef("gazpacho", "Gazpacho", 15, listOf("Español")),
-        RecipeRef("tortilla", "Tortilla de patatas", 30, listOf("Español")),
-        RecipeRef("paella", "Paella valenciana", 50, listOf("Español")),
-        RecipeRef("pisto", "Pisto con huevo", 35, listOf("Español")),
-        RecipeRef("moussaka", "Moussaka", 70, listOf("Griego")),
-        RecipeRef("greek-salad", "Ensalada griega", 10, listOf("Griego")),
-        RecipeRef("tzatziki", "Tzatziki con pita", 15, listOf("Griego")),
-        RecipeRef("souvlaki", "Souvlaki de pollo", 40, listOf("Griego")),
-        RecipeRef("risotto", "Risotto de setas", 40, listOf("Italiano")),
-        RecipeRef("pomodoro", "Pasta al pomodoro", 25, listOf("Italiano")),
-        RecipeRef("pizza", "Pizza margarita", 45, listOf("Italiano")),
-        RecipeRef("tiramisu", "Tiramisú", 30, listOf("Italiano")),
-    ).map { ref -> PlannedMeal.FromRecipe(ref) }
+internal object SampleDayGenerator {
+    private val recipeMeals = MediterraneanCatalog.recipes.map { recipe -> PlannedMeal.FromRecipe(recipe.toRef()) }
     private val quickMeals = listOf(
         PlannedMeal.Quick("Sobras de ayer"),
         PlannedMeal.Quick("Bocadillo de tortilla", note = "Para llevar"),
@@ -57,7 +44,7 @@ internal object FakeDayGenerator {
         }
     }
 
-    /** La mayoría de comidas son recetas; de vez en cuando sale una anotada a mano. */
+    /** Most meals are recipes; now and then one is a handwritten quick meal. */
     private fun pickMeal(random: Random): PlannedMeal =
         if (random.nextInt(QUICK_MEAL_ODDS) == 0) quickMeals.random(random) else recipeMeals.random(random)
 

@@ -47,6 +47,7 @@ fun TavolaDayCard(
     model: DayCardModel,
     onMealClick: (MealType) -> Unit,
     onTaskCheckedChange: (taskId: String, checked: Boolean) -> Unit,
+    onTaskRemoveClick: (taskId: String) -> Unit,
     onAddTaskClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -69,7 +70,7 @@ fun TavolaDayCard(
             DayCardHeader(model, palette, onAddTaskClick)
             DayCardMeals(model, palette, onMealClick)
             if (model.tasks.isNotEmpty()) {
-                DayCardTasks(model.tasks, onTaskCheckedChange)
+                DayCardTasks(model.tasks, onTaskCheckedChange, onTaskRemoveClick)
             }
         }
     }
@@ -176,13 +177,17 @@ private fun DayCardMeals(model: DayCardModel, palette: DayCardPalette, onMealCli
 }
 
 @Composable
-private fun DayCardTasks(tasks: List<TaskChipModel>, onTaskCheckedChange: (String, Boolean) -> Unit) {
+private fun DayCardTasks(tasks: List<TaskChipModel>, onTaskCheckedChange: (String, Boolean) -> Unit, onTaskRemoveClick: (String) -> Unit) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
     ) {
         tasks.forEach { task ->
-            TavolaTaskChip(model = task, onCheckedChange = { checked -> onTaskCheckedChange(task.id, checked) })
+            TavolaTaskChip(
+                model = task,
+                onCheckedChange = { checked -> onTaskCheckedChange(task.id, checked) },
+                onRemoveClick = { onTaskRemoveClick(task.id) },
+            )
         }
     }
 }
@@ -229,7 +234,7 @@ private fun TavolaDayCardPreview() {
             verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
         ) {
             PreviewDays.forEach { day ->
-                TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onAddTaskClick = {})
+                TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onTaskRemoveClick = {}, onAddTaskClick = {})
             }
         }
     }

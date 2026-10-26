@@ -31,6 +31,7 @@ internal fun CalendarSection(modifier: Modifier = Modifier) {
                     model = day,
                     onMealClick = { type -> days = days.fillMeal(day.id, type) },
                     onTaskCheckedChange = { taskId, checked -> days = days.checkTask(day.id, taskId, checked) },
+                    onTaskRemoveClick = { taskId -> days = days.removeTask(day.id, taskId) },
                     onAddTaskClick = {},
                 )
             }
@@ -40,6 +41,10 @@ internal fun CalendarSection(modifier: Modifier = Modifier) {
             label = stringResource(R.string.showcase_loading_label),
         )
     }
+}
+
+private fun List<DayCardModel>.removeTask(dayId: String, taskId: String) = map { day ->
+    if (day.id != dayId) day else day.copy(tasks = day.tasks.filterNot { task -> task.id == taskId })
 }
 
 private fun List<DayCardModel>.checkTask(dayId: String, taskId: String, checked: Boolean) = map { day ->

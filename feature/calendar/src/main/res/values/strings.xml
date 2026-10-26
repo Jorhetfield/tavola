@@ -11,4 +11,6 @@
     <string name="calendar_add_task_label">¿Qué hay que hacer?</string>
     <string name="calendar_add_task_confirm">Añadir</string>
     <string name="calendar_add_task_dismiss">Cancelar</string>
+    <string name="calendar_task_removed">Tarea eliminada</string>
+    <string name="calendar_task_undo">Deshacer</string>
 </resources>

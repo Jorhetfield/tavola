@@ -111,6 +111,39 @@ class CalendarViewModelTest {
     }
 
     @Test
+    fun `removing a task takes it out and undo puts it back in place`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            val original = awaitSuccess().days[1].plan.tasks
+            val removed = original.first { task -> task.id == "t-pollo" }
+
+            viewModel.onTaskRemove(LocalDate(2026, 10, 20), "t-pollo")
+            val afterRemove = awaitSuccess { success -> success.removedTask != null && success.days[1].plan.tasks.size < original.size }
+            assertEquals(RemovedTask(LocalDate(2026, 10, 20), removed, original.indexOf(removed)), afterRemove.removedTask)
+
+            viewModel.onTaskRemoveUndo()
+            val afterUndo = awaitSuccess { success -> success.removedTask == null && success.days[1].plan.tasks.size == original.size }
+            assertEquals(original, afterUndo.days[1].plan.tasks)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `when the notice ends without undo there is nothing left to restore`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onTaskRemove(LocalDate(2026, 10, 20), "t-pollo")
+            awaitSuccess { success -> success.removedTask != null }
+
+            viewModel.onTaskRemovedShown()
+            assertNull(awaitSuccess { success -> success.removedTask == null }.removedTask)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `pulsar un hueco abre el selector con lo que hay ahora y descartar lo cierra`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {
@@ -198,6 +231,27 @@ class CalendarViewModelTest {
             viewModel.onRetryClick()
 
             assertEquals(monday, awaitSuccess().weekStart)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `retrying after an error drops the stale undo`() = runTest {
+        val flaky = FlakyCalendarRepository(calendarRepository).apply { shouldFail = false }
+        val viewModel = viewModel(flaky)
+        viewModel.uiState.test {
+            awaitSuccess()
+            viewModel.onTaskRemove(LocalDate(2026, 10, 20), "t-pollo")
+            awaitSuccess { success -> success.removedTask != null }
+
+            flaky.shouldFail = true
+            viewModel.onNextWeekClick()
+            while (awaitItem() != CalendarUiState.Error) continue
+
+            flaky.shouldFail = false
+            viewModel.onRetryClick()
+
+            assertNull(awaitSuccess().removedTask)
             cancelAndIgnoreRemainingEvents()
         }
     }

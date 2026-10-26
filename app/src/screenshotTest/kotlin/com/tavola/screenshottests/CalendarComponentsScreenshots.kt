@@ -70,8 +70,8 @@ fun TaskChipScreenshot() {
             modifier = Modifier.padding(TavolaTheme.spacing.lg),
             verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
         ) {
-            TavolaTaskChip(TaskChipModel("1", "Sacar pollo a descongelar"), onCheckedChange = {})
-            TavolaTaskChip(TaskChipModel("2", "Comprar pimientos", done = true), onCheckedChange = {})
+            TavolaTaskChip(TaskChipModel("1", "Sacar pollo a descongelar"), onCheckedChange = {}, onRemoveClick = {})
+            TavolaTaskChip(TaskChipModel("2", "Comprar pimientos", done = true), onCheckedChange = {}, onRemoveClick = {})
         }
     }
 }
@@ -98,7 +98,7 @@ private fun DayCards() {
         verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
     ) {
         ScreenshotSamples.days.forEach { day ->
-            TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onAddTaskClick = {})
+            TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onTaskRemoveClick = {}, onAddTaskClick = {})
         }
     }
 }

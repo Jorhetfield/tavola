@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -25,8 +27,13 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.dp
 import com.tavola.core.designsystem.theme.TavolaTheme
+import kotlin.math.roundToInt
+
+private val SnackbarOuterPadding = 12.dp
 
 /**
  * Único scaffold permitido en la app (regla 4).
@@ -40,6 +47,8 @@ import com.tavola.core.designsystem.theme.TavolaTheme
  *
  * Si [hideFloatingBarOnScroll] es true, la barra flotante se esconde al hacer scroll hacia abajo y reaparece
  * al subir. Se desplaza el contenedor completo (márgenes incluidos) para que no quede ni un borde visible.
+ *
+ * [snackbarHost] is drawn just above the floating bar (or above the navigation bar when it is hidden or absent).
  */
 @Composable
 fun TavolaScaffold(
@@ -47,6 +56,7 @@ fun TavolaScaffold(
     topBar: @Composable () -> Unit = {},
     floatingBar: (@Composable () -> Unit)? = null,
     hideFloatingBarOnScroll: Boolean = true,
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable (contentPadding: PaddingValues) -> Unit,
 ) {
     val spacing = TavolaTheme.spacing
@@ -77,6 +87,21 @@ fun TavolaScaffold(
                     bottom = if (floatingBar == null) spacing.lg else bottomClearance,
                 ),
             )
+            // The snackbar follows the floating bar: `lg` above it while visible and `lg` above the navigation bar
+            // when it is hidden. M3 already adds its own margin, which is subtracted (never below zero).
+            val navigationBarPx = WindowInsets.navigationBars.getBottom(density)
+            val snackbarMargin = (spacing.lg - SnackbarOuterPadding).coerceAtLeast(0.dp)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = snackbarMargin)
+                    .offset {
+                        val visibleBarPx = if (floatingBar == null) 0 else floatingBarHeightPx - hiddenPx.roundToInt()
+                        IntOffset(x = 0, y = -(maxOf(visibleBarPx, navigationBarPx) + snackbarMargin.roundToPx()))
+                    },
+            ) {
+                snackbarHost()
+            }
             if (floatingBar != null) {
                 Box(
                     modifier = Modifier

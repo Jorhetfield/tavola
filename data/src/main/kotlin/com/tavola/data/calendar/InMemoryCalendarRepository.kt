@@ -43,6 +43,17 @@ internal class InMemoryCalendarRepository @Inject constructor(private val todayP
         updateDay(date) { day -> day.copy(tasks = day.tasks + DayTask(id = "added-${nextTaskId++}", text = text)) }
     }
 
+    override suspend fun removeTask(date: LocalDate, taskId: String) {
+        updateDay(date) { day -> day.copy(tasks = day.tasks.filterNot { task -> task.id == taskId }) }
+    }
+
+    override suspend fun restoreTask(date: LocalDate, task: DayTask, index: Int) {
+        updateDay(date) { day ->
+            val restored = day.tasks.toMutableList().apply { add(index.coerceIn(0, size), task) }
+            day.copy(tasks = restored)
+        }
+    }
+
     override suspend fun setMeal(date: LocalDate, type: MealType, meal: PlannedMeal?) {
         updateDay(date) { day ->
             when (type) {

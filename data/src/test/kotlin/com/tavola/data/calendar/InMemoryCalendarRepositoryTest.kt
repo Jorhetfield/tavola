@@ -85,6 +85,24 @@ class InMemoryCalendarRepositoryTest {
     }
 
     @Test
+    fun `removeTask removes the task and restoreTask puts it back in place`() = runTest {
+        val date = thisWeek.plusWeeks(4)
+        repository.addTask(date, "Comprar limones")
+
+        repository.observeWeek(date).test {
+            val original = awaitItem().days.first().tasks
+            val removed = original.first()
+
+            repository.removeTask(date, removed.id)
+            assertEquals(original.drop(1), awaitItem().days.first().tasks)
+
+            repository.restoreTask(date, removed, index = 0)
+            assertEquals(original, awaitItem().days.first().tasks)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `addTask anade una tarea pendiente y setMeal la comida`() = runTest {
         val date = thisWeek.plusWeeks(3)
         val recipe = PlannedMeal.FromRecipe(RecipeRef("test", "Receta de prueba"))

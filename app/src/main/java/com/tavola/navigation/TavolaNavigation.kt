@@ -9,8 +9,10 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.tavola.feature.calendar.CalendarScreen
 import com.tavola.feature.recipes.MealPickerSheetContent
+import com.tavola.feature.recipes.RecipeDetailScreen
+import com.tavola.feature.recipes.RecipeListScreen
 
-/** Raíz de la navegación (Navigation 3). El calendario es la landing. */
+/** Navigation root (Navigation 3). The calendar is the landing screen. */
 @Composable
 fun TavolaNavigation() {
     val backStack = rememberNavBackStack(CalendarRoute)
@@ -25,12 +27,21 @@ fun TavolaNavigation() {
         entryProvider = entryProvider<NavKey> {
             entry<CalendarRoute> {
                 CalendarScreen(
-                    floatingBar = { TopLevelNavBar(selectedKey = "calendar", onItemClick = {}) },
+                    floatingBar = { TopLevelNavBar(CALENDAR_KEY, onItemClick = { key -> backStack.navigateToTopLevel(key) }) },
                     onOpenDebugMenu = debugMenuAction(backStack),
                     mealPicker = { target, onClose ->
                         MealPickerSheetContent(date = target.date, type = target.type, current = target.current, onClose = onClose)
                     },
                 )
+            }
+            entry<RecipesRoute> {
+                RecipeListScreen(
+                    onRecipeClick = { recipeId -> backStack.add(RecipeDetailRoute(recipeId)) },
+                    floatingBar = { TopLevelNavBar(RECIPES_KEY, onItemClick = { key -> backStack.navigateToTopLevel(key) }) },
+                )
+            }
+            entry<RecipeDetailRoute> { route ->
+                RecipeDetailScreen(recipeId = route.recipeId, onBack = { backStack.removeLastOrNull() })
             }
             debugEntries(backStack)
         },

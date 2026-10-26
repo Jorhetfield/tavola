@@ -2,12 +2,14 @@ package com.tavola.core.designsystem.calendar
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -44,7 +46,8 @@ private val ChipMinHeight = 40.dp
 
 /**
  * Tarea rápida del día ("sacar a descongelar", "comprar pimientos"). Se marca al pulsar el texto y se elimina
- * con la X de la derecha, que es una zona táctil aparte para no borrar por error al marcar.
+ * con la X de la derecha, que es una zona táctil aparte para no borrar por error al marcar. Las tareas hechas
+ * no muestran la X.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -61,13 +64,19 @@ fun TavolaTaskChip(
 
     Row(
         modifier = modifier
+            .animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec())
             .clip(CircleShape)
             .background(container)
             .heightIn(min = ChipMinHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TaskChipLabel(model, content, onCheckedChange, modifier = Modifier.weight(1f, fill = false))
-        TaskChipRemoveButton(model.text, content, onRemoveClick)
+        // Una tarea hecha no se elimina desde aquí: primero se desmarca.
+        if (model.done) {
+            Spacer(Modifier.width(TavolaTheme.spacing.lg))
+        } else {
+            TaskChipRemoveButton(model.text, content, onRemoveClick)
+        }
     }
 }
 

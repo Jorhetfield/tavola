@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -25,8 +27,13 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.dp
 import com.tavola.core.designsystem.theme.TavolaTheme
+import kotlin.math.roundToInt
+
+private val SnackbarOuterPadding = 12.dp
 
 /**
  * Único scaffold permitido en la app (regla 4).
@@ -80,12 +87,18 @@ fun TavolaScaffold(
                     bottom = if (floatingBar == null) spacing.lg else bottomClearance,
                 ),
             )
+            // El snackbar sigue a la barra flotante: queda `lg` por encima de ella mientras se ve y `lg` por encima
+            // de la navigation bar cuando está escondida. M3 ya le añade su propio margen, que se descuenta.
+            val navigationBarPx = WindowInsets.navigationBars.getBottom(density)
+            val snackbarMargin = spacing.lg - SnackbarOuterPadding
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .then(if (floatingBar == null) Modifier.navigationBarsPadding() else Modifier)
-                    .padding(horizontal = spacing.lg)
-                    .padding(bottom = if (floatingBar == null) spacing.lg else bottomClearance),
+                    .padding(horizontal = snackbarMargin)
+                    .offset {
+                        val visibleBarPx = if (floatingBar == null) 0 else floatingBarHeightPx - hiddenPx.roundToInt()
+                        IntOffset(x = 0, y = -(maxOf(visibleBarPx, navigationBarPx) + snackbarMargin.roundToPx()))
+                    },
             ) {
                 snackbarHost()
             }

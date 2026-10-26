@@ -13,6 +13,7 @@
     <string name="calendar_day_today">TODAY</string>
     <string name="calendar_day_unplanned">Not planned</string>
     <string name="calendar_add_task">Add task</string>
+    <string name="calendar_remove_task">Remove task: %1$s</string>
 
     <string name="week_selector_previous">Previous week</string>
     <string name="week_selector_next">Next week</string>

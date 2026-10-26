@@ -30,6 +30,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
     private val selectedWeekStart = MutableStateFlow(todayProvider.today().startOfWeek())
     private val addTaskDate = MutableStateFlow<LocalDate?>(null)
     private val pickerSlot = MutableStateFlow<Pair<LocalDate, MealType>?>(null)
+    private val removedTask = MutableStateFlow<RemovedTask?>(null)
     private val retryCount = MutableStateFlow(0)
 
     /** La semana elegida; `null` si el repositorio falló al cargarla. */
@@ -41,8 +42,8 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
                 .catch { emit(null) }
         }
 
-    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate, pickerSlot) { week, dialogDate, slot ->
-        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot)
+    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate, pickerSlot, removedTask) { week, dialogDate, slot, removed ->
+        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot, removed)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CalendarUiState.Loading)
 
     fun onPreviousWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(-1) }
@@ -57,6 +58,28 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
 
     fun onTaskCheckedChange(date: LocalDate, taskId: String, checked: Boolean) {
         viewModelScope.launch { calendarRepository.setTaskDone(date, taskId, checked) }
+    }
+
+    /** Elimina la tarea y la guarda en [removedTask] para poder deshacerlo. */
+    fun onTaskRemove(date: LocalDate, taskId: String) {
+        val success = uiState.value as? CalendarUiState.Success ?: return
+        val tasks = success.days.firstOrNull { item -> item.date == date }?.plan?.tasks ?: return
+        val index = tasks.indexOfFirst { task -> task.id == taskId }
+        if (index < 0) return
+
+        removedTask.value = RemovedTask(date, tasks[index], index)
+        viewModelScope.launch { calendarRepository.removeTask(date, taskId) }
+    }
+
+    fun onTaskRemoveUndo() {
+        val removed = removedTask.value ?: return
+        removedTask.value = null
+        viewModelScope.launch { calendarRepository.restoreTask(removed.date, removed.task, removed.index) }
+    }
+
+    /** El aviso de "tarea eliminada" terminó sin deshacer: ya no hay nada que restaurar. */
+    fun onTaskRemovedShown() {
+        removedTask.value = null
     }
 
     /** Abre el selector de comida para este hueco (vacío o lleno). Quien elige y guarda es la pantalla del selector. */
@@ -85,7 +108,11 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         viewModelScope.launch { calendarRepository.addTask(date, task) }
     }
 
-    private fun WeekPlan.toSuccess(dialogDate: LocalDate?, slot: Pair<LocalDate, MealType>?): CalendarUiState.Success {
+    private fun WeekPlan.toSuccess(
+        dialogDate: LocalDate?,
+        slot: Pair<LocalDate, MealType>?,
+        removed: RemovedTask?,
+    ): CalendarUiState.Success {
         val today = todayProvider.today()
         val items = days.map { plan ->
             val state = when {
@@ -100,6 +127,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
             days = items,
             isCurrentWeek = weekStart == today.startOfWeek(),
             addTaskDate = dialogDate,
+            removedTask = removed,
             mealPicker = slot?.let { (date, type) ->
                 MealPickerTarget(date, type, items.firstOrNull { item -> item.date == date }?.plan?.meal(type))
             },

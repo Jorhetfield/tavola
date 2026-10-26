@@ -82,6 +82,7 @@ private fun DayList(week: CalendarUiState.Success, actions: CalendarActions, con
                 model = card,
                 onMealClick = { type -> actions.onMealClick(date, type.toDomain()) },
                 onTaskCheckedChange = { taskId, checked -> actions.onTaskCheckedChange(date, taskId, checked) },
+                onTaskRemoveClick = { taskId -> actions.onTaskRemove(date, taskId) },
                 onAddTaskClick = { actions.onAddTaskClick(date) },
                 modifier = Modifier.animateItem(),
             )

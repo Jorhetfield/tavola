@@ -11,4 +11,6 @@
     <string name="calendar_add_task_label">What needs to be done?</string>
     <string name="calendar_add_task_confirm">Add</string>
     <string name="calendar_add_task_dismiss">Cancel</string>
+    <string name="calendar_task_removed">Task removed</string>
+    <string name="calendar_task_undo">Undo</string>
 </resources>

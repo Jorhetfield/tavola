@@ -40,6 +40,8 @@ import com.tavola.core.designsystem.theme.TavolaTheme
  *
  * Si [hideFloatingBarOnScroll] es true, la barra flotante se esconde al hacer scroll hacia abajo y reaparece
  * al subir. Se desplaza el contenedor completo (márgenes incluidos) para que no quede ni un borde visible.
+ *
+ * [snackbarHost] se dibuja justo encima de la barra flotante (o de la navigation bar si no hay).
  */
 @Composable
 fun TavolaScaffold(
@@ -47,6 +49,7 @@ fun TavolaScaffold(
     topBar: @Composable () -> Unit = {},
     floatingBar: (@Composable () -> Unit)? = null,
     hideFloatingBarOnScroll: Boolean = true,
+    snackbarHost: @Composable () -> Unit = {},
     content: @Composable (contentPadding: PaddingValues) -> Unit,
 ) {
     val spacing = TavolaTheme.spacing
@@ -77,6 +80,15 @@ fun TavolaScaffold(
                     bottom = if (floatingBar == null) spacing.lg else bottomClearance,
                 ),
             )
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .then(if (floatingBar == null) Modifier.navigationBarsPadding() else Modifier)
+                    .padding(horizontal = spacing.lg)
+                    .padding(bottom = if (floatingBar == null) spacing.lg else bottomClearance),
+            ) {
+                snackbarHost()
+            }
             if (floatingBar != null) {
                 Box(
                     modifier = Modifier

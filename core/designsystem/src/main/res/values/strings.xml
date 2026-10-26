@@ -13,6 +13,7 @@
     <string name="calendar_day_today">HOY</string>
     <string name="calendar_day_unplanned">Sin planificar</string>
     <string name="calendar_add_task">Añadir tarea</string>
+    <string name="calendar_remove_task">Eliminar tarea: %1$s</string>
 
     <string name="week_selector_previous">Semana anterior</string>
     <string name="week_selector_next">Semana siguiente</string>

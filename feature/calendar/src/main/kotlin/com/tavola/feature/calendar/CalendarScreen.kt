@@ -10,6 +10,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -54,6 +56,9 @@ fun CalendarScreen(
             onMealClick = viewModel::onMealClick,
             onMealPickerDismiss = viewModel::onMealPickerDismiss,
             onTaskCheckedChange = viewModel::onTaskCheckedChange,
+            onTaskRemove = viewModel::onTaskRemove,
+            onTaskRemoveUndo = viewModel::onTaskRemoveUndo,
+            onTaskRemovedShown = viewModel::onTaskRemovedShown,
             onAddTaskClick = viewModel::onAddTaskClick,
             onAddTaskDismiss = viewModel::onAddTaskDismiss,
             onAddTaskConfirm = viewModel::onAddTaskConfirm,
@@ -74,10 +79,18 @@ fun CalendarContent(
     mealPicker: MealPickerSlot? = null,
 ) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val snackbarHostState = remember { SnackbarHostState() }
+    RemovedTaskSnackbarEffect(
+        removedTask = (state as? CalendarUiState.Success)?.removedTask,
+        snackbarHostState = snackbarHostState,
+        onUndo = actions.onTaskRemoveUndo,
+        onShown = actions.onTaskRemovedShown,
+    )
     TavolaScaffold(
         modifier = modifier.nestedScroll(topBarScroll.nestedScrollConnection),
         topBar = { CalendarTopBar(state, actions, onOpenDebugMenu, topBarScroll) },
         floatingBar = floatingBar,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {
             CalendarUiState.Loading -> CenteredState(contentPadding) {

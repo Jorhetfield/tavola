@@ -73,7 +73,7 @@ fun CalendarScaffoldScreenshot() {
                 ),
             ) {
                 items(ScreenshotSamples.days, key = { day -> day.id }) { day ->
-                    TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onAddTaskClick = {})
+                    TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onTaskRemoveClick = {}, onAddTaskClick = {})
                 }
             }
         }

@@ -111,6 +111,39 @@ class CalendarViewModelTest {
     }
 
     @Test
+    fun `eliminar una tarea la quita y deshacer la devuelve a su sitio`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            val original = awaitSuccess().days[1].plan.tasks
+            val removed = original.first { task -> task.id == "t-pollo" }
+
+            viewModel.onTaskRemove(LocalDate(2026, 10, 20), "t-pollo")
+            val afterRemove = awaitSuccess { success -> success.removedTask != null && success.days[1].plan.tasks.size < original.size }
+            assertEquals(RemovedTask(LocalDate(2026, 10, 20), removed, original.indexOf(removed)), afterRemove.removedTask)
+
+            viewModel.onTaskRemoveUndo()
+            val afterUndo = awaitSuccess { success -> success.removedTask == null && success.days[1].plan.tasks.size == original.size }
+            assertEquals(original, afterUndo.days[1].plan.tasks)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `cuando el aviso termina sin deshacer ya no queda nada que restaurar`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onTaskRemove(LocalDate(2026, 10, 20), "t-pollo")
+            awaitSuccess { success -> success.removedTask != null }
+
+            viewModel.onTaskRemovedShown()
+            assertNull(awaitSuccess { success -> success.removedTask == null }.removedTask)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `pulsar un hueco abre el selector con lo que hay ahora y descartar lo cierra`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {

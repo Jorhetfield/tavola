@@ -1,4 +1,4 @@
-package com.tavola.data.calendar
+package com.tavola.data.sample
 
 import com.tavola.data.recipe.MediterraneanCatalog
 import com.tavola.domain.model.DayPlan
@@ -8,10 +8,10 @@ import kotlin.random.Random
 import kotlinx.datetime.LocalDate
 
 /**
- * Genera un día de ejemplo a partir de su fecha: la misma fecha da siempre el mismo día, en cualquier semana
- * (pasada o futura). Los días pasados tienen sus tareas hechas. Se sustituye por Firestore en la Fase 3.
+ * Generates a sample day from its date: the same date always gives the same day, in any week
+ * (past or future). Past days have their tasks done. Debug builds only: it feeds the "load sample data" action.
  */
-internal object FakeDayGenerator {
+internal object SampleDayGenerator {
     private val recipeMeals = MediterraneanCatalog.recipes.map { recipe -> PlannedMeal.FromRecipe(recipe.toRef()) }
     private val quickMeals = listOf(
         PlannedMeal.Quick("Sobras de ayer"),
@@ -44,7 +44,7 @@ internal object FakeDayGenerator {
         }
     }
 
-    /** La mayoría de comidas son recetas; de vez en cuando sale una anotada a mano. */
+    /** Most meals are recipes; now and then one is a handwritten quick meal. */
     private fun pickMeal(random: Random): PlannedMeal =
         if (random.nextInt(QUICK_MEAL_ODDS) == 0) quickMeals.random(random) else recipeMeals.random(random)
 

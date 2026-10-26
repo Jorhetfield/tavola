@@ -25,4 +25,40 @@
 
     <string name="meal_picker_error">No se han podido cargar las recetas</string>
     <string name="meal_picker_retry">Reintentar</string>
+
+    <string name="recipe_list_title">Recetas</string>
+    <plurals name="recipe_list_count">
+        <item quantity="one">%d receta</item>
+        <item quantity="other">%d recetas</item>
+    </plurals>
+    <string name="recipe_list_search_placeholder">Buscar receta o ingrediente</string>
+    <string name="recipe_list_search_clear">Borrar búsqueda</string>
+    <string name="recipe_list_no_results">Sin resultados para «%1$s»</string>
+    <string name="recipe_list_empty_title">Aún no hay recetas</string>
+    <string name="recipe_list_empty_hint">Las recetas que guardes aparecerán aquí.</string>
+    <string name="recipe_list_error">No se han podido cargar las recetas</string>
+    <string name="recipe_list_retry">Reintentar</string>
+
+    <string name="ingredient_unit_gram">%1$s g</string>
+    <string name="ingredient_unit_kilogram">%1$s kg</string>
+    <string name="ingredient_unit_milliliter">%1$s ml</string>
+    <string name="ingredient_unit_liter">%1$s l</string>
+    <string name="ingredient_unit_teaspoon">%1$s cdta.</string>
+    <string name="ingredient_unit_tablespoon">%1$s cda.</string>
+    <string name="ingredient_unit_piece">%1$s</string>
+    <plurals name="ingredient_unit_pinch">
+        <item quantity="one">%1$s pizca</item>
+        <item quantity="other">%1$s pizcas</item>
+    </plurals>
+    <string name="ingredient_unit_to_taste">al gusto</string>
+
+    <string name="recipe_detail_title_fallback">Receta</string>
+    <string name="recipe_detail_prep_time">%1$d min</string>
+    <string name="recipe_detail_ingredients">Ingredientes</string>
+    <string name="recipe_detail_no_ingredients">Esta receta aún no tiene ingredientes.</string>
+    <string name="recipe_detail_steps">Preparación</string>
+    <string name="recipe_detail_no_steps">Esta receta aún no tiene pasos.</string>
+    <string name="recipe_detail_not_found">Esta receta ya no existe</string>
+    <string name="recipe_detail_error">No se ha podido cargar la receta</string>
+    <string name="recipe_detail_retry">Reintentar</string>
 </resources>

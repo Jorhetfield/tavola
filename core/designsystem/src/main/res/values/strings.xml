@@ -2,6 +2,7 @@
     <string name="topbar_back">Volver</string>
     <string name="topbar_today">Ir a hoy</string>
     <string name="topbar_settings">Ajustes</string>
+    <string name="search_field_stop">Dejar de buscar</string>
 
     <string name="nav_calendar">Calendario</string>
     <string name="nav_recipes">Recetas</string>

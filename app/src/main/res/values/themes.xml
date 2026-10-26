@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Tavola" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- The window background matches the app background, so a spring that overshoots never shows a white edge. -->
+    <style name="Theme.Tavola" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/tavola_window_background</item>
+    </style>
 </resources>

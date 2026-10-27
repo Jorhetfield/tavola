@@ -9,11 +9,16 @@ import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.domain.model.Ingredient
 import com.tavola.domain.model.IngredientUnit
 import com.tavola.domain.model.Recipe
+import com.tavola.feature.recipes.IngredientDraft
 import com.tavola.feature.recipes.RecipeDetailContent
 import com.tavola.feature.recipes.RecipeDetailUiState
+import com.tavola.feature.recipes.RecipeEditorActions
+import com.tavola.feature.recipes.RecipeEditorContent
+import com.tavola.feature.recipes.RecipeEditorUiState
 import com.tavola.feature.recipes.RecipeListActions
 import com.tavola.feature.recipes.RecipeListContent
 import com.tavola.feature.recipes.RecipeListUiState
+import com.tavola.feature.recipes.StepDraft
 
 private val recipes = listOf(
     Recipe("gazpacho", "Gazpacho", 15, listOf("Español"), listOf(Ingredient("Tomates maduros", 1.0, IngredientUnit.Kilogram))),
@@ -117,3 +122,46 @@ fun RecipeListFilteredScreenshot() {
     val italian = recipes.filter { recipe -> recipe.tags.contains("Italiano") }
     RecipeList(RecipeListUiState.Success(query = "italiano", recipes = italian, totalRecipes = recipes.size))
 }
+
+private val editingPaella = RecipeEditorUiState.Editing(
+    isNew = false,
+    title = "Paella valenciana",
+    prepTime = "50",
+    tags = listOf("Español", "Arroz"),
+    tagSuggestions = listOf("Italiano", "Griego"),
+    ingredients = listOf(
+        IngredientDraft(0, "Arroz bomba", "400", IngredientUnit.Gram),
+        IngredientDraft(1, "Azafrán", "1", IngredientUnit.Pinch),
+        IngredientDraft(2, "Sal", unit = IngredientUnit.ToTaste),
+    ),
+    steps = listOf(
+        StepDraft(3, "Sofríe el pollo en la paella con el aceite hasta que dore."),
+        StepDraft(4, "Añade el arroz y el caldo caliente y cuece 18 minutos sin remover."),
+    ),
+)
+
+@Composable
+private fun RecipeEditor(state: RecipeEditorUiState) {
+    TavolaTheme { RecipeEditorContent(state, RecipeEditorActions(), onBack = {}, onRetryClick = {}, onSaveErrorShown = {}) }
+}
+
+@PreviewTest
+@TavolaAdaptivePreviews
+@Composable
+fun RecipeEditorScreenshot() = RecipeEditor(editingPaella)
+
+/** A new recipe saved without a name: the field explains what is missing. */
+@PreviewTest
+@TavolaScreenPreviews
+@Composable
+fun RecipeEditorNewScreenshot() = RecipeEditor(RecipeEditorUiState.Editing(isNew = true, showTitleError = true))
+
+@PreviewTest
+@TavolaScreenPreviews
+@Composable
+fun RecipeEditorErrorScreenshot() = RecipeEditor(RecipeEditorUiState.Error)
+
+@PreviewTest
+@TavolaFontScalePreviews
+@Composable
+fun RecipeEditorLargeFontScreenshot() = RecipeEditor(editingPaella)

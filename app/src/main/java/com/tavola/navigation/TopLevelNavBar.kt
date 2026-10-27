@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.NavKey
 import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.navigation.TavolaFloatingNavBar
+import com.tavola.core.designsystem.navigation.TavolaNavBarAction
 import com.tavola.core.designsystem.navigation.TavolaNavItem
 
 internal const val CALENDAR_KEY = "calendar"
@@ -31,8 +32,8 @@ private val TopLevelItems = listOf(
 )
 
 @Composable
-internal fun TopLevelNavBar(selectedKey: String, onItemClick: (key: String) -> Unit) {
-    TavolaFloatingNavBar(items = TopLevelItems, selectedKey = selectedKey, onItemClick = onItemClick)
+internal fun TopLevelNavBar(selectedKey: String, onItemClick: (key: String) -> Unit, action: TavolaNavBarAction? = null) {
+    TavolaFloatingNavBar(items = TopLevelItems, selectedKey = selectedKey, onItemClick = onItemClick, action = action)
 }
 
 /**

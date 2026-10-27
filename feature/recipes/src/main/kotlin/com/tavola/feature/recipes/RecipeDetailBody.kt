@@ -31,7 +31,6 @@ import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.domain.model.Ingredient
 import com.tavola.domain.model.Recipe
 
-private val StepBadgeSize = 32.dp
 private val InfoIconSize = 18.dp
 
 /** Time and tags, the ingredients and the numbered steps of a recipe. */
@@ -144,19 +143,7 @@ private fun StepsSection(steps: List<String>, modifier: Modifier = Modifier) {
 @Composable
 private fun StepRow(number: Int, text: String, popDelayMillis: Long) {
     Row(horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md), verticalAlignment = Alignment.Top) {
-        Box(
-            modifier = Modifier
-                .popOnAppear(popDelayMillis)
-                .size(StepBadgeSize)
-                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = number.toString(),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        StepNumberBadge(number = number, modifier = Modifier.popOnAppear(popDelayMillis))
         Text(text = text, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
     }
 }

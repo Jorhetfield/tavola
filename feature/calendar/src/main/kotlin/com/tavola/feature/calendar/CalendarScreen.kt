@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -27,15 +26,17 @@ import com.tavola.core.designsystem.calendar.TavolaWeekSelector
 import com.tavola.core.designsystem.calendar.WeekSelectorModel
 import com.tavola.core.designsystem.loading.TavolaLoadingIndicator
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
+import com.tavola.core.designsystem.snackbar.TavolaSnackbarHost
+import com.tavola.core.designsystem.snackbar.TavolaUndoSnackbarEffect
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 import com.tavola.core.designsystem.topbar.TavolaTopBarAction
 
 /**
- * Landing de la app: calendario semanal.
+ * The landing screen of the app: the weekly calendar.
  *
- * @param onOpenDebugMenu si no es `null` (solo en debug) añade un botón a la barra superior.
- * @param mealPicker contenido del selector de comida, que aporta `:app` (ver [MealPickerSlot]).
+ * @param onOpenDebugMenu if not `null` (debug builds only) adds a button to the top bar.
+ * @param mealPicker content of the meal picker, which `:app` provides (see [MealPickerSlot]).
  */
 @Composable
 fun CalendarScreen(
@@ -65,7 +66,7 @@ fun CalendarScreen(
     CalendarContent(state, actions, modifier, onOpenDebugMenu, mealPicker)
 }
 
-/** Parte sin estado de la pantalla: recibe el estado y las acciones, así se puede previsualizar y testear. */
+/** Stateless part of the screen: it receives the state and the actions, so it can be previewed and tested. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarContent(
@@ -77,9 +78,11 @@ fun CalendarContent(
 ) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
-    RemovedTaskSnackbarEffect(
-        removedTask = (state as? CalendarUiState.Success)?.removedTask,
-        snackbarHostState = snackbarHostState,
+    TavolaUndoSnackbarEffect(
+        removed = (state as? CalendarUiState.Success)?.removedTask,
+        message = stringResource(R.string.calendar_task_removed),
+        undoLabel = stringResource(R.string.calendar_task_undo),
+        hostState = snackbarHostState,
         onUndo = actions.onTaskRemoveUndo,
         onShown = actions.onTaskRemovedShown,
     )
@@ -87,7 +90,7 @@ fun CalendarContent(
         modifier = modifier.nestedScroll(topBarScroll.nestedScrollConnection),
         topBar = { CalendarTopBar(state, actions, onOpenDebugMenu, topBarScroll) },
         reservesFloatingBarSpace = true,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { TavolaSnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {
             CalendarUiState.Loading -> CenteredState(contentPadding) {

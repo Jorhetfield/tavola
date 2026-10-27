@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,9 +16,12 @@ import com.android.tools.screenshot.PreviewTest
 import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.calendar.TavolaDayCard
 import com.tavola.core.designsystem.navigation.TavolaFloatingNavBar
+import com.tavola.core.designsystem.navigation.TavolaNavBarAction
 import com.tavola.core.designsystem.preview.TavolaAdaptivePreviews
+import com.tavola.core.designsystem.preview.TavolaFontScalePreviews
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
+import com.tavola.core.designsystem.snackbar.TavolaSnackbarContent
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 import com.tavola.core.designsystem.topbar.TavolaTopBarAction
@@ -47,6 +51,12 @@ fun FloatingNavBarScreenshot() {
         ) {
             TavolaFloatingNavBar(items = ScreenshotSamples.navItems, selectedKey = "calendar", onItemClick = {})
             TavolaFloatingNavBar(items = ScreenshotSamples.navItems, selectedKey = "shopping", onItemClick = {})
+            TavolaFloatingNavBar(
+                items = ScreenshotSamples.navItems,
+                selectedKey = "recipes",
+                onItemClick = {},
+                action = TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_new_recipe) {},
+            )
         }
     }
 }
@@ -76,6 +86,34 @@ fun CalendarScaffoldScreenshot() {
                     TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onTaskRemoveClick = {}, onAddTaskClick = {})
                 }
             }
+        }
+    }
+}
+
+/** The "recipe deleted" notice a few seconds in: the ring shows what is left of the Undo time. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun SnackbarScreenshot() {
+    TavolaTheme {
+        Column(
+            modifier = Modifier.padding(TavolaTheme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
+        ) {
+            TavolaSnackbarContent("Receta eliminada", "Deshacer", { 0.6f }, onActionClick = {}, onDismissClick = {})
+            TavolaSnackbarContent("No se ha podido guardar la receta", null, { 0.25f }, onActionClick = {}, onDismissClick = null)
+        }
+    }
+}
+
+/** Large text: a long message has to wrap next to the ring, the action and the close button instead of being squeezed. */
+@PreviewTest
+@TavolaFontScalePreviews
+@Composable
+fun SnackbarLargeFontScreenshot() {
+    TavolaTheme {
+        Column(modifier = Modifier.padding(TavolaTheme.spacing.lg)) {
+            TavolaSnackbarContent("Receta eliminada", "Deshacer", { 0.6f }, onActionClick = {}, onDismissClick = {})
         }
     }
 }

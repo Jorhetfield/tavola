@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +19,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tavola.core.designsystem.loading.TavolaLoadingIndicator
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
+import com.tavola.core.designsystem.snackbar.TavolaSnackbarHost
+import com.tavola.core.designsystem.snackbar.TavolaUndoSnackbarEffect
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 
 /**
@@ -36,6 +39,9 @@ fun RecipeListScreen(
         RecipeListActions(
             onQueryChange = viewModel::onQueryChange,
             onRecipeClick = onRecipeClick,
+            onRecipeRemove = viewModel::onRecipeRemove,
+            onRecipeRemoveUndo = viewModel::onRecipeRemoveUndo,
+            onRecipeRemovedShown = viewModel::onRecipeRemovedShown,
             onRetryClick = viewModel::onRetryClick,
         )
     }
@@ -48,6 +54,15 @@ fun RecipeListScreen(
 fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modifier: Modifier = Modifier) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val resources = LocalResources.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    TavolaUndoSnackbarEffect(
+        removed = (state as? RecipeListUiState.Success)?.removedRecipe,
+        message = stringResource(R.string.recipe_list_removed),
+        undoLabel = stringResource(R.string.recipe_list_undo),
+        hostState = snackbarHostState,
+        onUndo = actions.onRecipeRemoveUndo,
+        onShown = actions.onRecipeRemovedShown,
+    )
     val success = state as? RecipeListUiState.Success
     // The subtitle counts what the search shows; it is hidden only when the recipe book itself is empty.
     val shown = success?.recipes?.size ?: 0
@@ -63,23 +78,12 @@ fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modi
             )
         },
         reservesFloatingBarSpace = true,
+        snackbarHost = { TavolaSnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {
             RecipeListUiState.Loading -> CenteredBox(contentPadding) { TavolaLoadingIndicator() }
             RecipeListUiState.Error -> CenteredBox(contentPadding) { RecipeListError(actions.onRetryClick) }
             is RecipeListUiState.Success -> RecipeListBody(state, actions, contentPadding)
         }
-    }
-}
-
-@Composable
-private fun CenteredBox(contentPadding: PaddingValues, content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
     }
 }

@@ -35,7 +35,7 @@
     <string name="recipe_list_search_clear">Borrar búsqueda</string>
     <string name="recipe_list_no_results">Sin resultados para «%1$s»</string>
     <string name="recipe_list_empty_title">Aún no hay recetas</string>
-    <string name="recipe_list_empty_hint">Las recetas que guardes aparecerán aquí.</string>
+    <string name="recipe_list_empty_hint">Pulsa + para crear la primera.</string>
     <string name="recipe_list_error">No se han podido cargar las recetas</string>
     <string name="recipe_list_retry">Reintentar</string>
 
@@ -61,4 +61,38 @@
     <string name="recipe_detail_not_found">Esta receta ya no existe</string>
     <string name="recipe_detail_error">No se ha podido cargar la receta</string>
     <string name="recipe_detail_retry">Reintentar</string>
+    <string name="recipe_detail_edit">Editar receta</string>
+
+    <string name="recipe_list_removed">Receta eliminada</string>
+    <string name="recipe_list_undo">Deshacer</string>
+    <string name="recipe_list_remove">Eliminar receta</string>
+
+    <string name="recipe_editor_title_new">Nueva receta</string>
+    <string name="recipe_editor_name_label">Nombre de la receta</string>
+    <string name="recipe_editor_name_required">Pon un nombre a la receta</string>
+    <string name="recipe_editor_prep_time_label">Tiempo de preparación (min)</string>
+    <string name="recipe_editor_tags">Etiquetas</string>
+    <string name="recipe_editor_tag_label">Nueva etiqueta</string>
+    <string name="recipe_editor_tag_add">Añadir etiqueta</string>
+    <string name="recipe_editor_tag_remove">Quitar la etiqueta %1$s</string>
+    <string name="recipe_editor_ingredient_name">Ingrediente</string>
+    <string name="recipe_editor_ingredient_quantity">Cantidad</string>
+    <string name="recipe_editor_ingredient_add">Añadir ingrediente</string>
+    <string name="recipe_editor_ingredient_remove">Quitar ingrediente</string>
+    <string name="recipe_editor_step_label">Paso %1$d</string>
+    <string name="recipe_editor_step_add">Añadir paso</string>
+    <string name="recipe_editor_step_remove">Quitar paso</string>
+    <string name="recipe_editor_step_move_up">Subir paso</string>
+    <string name="recipe_editor_step_move_down">Bajar paso</string>
+    <string name="recipe_editor_unit_gram">g</string>
+    <string name="recipe_editor_unit_kilogram">kg</string>
+    <string name="recipe_editor_unit_milliliter">ml</string>
+    <string name="recipe_editor_unit_liter">l</string>
+    <string name="recipe_editor_unit_teaspoon">cdta.</string>
+    <string name="recipe_editor_unit_tablespoon">cda.</string>
+    <string name="recipe_editor_unit_piece">ud.</string>
+    <string name="recipe_editor_unit_pinch">pizca</string>
+    <string name="recipe_editor_error">No se ha podido abrir la receta</string>
+    <string name="recipe_editor_retry">Reintentar</string>
+    <string name="recipe_editor_save_failed">No se ha podido guardar la receta</string>
 </resources>

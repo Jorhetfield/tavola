@@ -92,6 +92,107 @@ class RecipeListViewModelTest {
         }
     }
 
+    @Test
+    fun `deleting a recipe removes it and keeps it to undo`() = runTest {
+        val repository = FakeRecipeRepository()
+        val viewModel = RecipeListViewModel(repository)
+        viewModel.uiState.test {
+            val before = awaitSuccess()
+            val target = before.recipes.first()
+
+            viewModel.onRecipeRemove(target.id)
+
+            val after = awaitSuccess { success -> success.removedRecipe == target && success.totalRecipes == before.totalRecipes - 1 }
+            assertTrue(after.recipes.none { recipe -> recipe.id == target.id })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `undo brings the deleted recipe back and clears the notice`() = runTest {
+        val repository = FakeRecipeRepository()
+        val viewModel = RecipeListViewModel(repository)
+        viewModel.uiState.test {
+            val before = awaitSuccess()
+            val target = before.recipes.first()
+            viewModel.onRecipeRemove(target.id)
+            awaitSuccess { success -> success.removedRecipe == target }
+
+            viewModel.onRecipeRemoveUndo()
+
+            val restored = awaitSuccess { success -> success.removedRecipe == null && success.totalRecipes == before.totalRecipes }
+            assertTrue(restored.recipes.contains(target))
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `when the notice ends without undo the recipe stays deleted`() = runTest {
+        val repository = FakeRecipeRepository()
+        val viewModel = RecipeListViewModel(repository)
+        viewModel.uiState.test {
+            val before = awaitSuccess()
+            viewModel.onRecipeRemove(before.recipes.first().id)
+            awaitSuccess { success -> success.removedRecipe != null }
+
+            viewModel.onRecipeRemovedShown()
+            viewModel.onRecipeRemoveUndo()
+
+            val after = awaitSuccess { success -> success.removedRecipe == null }
+            assertEquals(before.totalRecipes - 1, after.totalRecipes)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `if the delete fails the recipe stays and no notice is shown`() = runTest {
+        val failing = FailingWritesRecipeRepository()
+        val viewModel = RecipeListViewModel(failing)
+        viewModel.uiState.test {
+            val before = awaitSuccess()
+            failing.failWrites = true
+
+            viewModel.onRecipeRemove(before.recipes.first().id)
+
+            cancelAndIgnoreRemainingEvents()
+        }
+        val state = viewModel.uiState.value as RecipeListUiState.Success
+        assertEquals(null, state.removedRecipe)
+        assertEquals(MediterraneanSampleData.allRecipes.size, state.totalRecipes)
+    }
+
+    @Test
+    fun `if undo fails the notice comes back so it can be tried again`() = runTest {
+        val failing = FailingWritesRecipeRepository()
+        val viewModel = RecipeListViewModel(failing)
+        viewModel.uiState.test {
+            val target = awaitSuccess().recipes.first()
+            viewModel.onRecipeRemove(target.id)
+            awaitSuccess { success -> success.removedRecipe == target }
+            failing.failWrites = true
+
+            viewModel.onRecipeRemoveUndo()
+
+            awaitSuccess { success -> success.removedRecipe == target }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    private class FailingWritesRecipeRepository(private val delegate: RecipeRepository = FakeRecipeRepository()) :
+        RecipeRepository by delegate {
+        var failWrites = false
+
+        override suspend fun saveRecipe(recipe: Recipe): String {
+            check(!failWrites) { "offline" }
+            return delegate.saveRecipe(recipe)
+        }
+
+        override suspend fun deleteRecipe(id: String) {
+            check(!failWrites) { "offline" }
+            delegate.deleteRecipe(id)
+        }
+    }
+
     private class FlakyRecipeRepository(private val delegate: RecipeRepository = FakeRecipeRepository()) : RecipeRepository by delegate {
         var shouldFail = true
 

@@ -25,8 +25,16 @@ private val WIGGLE_DEGREES = listOf(-12f, 10f, -6f, 3f, 0f)
 internal fun entranceDelayMillis(index: Int): Long = index.coerceIn(0, MAX_STAGGERED_ITEMS) * STAGGER_STEP_MILLIS
 
 /**
+ * Only the first rows of a list enter in the cascade, the ones on screen when it opens. A row further down is composed
+ * later, when the user scrolls to it, and animating it then would leave it invisible for the cascade delay and then
+ * lift it into place under the finger.
+ */
+internal fun takesPartInCascade(index: Int): Boolean = index in 0..MAX_STAGGERED_ITEMS
+
+/**
  * Fades the item in while it rises a little, after the delay for its [index]. It plays only the first time a [key]
- * is asked for in [played], so scrolling back, re-filtering or coming back to the screen never replays it.
+ * is asked for in [played], so scrolling back, re-filtering or coming back to the screen never replays it. Items beyond
+ * the cascade ([takesPartInCascade]) are simply shown.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -34,7 +42,7 @@ internal fun Modifier.staggeredEntrance(key: String, index: Int, played: PlayedE
     val motion = MaterialTheme.motionScheme
     val liftPx = with(LocalDensity.current) { EntranceLift.toPx() }
     val inspecting = LocalInspectionMode.current
-    val firstTime = remember(key) { !inspecting && played.isFirstTime(key) }
+    val firstTime = remember(key) { !inspecting && takesPartInCascade(index) && played.isFirstTime(key) }
     val opacity = remember(key) { Animatable(if (firstTime) 0f else 1f) }
     val lift = remember(key) { Animatable(if (firstTime) 1f else 0f) }
 

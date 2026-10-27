@@ -30,11 +30,11 @@ private const val EMPTY_NAME_ALPHA = 0.6f
 
 /**
  * The two meals of a collapsed day, one line each (a small sun or moon and the name of the recipe or meal, a dash if nothing
- * is planned). Two lines of text are all the height the collapsed row needs.
+ * is planned), a little apart. Two lines of text are all the height the collapsed row needs.
  */
 @Composable
 internal fun CompactMeals(model: DayCardModel, palette: DayCardPalette, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.xs)) {
         CompactMeal(model.lunch, palette)
         CompactMeal(model.dinner, palette)
     }

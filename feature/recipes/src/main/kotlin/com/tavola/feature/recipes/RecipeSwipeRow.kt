@@ -3,9 +3,7 @@ package com.tavola.feature.recipes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -29,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -96,10 +95,6 @@ internal fun SwipeToRemoveRecipeRow(row: RecipeRowModel, onClick: () -> Unit, on
         }
     }
 
-    val dragState = rememberDraggableState { delta ->
-        // Undispatched, so the position is already up to date when the finger is lifted and the decision is taken.
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { offsetX.snapTo((offsetX.value + delta).coerceIn(-widthPx.toFloat(), 0f)) }
-    }
     Box(
         modifier = modifier
             .onSizeChanged { size -> widthPx = size.width }
@@ -112,24 +107,37 @@ internal fun SwipeToRemoveRecipeRow(row: RecipeRowModel, onClick: () -> Unit, on
                     },
                 )
             }
-            .draggable(
-                state = dragState,
-                orientation = Orientation.Horizontal,
-                enabled = !sweptAway,
-                // The speed it is let go at is ignored: only where the row is decides.
-                onDragStopped = { _ ->
-                    if (armed) {
-                        sweptAway = true
-                        // Deleted as soon as the row is let go, not when it has finished sliding, and it fades out while it
-                        // slides: there is no moment with the whole red background showing before the row leaves the list.
-                        currentOnRemove()
-                        launch { fade.animateTo(0f, motion.fastEffectsSpec()) }
-                        offsetX.animateTo(-widthPx.toFloat(), motion.fastSpatialSpec())
-                    } else {
-                        offsetX.animateTo(0f, motion.defaultSpatialSpec())
-                    }
-                },
-            ),
+            // Keyed by `sweptAway` so the row cannot be dragged again once it has been let go. Unlike `draggable`, this tells a
+            // finger that is lifted from a gesture that is cancelled (a system gesture, another finger): a cancelled drag never
+            // deletes, the row just slides back. The speed it is let go at is ignored: only where the row is decides.
+            .pointerInput(sweptAway) {
+                if (!sweptAway) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            scope.launch {
+                                if (armed) {
+                                    sweptAway = true
+                                    // Deleted as soon as the row is let go, not when it has finished sliding, and it fades out
+                                    // while it slides: there is no moment with the whole red background showing before it leaves.
+                                    currentOnRemove()
+                                    launch { fade.animateTo(0f, motion.fastEffectsSpec()) }
+                                    offsetX.animateTo(-widthPx.toFloat(), motion.fastSpatialSpec())
+                                } else {
+                                    offsetX.animateTo(0f, motion.defaultSpatialSpec())
+                                }
+                            }
+                        },
+                        onDragCancel = { scope.launch { offsetX.animateTo(0f, motion.defaultSpatialSpec()) } },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consume()
+                            // Undispatched, so the position is already up to date when the finger is lifted and the decision is taken.
+                            scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                                offsetX.snapTo((offsetX.value + dragAmount).coerceIn(-widthPx.toFloat(), 0f))
+                            }
+                        },
+                    )
+                }
+            },
     ) {
         // Only while the row is being moved, so it never peeks out around the rounded corners at rest.
         if (offsetX.value < 0f) {

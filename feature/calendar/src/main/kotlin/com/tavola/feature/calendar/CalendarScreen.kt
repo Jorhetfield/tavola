@@ -46,23 +46,7 @@ fun CalendarScreen(
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel) {
-        CalendarActions(
-            onPreviousWeekClick = viewModel::onPreviousWeekClick,
-            onNextWeekClick = viewModel::onNextWeekClick,
-            onTodayClick = viewModel::onTodayClick,
-            onRetryClick = viewModel::onRetryClick,
-            onMealClick = viewModel::onMealClick,
-            onMealPickerDismiss = viewModel::onMealPickerDismiss,
-            onTaskCheckedChange = viewModel::onTaskCheckedChange,
-            onTaskRemove = viewModel::onTaskRemove,
-            onTaskRemoveUndo = viewModel::onTaskRemoveUndo,
-            onTaskRemovedShown = viewModel::onTaskRemovedShown,
-            onAddTaskClick = viewModel::onAddTaskClick,
-            onAddTaskDismiss = viewModel::onAddTaskDismiss,
-            onAddTaskConfirm = viewModel::onAddTaskConfirm,
-        )
-    }
+    val actions = remember(viewModel) { viewModel.toActions() }
     CalendarContent(state, actions, modifier, onOpenDebugMenu, mealPicker)
 }
 

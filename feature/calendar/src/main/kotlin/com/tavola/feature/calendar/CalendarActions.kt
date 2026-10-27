@@ -20,3 +20,24 @@ data class CalendarActions(
     val onAddTaskDismiss: () -> Unit = {},
     val onAddTaskConfirm: (text: String) -> Unit = {},
 )
+
+/**
+ * The actions of the screen wired to this ViewModel. Every action that the screen can ask for has to be here: the defaults of
+ * [CalendarActions] do nothing, so one left out would compile and simply not work (`CalendarActionsTest` checks it).
+ */
+internal fun CalendarViewModel.toActions(): CalendarActions = CalendarActions(
+    onPreviousWeekClick = ::onPreviousWeekClick,
+    onNextWeekClick = ::onNextWeekClick,
+    onTodayClick = ::onTodayClick,
+    onDayToggle = ::onDayToggle,
+    onRetryClick = ::onRetryClick,
+    onMealClick = ::onMealClick,
+    onMealPickerDismiss = ::onMealPickerDismiss,
+    onTaskCheckedChange = ::onTaskCheckedChange,
+    onTaskRemove = ::onTaskRemove,
+    onTaskRemoveUndo = ::onTaskRemoveUndo,
+    onTaskRemovedShown = ::onTaskRemovedShown,
+    onAddTaskClick = ::onAddTaskClick,
+    onAddTaskDismiss = ::onAddTaskDismiss,
+    onAddTaskConfirm = ::onAddTaskConfirm,
+)

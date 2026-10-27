@@ -3,10 +3,14 @@ package com.tavola.core.designsystem.navigation
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -14,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.ShoppingCart
@@ -26,7 +31,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +45,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Constraints
@@ -65,6 +73,9 @@ private const val ICON_POP_START_SCALE = 0.7f
  * its label according to how close that position is to it, and the pill is placed between the two items the position
  * is between, all in the same layout pass, so the pill always sits exactly under the icon it is moving to. The chosen
  * icon pops and choosing another destination gives a light haptic tick.
+ *
+ * With an [action] the toolbar docks a round button at its end (the M3 Expressive toolbar-with-FAB), so bar and action
+ * read as one piece instead of two floating things stacked.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -73,6 +84,7 @@ fun TavolaFloatingNavBar(
     selectedKey: String,
     onItemClick: (key: String) -> Unit,
     modifier: Modifier = Modifier,
+    action: TavolaNavBarAction? = null,
 ) {
     val motion = MaterialTheme.motionScheme
     val haptics = LocalHapticFeedback.current
@@ -81,25 +93,67 @@ fun TavolaFloatingNavBar(
 
     LaunchedEffect(selectedIndex) { position.animateTo(selectedIndex.toFloat(), motion.defaultSpatialSpec()) }
 
-    HorizontalFloatingToolbar(
-        expanded = true,
-        modifier = modifier,
-        colors = FloatingToolbarDefaults.standardFloatingToolbarColors(),
-    ) {
-        NavBarLayout(position = { position.value }) {
-            Box(Modifier.background(MaterialTheme.colorScheme.primary, CircleShape))
-            items.forEachIndexed { index, item ->
-                NavBarItem(
-                    item = item,
-                    selected = index == selectedIndex,
-                    openness = { opennessAt(index, position.value) },
-                    onClick = {
-                        if (index != selectedIndex) haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
-                        onItemClick(item.key)
-                    },
-                )
+    val currentItems by rememberUpdatedState(items)
+    val currentSelectedIndex by rememberUpdatedState(selectedIndex)
+    val currentOnItemClick by rememberUpdatedState(onItemClick)
+    // One piece of content shown by either toolbar below: docking or undocking the action moves it instead of rebuilding it,
+    // so the pill, the label and the icon pop keep animating through a tab change.
+    val destinations = remember {
+        movableContentOf {
+            NavBarLayout(position = { position.value }) {
+                Box(Modifier.background(MaterialTheme.colorScheme.primary, CircleShape))
+                currentItems.forEachIndexed { index, item ->
+                    NavBarItem(
+                        item = item,
+                        selected = index == currentSelectedIndex,
+                        openness = { opennessAt(index, position.value) },
+                        onClick = {
+                            if (index != currentSelectedIndex) haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
+                            currentOnItemClick(item.key)
+                        },
+                    )
+                }
             }
         }
+    }
+    val colors = FloatingToolbarDefaults.standardFloatingToolbarColors()
+
+    if (action == null) {
+        HorizontalFloatingToolbar(expanded = true, modifier = modifier, colors = colors) { destinations() }
+    } else {
+        HorizontalFloatingToolbar(
+            expanded = true,
+            floatingActionButton = { NavBarActionButton(action) },
+            // The toolbar-with-FAB layout is 96dp tall by default, which lifts the bar above its place on the other tabs; pinning
+            // it to the plain toolbar height keeps the bar exactly where it is without an action.
+            modifier = modifier.height(FloatingToolbarDefaults.ContainerSize),
+            colors = colors,
+        ) { destinations() }
+    }
+}
+
+/**
+ * The round button docked to the bar; the vibrant FAB is the one M3 pairs with the standard toolbar colors. It pops in
+ * with the theme's spatial spring (a little overshoot) when it appears, which is when the recipes tab opens.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun NavBarActionButton(action: TavolaNavBarAction) {
+    val motion = MaterialTheme.motionScheme
+    val inspecting = LocalInspectionMode.current
+    // Previews and screenshots do not run effects, so they get the button already in place.
+    val entrance = remember { Animatable(if (inspecting) 1f else 0f) }
+    LaunchedEffect(Unit) { entrance.animateTo(1f, motion.defaultSpatialSpec()) }
+
+    FloatingToolbarDefaults.VibrantFloatingActionButton(
+        onClick = action.onClick,
+        modifier = Modifier.graphicsLayer {
+            scaleX = entrance.value
+            scaleY = entrance.value
+            alpha = entrance.value.coerceIn(0f, 1f)
+        },
+    ) {
+        Icon(imageVector = action.icon, contentDescription = stringResource(action.contentDescriptionRes))
     }
 }
 
@@ -219,6 +273,17 @@ private val PreviewItems = listOf(
 @Composable
 private fun TavolaFloatingNavBarPreview() {
     TavolaTheme {
-        TavolaFloatingNavBar(items = PreviewItems, selectedKey = "calendar", onItemClick = {})
+        Column(
+            modifier = Modifier.padding(TavolaTheme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
+        ) {
+            TavolaFloatingNavBar(items = PreviewItems, selectedKey = "calendar", onItemClick = {})
+            TavolaFloatingNavBar(
+                items = PreviewItems,
+                selectedKey = "recipes",
+                onItemClick = {},
+                action = TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_new_recipe) {},
+            )
+        }
     }
 }

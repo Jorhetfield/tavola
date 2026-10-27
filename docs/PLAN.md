@@ -3,7 +3,7 @@
 Tick `[x]` when done. One task at a time; build and verify before the next one.
 
 ## Next up (agreed order)
-1. Close the recipe CRUD (PR #5) and clear the small pending checks: Phase 0 `strings.xml` prefixes and the two emulator checkpoints (Phase 1 visual, Phase 2 light and dark).
+1. Clear the small pending checks (the recipe CRUD is merged, PR #5): Phase 0 `strings.xml` prefixes and the two emulator checkpoints (Phase 1 visual, Phase 2 light and dark).
 2. **Past days collapsed** (Phase 3): self-contained in the calendar, no backend, and the most visible change for the daily use of the app.
 3. **Tasks per day** (Phase 3): completes the local features, and the widget needs it.
 4. **Interactive widget** (Phase 3): define it first (open questions below), then build it on the same repositories as the app.
@@ -42,11 +42,11 @@ The items are grouped by topic, not in work order: follow "Next up" above.
 
 - [ ] Firebase + Auth + groups with an invite code
 - [ ] Shared calendar in real time (Firestore)
-- [ ] Recipe CRUD: list, detail and editor (the model already has structured ingredients and steps)
+- [x] Recipe CRUD: list, detail and editor (the model already has structured ingredients and steps)
   - [x] Persistence: Room for recipes and the calendar (`RoomRecipeRepository`, `RoomCalendarRepository`); no fake data in the app, sample data only through the debug menu ("Load sample data")
   - [x] List tab + detail (read-only), search and empty state
-  - [ ] Editor: title, prep time, free-text tags with suggestions, ingredients (keeping "to taste"), reorderable steps
-  - [ ] Delete with Undo (same pattern as task chips)
+  - [x] Editor: title, prep time, free-text tags with suggestions, ingredients (keeping "to taste"), reorderable steps
+  - [x] Delete with Undo: drag a row halfway across the list, with a countdown snackbar (same pattern as task chips)
 - [ ] Tasks per day
 - [ ] **Calendar: past days collapsed.** Every day before today, in the current week and in earlier ones, starts collapsed and can be expanded.
   - Collapsed: only the date, the weekday and the lunch and the dinner with the name of the recipe or the quick meal. No tasks, no empty-slot buttons. The date and the weekday follow the app locale through the existing helpers in `CalendarFormatting.kt` (for example "27 oct" and "martes" in Spanish).

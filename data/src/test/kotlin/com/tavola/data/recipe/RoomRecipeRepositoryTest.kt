@@ -91,4 +91,15 @@ class RoomRecipeRepositoryTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `saving a recipe refreshes the copy kept by the planned meals that use it`() = runTest {
+        val dao = FakeRecipeDao()
+        val repository = RoomRecipeRepository(dao)
+
+        repository.saveRecipe(gazpacho)
+        repository.saveRecipe(gazpacho.copy(title = "Gazpacho andaluz"))
+
+        assertEquals(listOf("gazpacho" to "Gazpacho", "gazpacho" to "Gazpacho andaluz"), dao.refreshed)
+    }
 }

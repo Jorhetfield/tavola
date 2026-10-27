@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -36,25 +37,33 @@ import com.tavola.core.designsystem.topbar.TavolaTopBarAction
 /**
  * Read-only detail of one recipe, full screen (no floating bar).
  *
- * @param onBack goes back to where the user came from; `:app` owns the navigation.
+ * @param onBack goes back to where the user came from.
+ * @param onEditClick opens the editor for the recipe. `:app` owns the navigation.
  */
 @Composable
 fun RecipeDetailScreen(
     recipeId: String,
     onBack: () -> Unit,
+    onEditClick: (recipeId: String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RecipeDetailViewModel = hiltViewModel<RecipeDetailViewModel, RecipeDetailViewModel.Factory>(
         creationCallback = { factory -> factory.create(recipeId) },
     ),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    RecipeDetailContent(state, onBack, viewModel::onRetryClick, modifier)
+    RecipeDetailContent(state, onBack, viewModel::onRetryClick, { onEditClick(recipeId) }, modifier)
 }
 
 /** Stateless part of the screen: it receives the state and the actions, so it can be previewed and tested. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeDetailContent(state: RecipeDetailUiState, onBack: () -> Unit, onRetryClick: () -> Unit, modifier: Modifier = Modifier) {
+fun RecipeDetailContent(
+    state: RecipeDetailUiState,
+    onBack: () -> Unit,
+    onRetryClick: () -> Unit,
+    onEditClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val title = (state as? RecipeDetailUiState.Success)?.recipe?.title ?: stringResource(R.string.recipe_detail_title_fallback)
 
@@ -64,6 +73,11 @@ fun RecipeDetailContent(state: RecipeDetailUiState, onBack: () -> Unit, onRetryC
             TavolaTopBar(
                 title = title,
                 navigationAction = TavolaTopBarAction(Icons.AutoMirrored.Rounded.ArrowBack, DesignSystemR.string.topbar_back, onBack),
+                actions = if (state is RecipeDetailUiState.Success) {
+                    listOf(TavolaTopBarAction(Icons.Rounded.Edit, DesignSystemR.string.topbar_edit, onEditClick))
+                } else {
+                    emptyList()
+                },
                 scrollBehavior = topBarScroll,
             )
         },
@@ -83,18 +97,6 @@ fun RecipeDetailContent(state: RecipeDetailUiState, onBack: () -> Unit, onRetryC
 }
 
 @Composable
-private fun CenteredBox(contentPadding: PaddingValues, content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
-    }
-}
-
-@Composable
 private fun RecipeNotFound(onBack: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -110,17 +112,5 @@ private fun RecipeNotFound(onBack: () -> Unit) {
             actionText = stringResource(DesignSystemR.string.topbar_back),
             onActionClick = onBack,
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun MessageWithAction(message: String, actionText: String, onActionClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
-    ) {
-        Text(text = message, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-        Button(onClick = onActionClick, shapes = ButtonDefaults.shapes()) { Text(actionText) }
     }
 }

@@ -29,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.AccessibilityManager
+import androidx.compose.ui.platform.LocalAccessibilityManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -56,7 +58,8 @@ fun TavolaSnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifi
 @Composable
 fun TavolaSnackbar(data: SnackbarData, modifier: Modifier = Modifier) {
     val visuals = data.visuals
-    val durationMillis = visuals.duration.millisOrNull()
+    val accessibilityManager = LocalAccessibilityManager.current
+    val durationMillis = visuals.duration.recommendedMillisOrNull(hasAction = visuals.actionLabel != null, accessibilityManager)
     val remaining = remember(data) { Animatable(1f) }
     LaunchedEffect(data) {
         // The countdown mirrors the host's own timeout in real time, so it is a linear tween and not a motion-scheme spring.
@@ -116,11 +119,22 @@ fun TavolaSnackbarContent(
     }
 }
 
-/** How long the host keeps a snackbar of this duration, or `null` if it stays until it is dismissed. */
-private fun SnackbarDuration.millisOrNull(): Long? = when (this) {
-    SnackbarDuration.Short -> SHORT_MILLIS
-    SnackbarDuration.Long -> LONG_MILLIS
-    SnackbarDuration.Indefinite -> null
+/**
+ * How long the host keeps a snackbar of this duration, or `null` if it stays until it is dismissed. It is the same figure
+ * the host works out, including the longer time an accessibility service may ask for, so the ring and the snackbar end together.
+ */
+private fun SnackbarDuration.recommendedMillisOrNull(hasAction: Boolean, accessibilityManager: AccessibilityManager?): Long? {
+    val original = when (this) {
+        SnackbarDuration.Short -> SHORT_MILLIS
+        SnackbarDuration.Long -> LONG_MILLIS
+        SnackbarDuration.Indefinite -> return null
+    }
+    return accessibilityManager?.calculateRecommendedTimeoutMillis(
+        originalTimeoutMillis = original,
+        containsIcons = true,
+        containsText = true,
+        containsControls = hasAction,
+    ) ?: original
 }
 
 @TavolaPreviews

@@ -18,6 +18,7 @@ import com.tavola.core.designsystem.calendar.TavolaDayCard
 import com.tavola.core.designsystem.navigation.TavolaFloatingNavBar
 import com.tavola.core.designsystem.navigation.TavolaNavBarAction
 import com.tavola.core.designsystem.preview.TavolaAdaptivePreviews
+import com.tavola.core.designsystem.preview.TavolaFontScalePreviews
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
 import com.tavola.core.designsystem.snackbar.TavolaSnackbarContent
@@ -101,6 +102,18 @@ fun SnackbarScreenshot() {
         ) {
             TavolaSnackbarContent("Receta eliminada", "Deshacer", { 0.6f }, onActionClick = {}, onDismissClick = {})
             TavolaSnackbarContent("No se ha podido guardar la receta", null, { 0.25f }, onActionClick = {}, onDismissClick = null)
+        }
+    }
+}
+
+/** Large text: a long message has to wrap next to the ring, the action and the close button instead of being squeezed. */
+@PreviewTest
+@TavolaFontScalePreviews
+@Composable
+fun SnackbarLargeFontScreenshot() {
+    TavolaTheme {
+        Column(modifier = Modifier.padding(TavolaTheme.spacing.lg)) {
+            TavolaSnackbarContent("Receta eliminada", "Deshacer", { 0.6f }, onActionClick = {}, onDismissClick = {})
         }
     }
 }

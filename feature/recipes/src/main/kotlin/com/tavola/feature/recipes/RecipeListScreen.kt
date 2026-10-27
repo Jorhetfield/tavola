@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tavola.core.designsystem.loading.TavolaLoadingIndicator
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
 import com.tavola.core.designsystem.snackbar.TavolaSnackbarHost
+import com.tavola.core.designsystem.snackbar.TavolaUndoSnackbarEffect
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 
 /**
@@ -54,9 +55,11 @@ fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modi
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
-    RemovedRecipeSnackbarEffect(
-        removedRecipe = (state as? RecipeListUiState.Success)?.removedRecipe,
-        snackbarHostState = snackbarHostState,
+    TavolaUndoSnackbarEffect(
+        removed = (state as? RecipeListUiState.Success)?.removedRecipe,
+        message = stringResource(R.string.recipe_list_removed),
+        undoLabel = stringResource(R.string.recipe_list_undo),
+        hostState = snackbarHostState,
         onUndo = actions.onRecipeRemoveUndo,
         onShown = actions.onRecipeRemovedShown,
     )

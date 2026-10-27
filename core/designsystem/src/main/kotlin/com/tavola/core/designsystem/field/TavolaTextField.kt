@@ -19,7 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
 
-/** Colores de los campos de Tavola: relleno suave del tema y sin línea inferior (las formas redondeadas ya lo delimitan). */
+/** Colors of the Tavola text fields: the theme's soft fill and no bottom line (the rounded shape already delimits them). */
 @Composable
 internal fun tavolaFieldColors(): TextFieldColors {
     val scheme = MaterialTheme.colorScheme

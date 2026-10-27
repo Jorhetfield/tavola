@@ -20,6 +20,7 @@ import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -59,7 +60,8 @@ fun TavolaSnackbarHost(hostState: SnackbarHostState, modifier: Modifier = Modifi
 fun TavolaSnackbar(data: SnackbarData, modifier: Modifier = Modifier) {
     val visuals = data.visuals
     val accessibilityManager = LocalAccessibilityManager.current
-    val durationMillis = visuals.duration.recommendedMillisOrNull(hasAction = visuals.actionLabel != null, accessibilityManager)
+    val durationMillis = (visuals as? TavolaSnackbarVisuals)?.timeoutMillis
+        ?: visuals.duration.recommendedMillisOrNull(hasAction = visuals.actionLabel != null, accessibilityManager)
     val remaining = remember(data) { Animatable(1f) }
     LaunchedEffect(data) {
         // The countdown mirrors the host's own timeout in real time, so it is a linear tween and not a motion-scheme spring.
@@ -129,12 +131,30 @@ private fun SnackbarDuration.recommendedMillisOrNull(hasAction: Boolean, accessi
         SnackbarDuration.Long -> LONG_MILLIS
         SnackbarDuration.Indefinite -> return null
     }
-    return accessibilityManager?.calculateRecommendedTimeoutMillis(
-        originalTimeoutMillis = original,
+    return recommendedTimeoutMillis(original, hasAction, accessibilityManager)
+}
+
+/** [originalMillis], or the longer time the accessibility service of the user asks for when it is on. */
+internal fun recommendedTimeoutMillis(originalMillis: Long, hasAction: Boolean, accessibilityManager: AccessibilityManager?): Long =
+    accessibilityManager?.calculateRecommendedTimeoutMillis(
+        originalTimeoutMillis = originalMillis,
         containsIcons = true,
         containsText = true,
         containsControls = hasAction,
-    ) ?: original
+    ) ?: originalMillis
+
+/**
+ * Visuals of a snackbar that the app ends itself after [timeoutMillis] (Material only offers 4 and 10 seconds). The host
+ * is told it never times out and the ring counts down exactly [timeoutMillis]; whoever shows it has to dismiss it then,
+ * as `TavolaUndoSnackbarEffect` does.
+ */
+class TavolaSnackbarVisuals(
+    override val message: String,
+    override val actionLabel: String?,
+    override val withDismissAction: Boolean,
+    val timeoutMillis: Long,
+) : SnackbarVisuals {
+    override val duration: SnackbarDuration = SnackbarDuration.Indefinite
 }
 
 @TavolaPreviews

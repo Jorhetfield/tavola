@@ -3,9 +3,7 @@ package com.tavola.feature.recipes
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
@@ -29,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -63,8 +62,9 @@ private const val ARMED_ICON_SCALE = 1.3f
  * - Nothing is saved across recompositions: Material's saved state is kept per list key, so a row that came back (Undo, or
  *   scrolling away and back) was restored as already swiped, which also blocked any new swipe.
  *
- * The row gives a tick and the bin grows as soon as it is far enough that letting go would delete it. If the row is still
- * in the list [REMOVAL_GRACE_MILLIS] after it was swept away (the delete failed) it slides back.
+ * The row gives a tick and the bin grows as soon as it is far enough that letting go would delete it. Letting go there
+ * deletes the recipe at once: the row keeps sliding away while it fades out, so it is already gone when the list closes the
+ * gap. If the row is still in the list [REMOVAL_GRACE_MILLIS] after it was swept away (the delete failed) it slides back.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -77,6 +77,9 @@ internal fun SwipeToRemoveRecipeRow(row: RecipeRowModel, onClick: () -> Unit, on
 
     /** Horizontal position of the row, from 0 (in place) to minus its width (swept away). */
     val offsetX = remember { Animatable(0f) }
+
+    /** 1 while the row is there, 0 once it has been let go past the threshold (it fades out while it slides). */
+    val fade = remember { Animatable(1f) }
     var widthPx by remember { mutableIntStateOf(0) }
     var sweptAway by remember { mutableStateOf(false) }
     val armed by remember { derivedStateOf { isPastDeleteThreshold(offsetX.value, widthPx) } }
@@ -86,18 +89,16 @@ internal fun SwipeToRemoveRecipeRow(row: RecipeRowModel, onClick: () -> Unit, on
     LaunchedEffect(sweptAway) {
         if (sweptAway) {
             delay(REMOVAL_GRACE_MILLIS)
+            launch { fade.animateTo(1f, motion.defaultEffectsSpec()) }
             offsetX.animateTo(0f, motion.defaultSpatialSpec())
             sweptAway = false
         }
     }
 
-    val dragState = rememberDraggableState { delta ->
-        // Undispatched, so the position is already up to date when the finger is lifted and the decision is taken.
-        scope.launch(start = CoroutineStart.UNDISPATCHED) { offsetX.snapTo((offsetX.value + delta).coerceIn(-widthPx.toFloat(), 0f)) }
-    }
     Box(
         modifier = modifier
             .onSizeChanged { size -> widthPx = size.width }
+            .graphicsLayer { alpha = fade.value }
             .semantics {
                 customActions = listOf(
                     CustomAccessibilityAction(removeLabel) {
@@ -106,21 +107,37 @@ internal fun SwipeToRemoveRecipeRow(row: RecipeRowModel, onClick: () -> Unit, on
                     },
                 )
             }
-            .draggable(
-                state = dragState,
-                orientation = Orientation.Horizontal,
-                enabled = !sweptAway,
-                // The speed it is let go at is ignored: only where the row is decides.
-                onDragStopped = { _ ->
-                    if (armed) {
-                        sweptAway = true
-                        offsetX.animateTo(-widthPx.toFloat(), motion.fastSpatialSpec())
-                        currentOnRemove()
-                    } else {
-                        offsetX.animateTo(0f, motion.defaultSpatialSpec())
-                    }
-                },
-            ),
+            // Keyed by `sweptAway` so the row cannot be dragged again once it has been let go. Unlike `draggable`, this tells a
+            // finger that is lifted from a gesture that is cancelled (a system gesture, another finger): a cancelled drag never
+            // deletes, the row just slides back. The speed it is let go at is ignored: only where the row is decides.
+            .pointerInput(sweptAway) {
+                if (!sweptAway) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            scope.launch {
+                                if (armed) {
+                                    sweptAway = true
+                                    // Deleted as soon as the row is let go, not when it has finished sliding, and it fades out
+                                    // while it slides: there is no moment with the whole red background showing before it leaves.
+                                    currentOnRemove()
+                                    launch { fade.animateTo(0f, motion.fastEffectsSpec()) }
+                                    offsetX.animateTo(-widthPx.toFloat(), motion.fastSpatialSpec())
+                                } else {
+                                    offsetX.animateTo(0f, motion.defaultSpatialSpec())
+                                }
+                            }
+                        },
+                        onDragCancel = { scope.launch { offsetX.animateTo(0f, motion.defaultSpatialSpec()) } },
+                        onHorizontalDrag = { change, dragAmount ->
+                            change.consume()
+                            // Undispatched, so the position is already up to date when the finger is lifted and the decision is taken.
+                            scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                                offsetX.snapTo((offsetX.value + dragAmount).coerceIn(-widthPx.toFloat(), 0f))
+                            }
+                        },
+                    )
+                }
+            },
     ) {
         // Only while the row is being moved, so it never peeks out around the rounded corners at rest.
         if (offsetX.value < 0f) {

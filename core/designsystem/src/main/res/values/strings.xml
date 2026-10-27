@@ -18,6 +18,15 @@
     <string name="day_card_today">HOY</string>
     <string name="day_card_unplanned">Sin planificar</string>
     <string name="day_card_add_task">Añadir tarea</string>
+    <string name="day_card_expand">Expandir día</string>
+    <string name="day_card_collapse">Contraer día</string>
+    <string name="day_card_state_expanded">Expandido</string>
+    <string name="day_card_state_collapsed">Contraído</string>
+    <string name="day_card_summary_empty">–</string>
+    <plurals name="day_card_pending_tasks">
+        <item quantity="one">%1$d tarea pendiente</item>
+        <item quantity="other">%1$d tareas pendientes</item>
+    </plurals>
     <string name="task_chip_remove">Eliminar tarea: %1$s</string>
 
     <string name="week_selector_previous">Semana anterior</string>

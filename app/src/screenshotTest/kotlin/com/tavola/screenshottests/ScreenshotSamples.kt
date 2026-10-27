@@ -13,7 +13,7 @@ import com.tavola.core.designsystem.calendar.MealType
 import com.tavola.core.designsystem.calendar.TaskChipModel
 import com.tavola.core.designsystem.navigation.TavolaNavItem
 
-/** Datos fijos para las capturas: si cambian, cambian las imágenes de referencia. */
+/** Fixed data for the screenshots: if it changes, the reference images change. */
 internal object ScreenshotSamples {
     val days = listOf(
         DayCardModel(
@@ -21,6 +21,7 @@ internal object ScreenshotSamples {
             weekday = "Lunes",
             dayNumber = "19",
             state = DayState.Past,
+            monthShort = "oct",
             lunch = MealSlotModel(MealType.Lunch, "Gazpacho", "15 min · Español"),
             dinner = MealSlotModel(MealType.Dinner, "Tortilla de patatas", "30 min · Español"),
             tasks = listOf(TaskChipModel("t0", "Comprar huevos", done = true)),
@@ -47,6 +48,46 @@ internal object ScreenshotSamples {
             tasks = listOf(TaskChipModel("t3", "Preparar la masa")),
         ),
         DayCardModel(id = "thu", weekday = "Jueves", dayNumber = "22", state = DayState.Upcoming),
+    )
+
+    /** Past days as they start: collapsed. One has tasks left to do, one has nothing planned, one has a long name. */
+    val collapsedDays = listOf(
+        DayCardModel(
+            id = "mon",
+            weekday = "Lunes",
+            dayNumber = "19",
+            state = DayState.Past,
+            monthShort = "oct",
+            expanded = false,
+            lunch = MealSlotModel(MealType.Lunch, "Gazpacho", "15 min · Español"),
+            dinner = MealSlotModel(MealType.Dinner, "Tortilla de patatas", "30 min · Español"),
+            tasks = listOf(TaskChipModel("a", "Comprar huevos"), TaskChipModel("b", "Sacar la basura", done = true)),
+        ),
+        DayCardModel(
+            id = "sun",
+            weekday = "Domingo",
+            dayNumber = "18",
+            state = DayState.Past,
+            monthShort = "oct",
+            expanded = false,
+            lunch = MealSlotModel(MealType.Lunch),
+            dinner = MealSlotModel(MealType.Dinner, "Comemos fuera"),
+        ),
+        DayCardModel(
+            id = "sat",
+            weekday = "Sábado",
+            dayNumber = "17",
+            state = DayState.Past,
+            monthShort = "oct",
+            expanded = false,
+            lunch = MealSlotModel(MealType.Lunch, "Ensalada de tomate, feta y aceitunas kalamata con orégano"),
+            dinner = MealSlotModel(MealType.Dinner, "Pizza margarita", "45 min · Italiano"),
+            tasks = listOf(
+                TaskChipModel("c", "Comprar harina"),
+                TaskChipModel("d", "Preparar la masa"),
+                TaskChipModel("e", "Sacar el vino"),
+            ),
+        ),
     )
 
     val navItems = listOf(

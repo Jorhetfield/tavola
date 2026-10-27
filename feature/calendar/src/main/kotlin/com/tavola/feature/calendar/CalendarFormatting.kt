@@ -13,28 +13,31 @@ import kotlinx.datetime.toJavaMonth
 private const val LAST_DAY_OFFSET = 6
 private const val THURSDAY_OFFSET = 3
 
-/** "19 – 25 oct" o, si la semana cruza de mes, "26 oct – 1 nov". */
+/** "19 – 25 oct" or, if the week crosses a month, "26 oct – 1 nov". */
 internal fun weekRangeLabel(weekStart: LocalDate, locale: Locale): String {
     val weekEnd = weekStart.plus(LAST_DAY_OFFSET, DateTimeUnit.DAY)
-    val endMonth = weekEnd.month.toJavaMonth().getDisplayName(TextStyle.SHORT, locale)
+    val endMonth = weekEnd.monthShortName(locale)
     return if (weekStart.month == weekEnd.month) {
         "${weekStart.dayOfMonth} – ${weekEnd.dayOfMonth} $endMonth"
     } else {
-        val startMonth = weekStart.month.toJavaMonth().getDisplayName(TextStyle.SHORT, locale)
+        val startMonth = weekStart.monthShortName(locale)
         "${weekStart.dayOfMonth} $startMonth – ${weekEnd.dayOfMonth} $endMonth"
     }
 }
 
-/** "Octubre 2026". Una semana que cruza de mes cuenta para el mes de su jueves (criterio ISO). */
+/** "Octubre 2026". A week that crosses a month counts for the month of its Thursday (the ISO rule). */
 internal fun monthYearTitle(weekStart: LocalDate, locale: Locale): String {
     val thursday = weekStart.plus(THURSDAY_OFFSET, DateTimeUnit.DAY)
     return "${thursday.month.toJavaMonth().getDisplayName(TextStyle.FULL, locale).capitalized(locale)} ${thursday.year}"
 }
 
-/** Número de semana ISO-8601 (la semana del 19 de octubre de 2026 es la 43). */
+/** ISO-8601 week number (the week of 19 October 2026 is the 43rd). */
 internal fun isoWeekNumber(weekStart: LocalDate): Int = weekStart.toJavaLocalDate().get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
 
 internal fun LocalDate.weekdayName(locale: Locale): String =
     dayOfWeek.toJavaDayOfWeek().getDisplayName(TextStyle.FULL, locale).capitalized(locale)
 
 private fun String.capitalized(locale: Locale): String = replaceFirstChar { firstChar -> firstChar.titlecase(locale) }
+
+/** Abbreviated month name ("oct"), as in [weekRangeLabel]. */
+internal fun LocalDate.monthShortName(locale: Locale): String = month.toJavaMonth().getDisplayName(TextStyle.SHORT, locale)

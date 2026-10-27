@@ -27,31 +27,57 @@ import kotlinx.datetime.LocalDate
 @HiltViewModel
 class CalendarViewModel @Inject constructor(private val calendarRepository: CalendarRepository, private val todayProvider: TodayProvider) :
     ViewModel() {
-    private val selectedWeekStart = MutableStateFlow(todayProvider.today().startOfWeek())
+    private var visits = 0
+    private val selectedWeek = MutableStateFlow(SelectedWeek(todayProvider.today().startOfWeek(), visit = visits))
     private val addTaskDate = MutableStateFlow<LocalDate?>(null)
     private val pickerSlot = MutableStateFlow<Pair<LocalDate, MealType>?>(null)
     private val removedTask = MutableStateFlow<RemovedTask?>(null)
+    private val openDays = MutableStateFlow(OpenDays(visit = visits, dates = emptySet()))
     private val retryCount = MutableStateFlow(0)
 
-    /** La semana elegida; `null` si el repositorio falló al cargarla. */
+    /** The chosen week; `null` if the repository failed to load it. */
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val week = combine(selectedWeekStart, retryCount) { start, _ -> start }
-        .flatMapLatest { start ->
-            calendarRepository.observeWeek(start)
-                .map<WeekPlan, WeekPlan?> { weekPlan -> weekPlan }
+    private val week = combine(selectedWeek, retryCount) { selected, _ -> selected }
+        .flatMapLatest { selected ->
+            calendarRepository.observeWeek(selected.start)
+                .map<WeekPlan, LoadedWeek?> { plan -> LoadedWeek(plan, selected.visit) }
                 .catch { emit(null) }
         }
 
-    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate, pickerSlot, removedTask) { week, dialogDate, slot, removed ->
-        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot, removed)
+    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate, pickerSlot, removedTask, openDays) {
+            week,
+            dialogDate,
+            slot,
+            removed,
+            open,
+        ->
+        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot, removed, open)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CalendarUiState.Loading)
 
-    fun onPreviousWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(-1) }
+    fun onPreviousWeekClick() = showWeek(selectedWeek.value.start.plusWeeks(-1))
 
-    fun onNextWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(1) }
+    fun onNextWeekClick() = showWeek(selectedWeek.value.start.plusWeeks(1))
 
-    fun onTodayClick() {
-        selectedWeekStart.value = todayProvider.today().startOfWeek()
+    fun onTodayClick() = showWeek(todayProvider.today().startOfWeek())
+
+    /** Opens or closes a past day. Today and the days to come are always shown in full, so asking for one of them does nothing. */
+    fun onDayToggle(date: LocalDate) {
+        if (date >= todayProvider.today()) return
+        val visit = selectedWeek.value.visit
+        openDays.update { open ->
+            val dates = if (open.visit == visit) open.dates else emptySet()
+            OpenDays(visit, if (date in dates) dates - date else dates + date)
+        }
+    }
+
+    /**
+     * Changes the week shown. Every move is a new visit, and the open days belong to the visit they were opened in: the week
+     * that slides out keeps showing its open days until its data is replaced, and the week that comes in (even one seen before)
+     * starts with every past day collapsed.
+     */
+    private fun showWeek(weekStart: LocalDate) {
+        if (weekStart == selectedWeek.value.start) return
+        selectedWeek.value = SelectedWeek(weekStart, ++visits)
     }
 
     fun onRetryClick() {
@@ -86,7 +112,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         removedTask.value = null
     }
 
-    /** Abre el selector de comida para este hueco (vacío o lleno). Quien elige y guarda es la pantalla del selector. */
+    /** Opens the meal picker for this slot (empty or full). The picker screen is the one that chooses and saves. */
     fun onMealClick(date: LocalDate, type: MealType) {
         pickerSlot.value = date to type
     }
@@ -112,24 +138,27 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         viewModelScope.launch { calendarRepository.addTask(date, task) }
     }
 
-    private fun WeekPlan.toSuccess(
+    private fun LoadedWeek.toSuccess(
         dialogDate: LocalDate?,
         slot: Pair<LocalDate, MealType>?,
         removed: RemovedTask?,
+        open: OpenDays,
     ): CalendarUiState.Success {
         val today = todayProvider.today()
-        val items = days.map { plan ->
+        val openDates = if (open.visit == visit) open.dates else emptySet()
+        val items = plan.days.map { day ->
             val state = when {
-                plan.date < today -> DayState.Past
-                plan.date == today -> DayState.Today
+                day.date < today -> DayState.Past
+                day.date == today -> DayState.Today
                 else -> DayState.Upcoming
             }
-            DayItem(plan, state)
+            // A past day starts collapsed and is open only while the user has opened it; the others are always in full.
+            DayItem(day, state, expanded = state != DayState.Past || day.date in openDates)
         }
         return CalendarUiState.Success(
-            weekStart = weekStart,
+            weekStart = plan.weekStart,
             days = items,
-            isCurrentWeek = weekStart == today.startOfWeek(),
+            isCurrentWeek = plan.weekStart == today.startOfWeek(),
             addTaskDate = dialogDate,
             removedTask = removed,
             mealPicker = slot?.let { (date, type) ->
@@ -142,3 +171,12 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         const val STOP_TIMEOUT_MILLIS = 5_000L
     }
 }
+
+/** The week the user is looking at. [visit] is new every time they move to a week, even one they had seen before. */
+private data class SelectedWeek(val start: LocalDate, val visit: Int)
+
+/** A week as loaded, with the visit it was asked for. */
+private class LoadedWeek(val plan: WeekPlan, val visit: Int)
+
+/** The past days the user has opened during [visit]; days opened in an earlier visit do not count. */
+private data class OpenDays(val visit: Int, val dates: Set<LocalDate>)

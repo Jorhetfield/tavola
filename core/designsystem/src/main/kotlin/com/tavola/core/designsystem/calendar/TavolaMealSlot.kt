@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.preview.TavolaPreviews
@@ -53,9 +54,9 @@ private const val EMPTY_BORDER_ALPHA = 0.4f
 private const val ENTER_OFFSET_DIVISOR = 4
 
 /**
- * Hueco de comida o cena. Lleno: título de la receta o comida y detalle. Vacío: borde discontinuo con "Añadir".
- * Al rellenarse o vaciarse, el borde se desvanece, el fondo cambia de color (animación de efectos) y el contenido entra
- * deslizándose con un resorte espacial. [containerColor] y [contentColor] permiten a la tarjeta de día adaptarlo a su estado.
+ * Lunch or dinner slot. Filled: the title of the recipe or meal and a detail. Empty: a dashed border with "Add".
+ * When it is filled or emptied, the border fades, the background changes color (effects animation) and the content slides
+ * in with a spatial spring. [containerColor] and [contentColor] let the day card adapt it to its state.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -109,30 +110,43 @@ fun TavolaMealSlot(
 
 @Composable
 private fun SlotHeader(type: MealType, contentColor: Color) {
-    val colors = TavolaTheme.colors
     val isLunch = type == MealType.Lunch
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
     ) {
-        Box(
-            modifier = Modifier
-                .size(BadgeSize)
-                .clip(CircleShape)
-                .background(if (isLunch) colors.lunchAccent else colors.dinnerAccent),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = if (isLunch) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
-                contentDescription = null,
-                tint = if (isLunch) colors.onDayCardActive else MaterialTheme.colorScheme.onSecondary,
-                modifier = Modifier.size(BadgeIconSize),
-            )
-        }
+        MealBadge(type)
         Text(
             text = stringResource(if (isLunch) R.string.meal_slot_lunch else R.string.meal_slot_dinner),
             style = MaterialTheme.typography.labelMedium,
             color = contentColor.copy(alpha = 0.8f),
+        )
+    }
+}
+
+/** The round sun (lunch) or moon (dinner) badge that tells the two meals apart; [contentDescription] names it when no text does. */
+@Composable
+internal fun MealBadge(
+    type: MealType,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+    size: Dp = BadgeSize,
+    iconSize: Dp = BadgeIconSize,
+) {
+    val colors = TavolaTheme.colors
+    val isLunch = type == MealType.Lunch
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(if (isLunch) colors.lunchAccent else colors.dinnerAccent),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = if (isLunch) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
+            contentDescription = contentDescription,
+            tint = if (isLunch) colors.onDayCardActive else MaterialTheme.colorScheme.onSecondary,
+            modifier = Modifier.size(iconSize),
         )
     }
 }

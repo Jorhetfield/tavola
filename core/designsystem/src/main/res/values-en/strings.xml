@@ -18,6 +18,15 @@
     <string name="day_card_today">TODAY</string>
     <string name="day_card_unplanned">Not planned</string>
     <string name="day_card_add_task">Add task</string>
+    <string name="day_card_expand">Expand day</string>
+    <string name="day_card_collapse">Collapse day</string>
+    <string name="day_card_state_expanded">Expanded</string>
+    <string name="day_card_state_collapsed">Collapsed</string>
+    <string name="day_card_summary_empty">–</string>
+    <plurals name="day_card_pending_tasks">
+        <item quantity="one">%1$d task left</item>
+        <item quantity="other">%1$d tasks left</item>
+    </plurals>
     <string name="task_chip_remove">Remove task: %1$s</string>
 
     <string name="week_selector_previous">Previous week</string>

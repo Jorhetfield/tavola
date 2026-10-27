@@ -130,7 +130,7 @@ private fun SlotHeader(type: MealType, contentColor: Color) {
             )
         }
         Text(
-            text = stringResource(if (isLunch) R.string.calendar_meal_lunch else R.string.calendar_meal_dinner),
+            text = stringResource(if (isLunch) R.string.meal_slot_lunch else R.string.meal_slot_dinner),
             style = MaterialTheme.typography.labelMedium,
             color = contentColor.copy(alpha = 0.8f),
         )
@@ -161,7 +161,7 @@ private fun EmptySlotBody(contentColor: Color) {
     ) {
         Icon(Icons.Rounded.Add, contentDescription = null, tint = contentColor, modifier = Modifier.size(BadgeIconSize))
         Text(
-            text = stringResource(R.string.calendar_meal_add),
+            text = stringResource(R.string.meal_slot_add),
             style = MaterialTheme.typography.labelLarge,
             color = contentColor,
         )

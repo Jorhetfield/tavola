@@ -12,13 +12,13 @@
     <string name="nav_shopping">Compra</string>
     <string name="nav_action_new_recipe">Nueva receta</string>
 
-    <string name="calendar_meal_lunch">Comida</string>
-    <string name="calendar_meal_dinner">Cena</string>
-    <string name="calendar_meal_add">Añadir</string>
-    <string name="calendar_day_today">HOY</string>
-    <string name="calendar_day_unplanned">Sin planificar</string>
-    <string name="calendar_add_task">Añadir tarea</string>
-    <string name="calendar_remove_task">Eliminar tarea: %1$s</string>
+    <string name="meal_slot_lunch">Comida</string>
+    <string name="meal_slot_dinner">Cena</string>
+    <string name="meal_slot_add">Añadir</string>
+    <string name="day_card_today">HOY</string>
+    <string name="day_card_unplanned">Sin planificar</string>
+    <string name="day_card_add_task">Añadir tarea</string>
+    <string name="task_chip_remove">Eliminar tarea: %1$s</string>
 
     <string name="week_selector_previous">Semana anterior</string>
     <string name="week_selector_next">Semana siguiente</string>

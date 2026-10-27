@@ -124,7 +124,7 @@ private fun DayCardHeader(model: DayCardModel, palette: DayCardPalette, onAddTas
             DayCaption(model, palette)
         }
         FilledTonalIconButton(onClick = onAddTaskClick, shapes = IconButtonDefaults.shapes()) {
-            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.calendar_add_task))
+            Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.day_card_add_task))
         }
     }
 }
@@ -135,7 +135,7 @@ private fun DayCaption(model: DayCardModel, palette: DayCardPalette) {
         model.state == DayState.Today -> TodayBadge(palette)
 
         model.isUnplanned && model.state != DayState.Past -> Text(
-            text = stringResource(R.string.calendar_day_unplanned),
+            text = stringResource(R.string.day_card_unplanned),
             style = MaterialTheme.typography.bodySmall,
             color = palette.content.copy(alpha = 0.7f),
         )
@@ -145,7 +145,7 @@ private fun DayCaption(model: DayCardModel, palette: DayCardPalette) {
 @Composable
 private fun TodayBadge(palette: DayCardPalette) {
     Text(
-        text = stringResource(R.string.calendar_day_today),
+        text = stringResource(R.string.day_card_today),
         style = MaterialTheme.typography.labelSmall,
         color = palette.container,
         modifier = Modifier

@@ -3,7 +3,7 @@
 Tick `[x]` when done. One task at a time; build and verify before the next one.
 
 ## Next up (agreed order)
-1. Clear the small pending checks (the recipe CRUD is merged, PR #5): Phase 0 `strings.xml` prefixes and the two emulator checkpoints (Phase 1 visual, Phase 2 light and dark).
+1. ~~Clear the small pending checks~~ Done: the recipe CRUD is merged (PR #5), the `strings.xml` prefixes are in and both emulator checkpoints are passed.
 2. **Past days collapsed** (Phase 3): self-contained in the calendar, no backend, and the most visible change for the daily use of the app.
 3. **Tasks per day** (Phase 3): completes the local features, and the widget needs it.
 4. **Interactive widget** (Phase 3): define it first (open questions below), then build it on the same repositories as the app.
@@ -15,7 +15,7 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 - [x] `libs.versions.toml` with the stack (recent Compose BOM, M3 Expressive, Hilt+KSP, Navigation 3, Kotlinx Serialization, Coil 3, Firebase BOM, JUnit5/Turbine, fakes instead of mocks)
 - [x] Modules: `:domain`, `:data`, `:ui`, `:ui:components` + `settings.gradle.kts` + a `build.gradle.kts` for each (reorganized into `:core:designsystem` and `:feature:*`)
 - [x] Clean the Android Studio sample code (only `ExampleInstrumentedTest` is left, it can be deleted by hand)
-- [ ] `strings.xml` (es) and `values-en` with a prefix convention
+- [x] `strings.xml` (es) and `values-en` with a prefix convention (checked by `StringResourcesConventionTest` in `:app`: same names and placeholders in both languages, snake_case, a declared prefix per module, no name in two modules)
 
 - [x] Build: convention plugins (`build-logic`), `settings` plugin, typed accessors and Spotless/ktlint
 
@@ -27,7 +27,7 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 - [x] Floating navigation bar (overlapping the content)
 - [x] `TavolaDayCard`, `TavolaMealSlot`, `TavolaTaskChip`, `TavolaTopBar`, `TavolaLoadingIndicator`: complete, with light/dark previews
 - [x] `TavolaWeekSelector` (week selector) and `TavolaAddTaskDialog`
-- [ ] **Visual checkpoint:** compare with the mockup before going on (there are reference screenshots in `app/src/screenshotTestDefaultDebug/reference`; they still have to be reviewed together on the emulator)
+- [x] **Visual checkpoint:** compared with the mockup on the emulator (reference screenshots in `app/src/screenshotTestDefaultDebug/reference`)
 
 ## Phase 2 — Calendar with fake data
 - [x] Models and repository in `:domain` (calendar: `WeekPlan`, `DayPlan`, `CalendarRepository`; recipes, groups and shopping are missing)
@@ -35,7 +35,7 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 - [x] Meal picker: recipe or quick meal (`PlannedMeal`), bottom sheet with search, change and remove (`:feature:recipes`)
 - [x] Mediterranean fake data (`MediterraneanSampleData` and `FakeCalendarRepository` in `:core:testing`)
 - [x] ViewModel tests (8 for the ViewModel, 5 for date formatting, 6 for the in-memory repository)
-- [ ] **Checkpoint:** build on the emulator, light and dark
+- [x] **Checkpoint:** build on the emulator, light and dark
 
 ## Phase 3 — Real MVP (product phase 1)
 The items are grouped by topic, not in work order: follow "Next up" above.

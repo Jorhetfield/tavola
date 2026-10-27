@@ -49,14 +49,14 @@ The items are grouped by topic, not in work order: follow "Next up" above.
   - [x] Delete with Undo: drag a row halfway across the list, with a countdown snackbar (same pattern as task chips)
 - [ ] Tasks per day
 - [x] **Calendar: past days collapsed.** Every day before today, in the current week and in earlier ones, starts collapsed and can be expanded.
-  - Collapsed: only the date, the weekday and the lunch and the dinner with the name of the recipe or the quick meal. No tasks, no empty-slot buttons. The date and the weekday follow the app locale through the existing helpers in `CalendarFormatting.kt` (for example "27 oct" and "martes" in Spanish).
+  - Collapsed: one compact, flat row of about 64 dp (smaller corners and padding than the full card, no shadow) with the date, the weekday, the month and the lunch and the dinner on two short lines with the name of the recipe or the quick meal. No tasks, no empty-slot buttons. The date and the weekday follow the app locale through the existing helpers in `CalendarFormatting.kt` (for example "27 oct" and "martes" in Spanish). With large text (above 1.3x) the two meals go under the date, where they stay readable. A whole past week fits in one screen.
   - Today and the days to come keep the full card, as now.
-  - Expand and collapse with a tap on the card, animated with the motion scheme (spatial spring for the size and the shape, effects spec for the opacity; the slots and tasks come in one after the other, the chevron turns). Respect reduced motion.
+  - Expand and collapse with a tap on the header, animated with the motion scheme: the row turns into the full card (the corners, the padding and the date number grow with the spatial spring), the meals and tasks open and fade in, the add button pops in and the chevron turns.
   - The expanded state lives in the screen state (`CalendarUiState`), survives scrolling and rotation, and starts collapsed again when the week changes.
   - "Today" comes from the existing `TodayProvider`, so the ViewModel and the screenshots can fix it.
   - Accessibility: the header of the card is the expandable control (role, expanded / collapsed state announced), with a touch target of at least 48 dp; once expanded, the meal slots and the tasks keep their own controls.
   - Done when: ViewModel tests (which days are past, toggling, reset on week change), screenshots of the collapsed and the expanded card in light, dark and large text, and the calendar screenshots updated.
-  - Decided: an empty slot shows a dash; a collapsed day shows how many tasks are left (for example "2 tareas pendientes"); an expanded past day can still be edited, as today.
+  - Decided: an empty slot shows a dash; a collapsed day shows a small counter with the tasks left (read as "2 tareas pendientes" by screen readers); an expanded past day can still be edited, as today; every day opens on its own (no "earlier days" group).
 - [ ] **Interactive widget** (to be defined; Jetpack Glance is the starting point).
   - Idea: a home-screen widget for today that is not only a viewer: the user can act on it without opening the app.
   - To decide:

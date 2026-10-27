@@ -12,6 +12,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -20,7 +21,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerBasedShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -33,11 +37,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.semantics
@@ -54,14 +61,20 @@ private val TodayElevation = 8.dp
 private const val FLIP_DEGREES = 180f
 private const val MUTED_CAPTION_ALPHA = 0.7f
 
+/** The weekday column is at least this many steps of the largest spacing wide, enough for "MIÉRCOLES", so the meals line up. */
+private const val WEEKDAY_MIN_WIDTH_STEPS = 2
+
+/** With text larger than this the meals of a collapsed day go under the date instead of beside it, where they would not fit. */
+private const val STACKED_FONT_SCALE = 1.3f
+
 /**
  * Card of a day of the calendar: a header with the big number in serif, lunch and dinner side by side and the quick tasks
  * below. The state of the day changes its look: today (saffron, highlighted), upcoming (Mediterranean blue) and past (muted).
  *
- * A past day can be collapsed ([DayCardModel.expanded]): it then shows only its date, its weekday and the names of its two
- * meals, and a tap on the header ([onToggleExpanded]) opens it. The header is the only control that expands it, so once it
- * is open the meals and the tasks keep their own controls. The size, the number, the chevron and the content move with the
- * theme's spatial and effects springs.
+ * A past day can be collapsed ([DayCardModel.expanded]) to save room: it becomes one compact, flat row with its date, its
+ * weekday, the names of its two meals and how many tasks are left. A tap on the header ([onToggleExpanded]) opens it into the
+ * full card. The header is the only control that expands it, so once it is open the meals and the tasks keep their own
+ * controls. The shape, the padding, the number, the chevron and the content move together with the springs of the theme.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -77,30 +90,32 @@ fun TavolaDayCard(
     val spacing = TavolaTheme.spacing
     val motion = MaterialTheme.motionScheme
     val palette = dayCardPalette(model.state)
-    // 1 when the day is shown in full, 0 when it is collapsed; it drives the number, the chevron and the add button.
-    val openness = animateFloatAsState(if (model.isShownInFull) 1f else 0f, motion.defaultSpatialSpec(), label = "dayCardOpenness")
+    // 1 when the day is shown in full, 0 when it is the compact row; it drives the shape, the padding, the number and the chevron.
+    val openness by animateFloatAsState(if (model.isShownInFull) 1f else 0f, motion.defaultSpatialSpec(), label = "dayCardOpenness")
+    val isCompactRow = model.isCollapsible && !model.expanded
+    val mealsBesideDate = LocalDensity.current.fontScale <= STACKED_FONT_SCALE
 
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = morphedShape(from = MaterialTheme.shapes.large, to = MaterialTheme.shapes.extraLarge, fraction = openness),
         color = palette.container,
         contentColor = palette.content,
         shadowElevation = if (model.state == DayState.Today) TodayElevation else 0.dp,
     ) {
         Column(
             modifier = Modifier
-                // A collapsible card changes its height with the visibility of its content below; the others (a task is added)
-                // let the content size animate.
+                // A collapsible card changes its height with the visibility of its content below; the others (when a task is
+                // added) let the content size animate.
                 .then(if (model.isCollapsible) Modifier else Modifier.animateContentSize(motion.defaultSpatialSpec()))
-                .padding(spacing.lg),
+                .padding(horizontal = spacing.lg, vertical = lerp(spacing.md, spacing.lg, openness).coerceAtLeast(0.dp)),
         ) {
-            DayCardHeader(model, palette, openness, onAddTaskClick, onToggleExpanded)
+            DayCardHeader(model, palette, openness, showMeals = isCompactRow && mealsBesideDate, onAddTaskClick, onToggleExpanded)
             AnimatedVisibility(
-                visible = model.isCollapsible && !model.expanded,
+                visible = isCompactRow && !mealsBesideDate,
                 enter = expandVertically(motion.defaultSpatialSpec<IntSize>()) + fadeIn(motion.defaultEffectsSpec()),
                 exit = shrinkVertically(motion.fastSpatialSpec<IntSize>()) + fadeOut(motion.fastEffectsSpec()),
             ) {
-                DayCardSummary(model, palette, Modifier.padding(top = spacing.md))
+                CompactMeals(model, palette, Modifier.padding(top = spacing.sm))
             }
             AnimatedVisibility(
                 visible = model.isShownInFull,
@@ -118,29 +133,42 @@ fun TavolaDayCard(
     }
 }
 
+/** A rounded shape whose corners go from those of [from] to those of [to] as [fraction] goes from 0 to 1. */
+@Composable
+private fun morphedShape(from: CornerBasedShape, to: CornerBasedShape, fraction: Float): Shape {
+    val density = LocalDensity.current
+    val fromRadius = with(density) { from.topStart.toPx(Size.Zero, density).toDp() }
+    val toRadius = with(density) { to.topStart.toPx(Size.Zero, density).toDp() }
+    return RoundedCornerShape(lerp(fromRadius, toRadius, fraction).coerceAtLeast(0.dp))
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun DayCardHeader(
     model: DayCardModel,
     palette: DayCardPalette,
-    openness: State<Float>,
+    openness: Float,
+    showMeals: Boolean,
     onAddTaskClick: () -> Unit,
     onToggleExpanded: () -> Unit,
 ) {
+    val spacing = TavolaTheme.spacing
     val typography = MaterialTheme.typography
+    val motion = MaterialTheme.motionScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .then(if (model.isCollapsible) Modifier.expandsOnClick(model.expanded, onToggleExpanded) else Modifier),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md),
     ) {
         Text(
             text = model.dayNumber,
-            style = morphedStyle(from = typography.titleLarge, to = typography.displaySmall, fraction = openness.value),
+            style = morphedStyle(from = typography.titleLarge, to = typography.displaySmall, fraction = openness),
             color = palette.content,
+            // A minimum width, so the weekday and the meals start at the same place in every row whatever the digits.
+            modifier = Modifier.widthIn(min = spacing.xxl),
         )
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.padding(start = spacing.md).widthIn(min = spacing.xxxl * WEEKDAY_MIN_WIDTH_STEPS)) {
             Text(
                 text = model.weekday.uppercase(),
                 style = typography.labelLarge,
@@ -148,22 +176,53 @@ private fun DayCardHeader(
             )
             DayCaption(model, palette)
         }
+        CompactMealsReveal(
+            visible = showMeals,
+            model = model,
+            palette = palette,
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = spacing.md),
+        )
         AnimatedVisibility(
             visible = model.isShownInFull,
-            enter = fadeIn(MaterialTheme.motionScheme.defaultEffectsSpec()) + scaleIn(MaterialTheme.motionScheme.defaultSpatialSpec()),
-            exit = fadeOut(MaterialTheme.motionScheme.fastEffectsSpec()) + scaleOut(MaterialTheme.motionScheme.fastSpatialSpec()),
+            enter = fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultSpatialSpec()),
+            exit = fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastSpatialSpec()),
         ) {
             FilledTonalIconButton(onClick = onAddTaskClick, shapes = IconButtonDefaults.shapes()) {
                 Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.day_card_add_task))
             }
         }
         if (model.isCollapsible) {
+            AnimatedVisibility(
+                visible = model.isCollapsible && !model.expanded && model.pendingTasks > 0,
+                enter = fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultSpatialSpec()),
+                exit = fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastSpatialSpec()),
+            ) {
+                PendingTasksCount(model.pendingTasks, palette, Modifier.padding(end = spacing.sm))
+            }
             Icon(
                 imageVector = Icons.Rounded.ExpandMore,
                 contentDescription = null,
                 tint = palette.content,
-                modifier = Modifier.graphicsLayer { rotationZ = openness.value * FLIP_DEGREES },
+                modifier = Modifier.graphicsLayer { rotationZ = openness * FLIP_DEGREES },
             )
+        }
+    }
+}
+
+/** The meals of the compact row fade in and out in the space the header leaves free between the date and the controls. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun CompactMealsReveal(visible: Boolean, model: DayCardModel, palette: DayCardPalette, modifier: Modifier = Modifier) {
+    val motion = MaterialTheme.motionScheme
+    Box(modifier = modifier) {
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(motion.defaultEffectsSpec()),
+            exit = fadeOut(motion.fastEffectsSpec()),
+        ) {
+            CompactMeals(model, palette)
         }
     }
 }

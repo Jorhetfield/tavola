@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.preview.TavolaPreviews
@@ -125,12 +126,18 @@ private fun SlotHeader(type: MealType, contentColor: Color) {
 
 /** The round sun (lunch) or moon (dinner) badge that tells the two meals apart; [contentDescription] names it when no text does. */
 @Composable
-internal fun MealBadge(type: MealType, modifier: Modifier = Modifier, contentDescription: String? = null) {
+internal fun MealBadge(
+    type: MealType,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+    size: Dp = BadgeSize,
+    iconSize: Dp = BadgeIconSize,
+) {
     val colors = TavolaTheme.colors
     val isLunch = type == MealType.Lunch
     Box(
         modifier = modifier
-            .size(BadgeSize)
+            .size(size)
             .clip(CircleShape)
             .background(if (isLunch) colors.lunchAccent else colors.dinnerAccent),
         contentAlignment = Alignment.Center,
@@ -139,7 +146,7 @@ internal fun MealBadge(type: MealType, modifier: Modifier = Modifier, contentDes
             imageVector = if (isLunch) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
             contentDescription = contentDescription,
             tint = if (isLunch) colors.onDayCardActive else MaterialTheme.colorScheme.onSecondary,
-            modifier = Modifier.size(BadgeIconSize),
+            modifier = Modifier.size(iconSize),
         )
     }
 }

@@ -5,6 +5,7 @@
     <string name="topbar_edit">Edit</string>
     <string name="topbar_save">Save</string>
     <string name="search_field_stop">Stop searching</string>
+    <string name="snackbar_dismiss">Close</string>
 
     <string name="nav_calendar">Calendar</string>
     <string name="nav_recipes">Recipes</string>

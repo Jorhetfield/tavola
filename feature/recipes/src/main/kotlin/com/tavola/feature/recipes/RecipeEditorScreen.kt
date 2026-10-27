@@ -14,7 +14,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -32,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tavola.core.designsystem.R as DesignSystemR
 import com.tavola.core.designsystem.loading.TavolaLoadingIndicator
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
+import com.tavola.core.designsystem.snackbar.TavolaSnackbarHost
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 import com.tavola.core.designsystem.topbar.TavolaTopBarAction
@@ -110,7 +110,7 @@ fun RecipeEditorContent(
                 scrollBehavior = topBarScroll,
             )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { TavolaSnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {
             RecipeEditorUiState.Loading -> CenteredBox(contentPadding) { TavolaLoadingIndicator() }

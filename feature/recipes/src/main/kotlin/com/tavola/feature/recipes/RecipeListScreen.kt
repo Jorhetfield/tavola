@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -20,6 +19,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tavola.core.designsystem.loading.TavolaLoadingIndicator
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
+import com.tavola.core.designsystem.snackbar.TavolaSnackbarHost
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 
 /**
@@ -75,7 +75,7 @@ fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modi
             )
         },
         reservesFloatingBarSpace = true,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { TavolaSnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {
             RecipeListUiState.Loading -> CenteredBox(contentPadding) { TavolaLoadingIndicator() }

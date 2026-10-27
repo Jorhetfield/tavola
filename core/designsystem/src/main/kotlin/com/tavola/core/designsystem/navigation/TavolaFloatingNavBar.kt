@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
@@ -44,6 +45,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Constraints
@@ -122,17 +124,35 @@ fun TavolaFloatingNavBar(
         HorizontalFloatingToolbar(
             expanded = true,
             floatingActionButton = { NavBarActionButton(action) },
-            modifier = modifier,
+            // The toolbar-with-FAB layout is 96dp tall by default, which lifts the bar above its place on the other tabs; pinning
+            // it to the plain toolbar height keeps the bar exactly where it is without an action.
+            modifier = modifier.height(FloatingToolbarDefaults.ContainerSize),
             colors = colors,
         ) { destinations() }
     }
 }
 
-/** The round button docked to the bar; the vibrant FAB is the one M3 pairs with the standard toolbar colors. */
+/**
+ * The round button docked to the bar; the vibrant FAB is the one M3 pairs with the standard toolbar colors. It pops in
+ * with the theme's spatial spring (a little overshoot) when it appears, which is when the recipes tab opens.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun NavBarActionButton(action: TavolaNavBarAction) {
-    FloatingToolbarDefaults.VibrantFloatingActionButton(onClick = action.onClick) {
+    val motion = MaterialTheme.motionScheme
+    val inspecting = LocalInspectionMode.current
+    // Previews and screenshots do not run effects, so they get the button already in place.
+    val entrance = remember { Animatable(if (inspecting) 1f else 0f) }
+    LaunchedEffect(Unit) { entrance.animateTo(1f, motion.defaultSpatialSpec()) }
+
+    FloatingToolbarDefaults.VibrantFloatingActionButton(
+        onClick = action.onClick,
+        modifier = Modifier.graphicsLayer {
+            scaleX = entrance.value
+            scaleY = entrance.value
+            alpha = entrance.value.coerceIn(0f, 1f)
+        },
+    ) {
         Icon(imageVector = action.icon, contentDescription = stringResource(action.contentDescriptionRes))
     }
 }

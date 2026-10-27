@@ -20,6 +20,7 @@ import com.tavola.core.designsystem.navigation.TavolaNavBarAction
 import com.tavola.core.designsystem.preview.TavolaAdaptivePreviews
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
+import com.tavola.core.designsystem.snackbar.TavolaSnackbarContent
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 import com.tavola.core.designsystem.topbar.TavolaTopBarAction
@@ -84,6 +85,22 @@ fun CalendarScaffoldScreenshot() {
                     TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onTaskRemoveClick = {}, onAddTaskClick = {})
                 }
             }
+        }
+    }
+}
+
+/** The "recipe deleted" notice a few seconds in: the ring shows what is left of the Undo time. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun SnackbarScreenshot() {
+    TavolaTheme {
+        Column(
+            modifier = Modifier.padding(TavolaTheme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
+        ) {
+            TavolaSnackbarContent("Receta eliminada", "Deshacer", { 0.6f }, onActionClick = {}, onDismissClick = {})
+            TavolaSnackbarContent("No se ha podido guardar la receta", null, { 0.25f }, onActionClick = {}, onDismissClick = null)
         }
     }
 }

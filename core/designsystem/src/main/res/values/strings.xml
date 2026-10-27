@@ -2,11 +2,14 @@
     <string name="topbar_back">Volver</string>
     <string name="topbar_today">Ir a hoy</string>
     <string name="topbar_settings">Ajustes</string>
+    <string name="topbar_edit">Editar</string>
+    <string name="topbar_save">Guardar</string>
     <string name="search_field_stop">Dejar de buscar</string>
 
     <string name="nav_calendar">Calendario</string>
     <string name="nav_recipes">Recetas</string>
     <string name="nav_shopping">Compra</string>
+    <string name="nav_action_new_recipe">Nueva receta</string>
 
     <string name="calendar_meal_lunch">Comida</string>
     <string name="calendar_meal_dinner">Cena</string>

@@ -2,11 +2,14 @@
     <string name="topbar_back">Back</string>
     <string name="topbar_today">Go to today</string>
     <string name="topbar_settings">Settings</string>
+    <string name="topbar_edit">Edit</string>
+    <string name="topbar_save">Save</string>
     <string name="search_field_stop">Stop searching</string>
 
     <string name="nav_calendar">Calendar</string>
     <string name="nav_recipes">Recipes</string>
     <string name="nav_shopping">Shopping</string>
+    <string name="nav_action_new_recipe">New recipe</string>
 
     <string name="calendar_meal_lunch">Lunch</string>
     <string name="calendar_meal_dinner">Dinner</string>

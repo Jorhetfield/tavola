@@ -3,6 +3,8 @@ package com.tavola.navigation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -16,14 +18,17 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.motion.LocalPlayedEntrances
 import com.tavola.core.designsystem.motion.rememberPlayedEntrances
+import com.tavola.core.designsystem.navigation.TavolaNavBarAction
 import com.tavola.core.designsystem.scaffold.LocalFloatingBarState
 import com.tavola.core.designsystem.scaffold.TavolaFloatingBarLayer
 import com.tavola.core.designsystem.scaffold.rememberFloatingBarState
 import com.tavola.feature.calendar.CalendarScreen
 import com.tavola.feature.recipes.MealPickerSheetContent
 import com.tavola.feature.recipes.RecipeDetailScreen
+import com.tavola.feature.recipes.RecipeEditorScreen
 import com.tavola.feature.recipes.RecipeListScreen
 
 /**
@@ -48,6 +53,11 @@ fun TavolaNavigation() {
     // A new destination starts with the bar fully visible, even if the previous one had it hidden by scrolling.
     LaunchedEffect(currentTabKey) { barState.show() }
 
+    // The recipes tab is the only one with a main action; it is docked to the bar and opens the editor on a blank recipe.
+    val newRecipeAction = remember(backStack) {
+        TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_new_recipe) { backStack.add(RecipeEditorRoute()) }
+    }
+
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         CompositionLocalProvider(LocalFloatingBarState provides barState, LocalPlayedEntrances provides playedEntrances) {
             NavDisplay(
@@ -67,11 +77,22 @@ fun TavolaNavigation() {
                         )
                     }
                     entry<RecipesRoute>(clazzContentKey = { RECIPES_KEY }, metadata = motion.tabMetadata) {
-                        RecipeListScreen(onRecipeClick = { recipeId -> backStack.add(RecipeDetailRoute(recipeId)) })
+                        RecipeListScreen(
+                            onRecipeClick = { recipeId -> backStack.add(RecipeDetailRoute(recipeId)) },
+                        )
                     }
                     entry<RecipeDetailRoute>(metadata = motion.sheetMetadata) { route ->
                         SheetEntrySurface {
-                            RecipeDetailScreen(recipeId = route.recipeId, onBack = { backStack.removeLastOrNull() })
+                            RecipeDetailScreen(
+                                recipeId = route.recipeId,
+                                onBack = { backStack.removeLastOrNull() },
+                                onEditClick = { recipeId -> backStack.add(RecipeEditorRoute(recipeId)) },
+                            )
+                        }
+                    }
+                    entry<RecipeEditorRoute>(metadata = motion.sheetMetadata) { route ->
+                        SheetEntrySurface {
+                            RecipeEditorScreen(recipeId = route.recipeId, onBack = { backStack.removeLastOrNull() })
                         }
                     }
                     debugEntries(backStack)
@@ -83,7 +104,11 @@ fun TavolaNavigation() {
             visible = currentTabKey != null,
             modifier = Modifier.align(Alignment.BottomCenter),
         ) {
-            TopLevelNavBar(selectedKey = lastTab.key, onItemClick = { key -> backStack.navigateToTopLevel(key) })
+            TopLevelNavBar(
+                selectedKey = lastTab.key,
+                onItemClick = { key -> backStack.navigateToTopLevel(key) },
+                action = newRecipeAction.takeIf { lastTab.key == RECIPES_KEY },
+            )
         }
     }
 }

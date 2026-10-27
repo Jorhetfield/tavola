@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +38,9 @@ fun RecipeListScreen(
         RecipeListActions(
             onQueryChange = viewModel::onQueryChange,
             onRecipeClick = onRecipeClick,
+            onRecipeRemove = viewModel::onRecipeRemove,
+            onRecipeRemoveUndo = viewModel::onRecipeRemoveUndo,
+            onRecipeRemovedShown = viewModel::onRecipeRemovedShown,
             onRetryClick = viewModel::onRetryClick,
         )
     }
@@ -48,6 +53,13 @@ fun RecipeListScreen(
 fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modifier: Modifier = Modifier) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val resources = LocalResources.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    RemovedRecipeSnackbarEffect(
+        removedRecipe = (state as? RecipeListUiState.Success)?.removedRecipe,
+        snackbarHostState = snackbarHostState,
+        onUndo = actions.onRecipeRemoveUndo,
+        onShown = actions.onRecipeRemovedShown,
+    )
     val success = state as? RecipeListUiState.Success
     // The subtitle counts what the search shows; it is hidden only when the recipe book itself is empty.
     val shown = success?.recipes?.size ?: 0
@@ -63,6 +75,7 @@ fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modi
             )
         },
         reservesFloatingBarSpace = true,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {
             RecipeListUiState.Loading -> CenteredBox(contentPadding) { TavolaLoadingIndicator() }

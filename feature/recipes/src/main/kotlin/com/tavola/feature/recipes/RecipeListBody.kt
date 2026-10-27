@@ -27,7 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.tavola.core.designsystem.field.TavolaSearchField
 import com.tavola.core.designsystem.motion.LocalPlayedEntrances
 import com.tavola.core.designsystem.motion.PlayedEntrances
-import com.tavola.core.designsystem.recipe.TavolaRecipeRow
 import com.tavola.core.designsystem.theme.TavolaTheme
 
 /** Search field above the list; the list, or the empty state, below it. */
@@ -67,9 +66,10 @@ internal fun RecipeListBody(state: RecipeListUiState.Success, actions: RecipeLis
             item(key = EMPTY_KEY) { RecipeListEmpty(state) }
         } else {
             itemsIndexed(rows, key = { _, rowModel -> rowModel.id }) { index, row ->
-                TavolaRecipeRow(
-                    model = row,
+                SwipeToRemoveRecipeRow(
+                    row = row,
                     onClick = { actions.onRecipeClick(row.id) },
+                    onRemove = { actions.onRecipeRemove(row.id) },
                     modifier = Modifier
                         .staggeredEntrance(key = "recipe:${row.id}", index = index, played = played)
                         .animateItem(

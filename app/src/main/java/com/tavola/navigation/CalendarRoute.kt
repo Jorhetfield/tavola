@@ -12,3 +12,7 @@ data object RecipesRoute : NavKey
 
 @Serializable
 data class RecipeDetailRoute(val recipeId: String) : NavKey
+
+/** Create or edit a recipe; a blank [recipeId] creates a new one. */
+@Serializable
+data class RecipeEditorRoute(val recipeId: String = "") : NavKey

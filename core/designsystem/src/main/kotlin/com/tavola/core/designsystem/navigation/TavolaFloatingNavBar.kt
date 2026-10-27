@@ -3,10 +3,14 @@ package com.tavola.core.designsystem.navigation
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
@@ -14,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.ShoppingCart
@@ -65,6 +70,9 @@ private const val ICON_POP_START_SCALE = 0.7f
  * its label according to how close that position is to it, and the pill is placed between the two items the position
  * is between, all in the same layout pass, so the pill always sits exactly under the icon it is moving to. The chosen
  * icon pops and choosing another destination gives a light haptic tick.
+ *
+ * With an [action] the toolbar docks a round button at its end (the M3 Expressive toolbar-with-FAB), so bar and action
+ * read as one piece instead of two floating things stacked.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -73,6 +81,7 @@ fun TavolaFloatingNavBar(
     selectedKey: String,
     onItemClick: (key: String) -> Unit,
     modifier: Modifier = Modifier,
+    action: TavolaNavBarAction? = null,
 ) {
     val motion = MaterialTheme.motionScheme
     val haptics = LocalHapticFeedback.current
@@ -81,11 +90,7 @@ fun TavolaFloatingNavBar(
 
     LaunchedEffect(selectedIndex) { position.animateTo(selectedIndex.toFloat(), motion.defaultSpatialSpec()) }
 
-    HorizontalFloatingToolbar(
-        expanded = true,
-        modifier = modifier,
-        colors = FloatingToolbarDefaults.standardFloatingToolbarColors(),
-    ) {
+    val destinations: @Composable RowScope.() -> Unit = {
         NavBarLayout(position = { position.value }) {
             Box(Modifier.background(MaterialTheme.colorScheme.primary, CircleShape))
             items.forEachIndexed { index, item ->
@@ -100,6 +105,28 @@ fun TavolaFloatingNavBar(
                 )
             }
         }
+    }
+    val colors = FloatingToolbarDefaults.standardFloatingToolbarColors()
+
+    if (action == null) {
+        HorizontalFloatingToolbar(expanded = true, modifier = modifier, colors = colors, content = destinations)
+    } else {
+        HorizontalFloatingToolbar(
+            expanded = true,
+            floatingActionButton = { NavBarActionButton(action) },
+            modifier = modifier,
+            colors = colors,
+            content = destinations,
+        )
+    }
+}
+
+/** The round button docked to the bar; the vibrant FAB is the one M3 pairs with the standard toolbar colors. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun NavBarActionButton(action: TavolaNavBarAction) {
+    FloatingToolbarDefaults.VibrantFloatingActionButton(onClick = action.onClick) {
+        Icon(imageVector = action.icon, contentDescription = stringResource(action.contentDescriptionRes))
     }
 }
 
@@ -219,6 +246,17 @@ private val PreviewItems = listOf(
 @Composable
 private fun TavolaFloatingNavBarPreview() {
     TavolaTheme {
-        TavolaFloatingNavBar(items = PreviewItems, selectedKey = "calendar", onItemClick = {})
+        Column(
+            modifier = Modifier.padding(TavolaTheme.spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
+        ) {
+            TavolaFloatingNavBar(items = PreviewItems, selectedKey = "calendar", onItemClick = {})
+            TavolaFloatingNavBar(
+                items = PreviewItems,
+                selectedKey = "recipes",
+                onItemClick = {},
+                action = TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_new_recipe) {},
+            )
+        }
     }
 }

@@ -16,12 +16,14 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-/** The recipe book tab: every recipe, filtered by the search field. */
+/** The recipe book tab: every recipe, filtered by the search field, with delete and undo. */
 @HiltViewModel
-class RecipeListViewModel @Inject constructor(recipeRepository: RecipeRepository) : ViewModel() {
+class RecipeListViewModel @Inject constructor(private val recipeRepository: RecipeRepository) : ViewModel() {
     private val query = MutableStateFlow("")
     private val retryCount = MutableStateFlow(0)
+    private val removedRecipe = MutableStateFlow<Recipe?>(null)
 
     /** Every recipe; `null` if the repository failed to load them. */
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -31,7 +33,7 @@ class RecipeListViewModel @Inject constructor(recipeRepository: RecipeRepository
             .catch { emit(null) }
     }
 
-    val uiState: StateFlow<RecipeListUiState> = combine(recipes, query) { all, text ->
+    val uiState: StateFlow<RecipeListUiState> = combine(recipes, query, removedRecipe) { all, text, removed ->
         if (all == null) {
             RecipeListUiState.Error
         } else {
@@ -39,6 +41,7 @@ class RecipeListViewModel @Inject constructor(recipeRepository: RecipeRepository
                 query = text,
                 recipes = all.filter { recipe -> recipe.matches(text) }.sortedBy { recipe -> recipe.title.normalizedForSearch() },
                 totalRecipes = all.size,
+                removedRecipe = removed,
             )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), RecipeListUiState.Loading)
@@ -46,6 +49,25 @@ class RecipeListViewModel @Inject constructor(recipeRepository: RecipeRepository
     fun onQueryChange(text: String) = query.update { text }
 
     fun onRetryClick() = retryCount.update { count -> count + 1 }
+
+    /** Deletes the recipe and keeps it in [removedRecipe] so it can be undone. */
+    fun onRecipeRemove(recipeId: String) {
+        val recipe = (uiState.value as? RecipeListUiState.Success)?.recipes?.firstOrNull { shown -> shown.id == recipeId } ?: return
+        removedRecipe.value = recipe
+        viewModelScope.launch { recipeRepository.deleteRecipe(recipeId) }
+    }
+
+    /** Saving the recipe again brings it back with the same id. */
+    fun onRecipeRemoveUndo() {
+        val recipe = removedRecipe.value ?: return
+        removedRecipe.value = null
+        viewModelScope.launch { recipeRepository.saveRecipe(recipe) }
+    }
+
+    /** The "recipe deleted" notice ended without undo: there is nothing left to restore. */
+    fun onRecipeRemovedShown() {
+        removedRecipe.value = null
+    }
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L

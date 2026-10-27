@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,6 +16,7 @@ import com.android.tools.screenshot.PreviewTest
 import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.calendar.TavolaDayCard
 import com.tavola.core.designsystem.navigation.TavolaFloatingNavBar
+import com.tavola.core.designsystem.navigation.TavolaNavBarAction
 import com.tavola.core.designsystem.preview.TavolaAdaptivePreviews
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
@@ -47,6 +49,12 @@ fun FloatingNavBarScreenshot() {
         ) {
             TavolaFloatingNavBar(items = ScreenshotSamples.navItems, selectedKey = "calendar", onItemClick = {})
             TavolaFloatingNavBar(items = ScreenshotSamples.navItems, selectedKey = "shopping", onItemClick = {})
+            TavolaFloatingNavBar(
+                items = ScreenshotSamples.navItems,
+                selectedKey = "recipes",
+                onItemClick = {},
+                action = TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_new_recipe) {},
+            )
         }
     }
 }

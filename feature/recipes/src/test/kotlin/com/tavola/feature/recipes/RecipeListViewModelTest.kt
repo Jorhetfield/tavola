@@ -92,6 +92,58 @@ class RecipeListViewModelTest {
         }
     }
 
+    @Test
+    fun `deleting a recipe removes it and keeps it to undo`() = runTest {
+        val repository = FakeRecipeRepository()
+        val viewModel = RecipeListViewModel(repository)
+        viewModel.uiState.test {
+            val before = awaitSuccess()
+            val target = before.recipes.first()
+
+            viewModel.onRecipeRemove(target.id)
+
+            val after = awaitSuccess { success -> success.removedRecipe == target && success.totalRecipes == before.totalRecipes - 1 }
+            assertTrue(after.recipes.none { recipe -> recipe.id == target.id })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `undo brings the deleted recipe back and clears the notice`() = runTest {
+        val repository = FakeRecipeRepository()
+        val viewModel = RecipeListViewModel(repository)
+        viewModel.uiState.test {
+            val before = awaitSuccess()
+            val target = before.recipes.first()
+            viewModel.onRecipeRemove(target.id)
+            awaitSuccess { success -> success.removedRecipe == target }
+
+            viewModel.onRecipeRemoveUndo()
+
+            val restored = awaitSuccess { success -> success.removedRecipe == null && success.totalRecipes == before.totalRecipes }
+            assertTrue(restored.recipes.contains(target))
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `when the notice ends without undo the recipe stays deleted`() = runTest {
+        val repository = FakeRecipeRepository()
+        val viewModel = RecipeListViewModel(repository)
+        viewModel.uiState.test {
+            val before = awaitSuccess()
+            viewModel.onRecipeRemove(before.recipes.first().id)
+            awaitSuccess { success -> success.removedRecipe != null }
+
+            viewModel.onRecipeRemovedShown()
+            viewModel.onRecipeRemoveUndo()
+
+            val after = awaitSuccess { success -> success.removedRecipe == null }
+            assertEquals(before.totalRecipes - 1, after.totalRecipes)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
     private class FlakyRecipeRepository(private val delegate: RecipeRepository = FakeRecipeRepository()) : RecipeRepository by delegate {
         var shouldFail = true
 

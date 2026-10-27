@@ -71,3 +71,38 @@ private fun RecipeDetailNotFoundPreview() {
         RecipeDetailContent(state = RecipeDetailUiState.NotFound, onBack = {}, onRetryClick = {})
     }
 }
+
+private val previewEditing = RecipeEditorUiState.Editing(
+    isNew = false,
+    title = "Paella valenciana",
+    prepTime = "50",
+    tags = listOf("Espanol", "Arroz"),
+    tagSuggestions = listOf("Italiano", "Griego"),
+    ingredients = listOf(
+        IngredientDraft(0, "Arroz bomba", "400", IngredientUnit.Gram),
+        IngredientDraft(1, "Sal", unit = IngredientUnit.ToTaste),
+    ),
+    steps = listOf(StepDraft(2, "Sofrie el pollo en la paella."), StepDraft(3, "Anade el arroz y el caldo caliente.")),
+)
+
+@TavolaPreviews
+@Composable
+private fun RecipeEditorPreview() {
+    TavolaTheme {
+        RecipeEditorContent(previewEditing, RecipeEditorActions(), onBack = {}, onRetryClick = {}, onSaveErrorShown = {})
+    }
+}
+
+@TavolaPreviews
+@Composable
+private fun RecipeEditorNewPreview() {
+    TavolaTheme {
+        RecipeEditorContent(
+            state = RecipeEditorUiState.Editing(isNew = true, showTitleError = true),
+            actions = RecipeEditorActions(),
+            onBack = {},
+            onRetryClick = {},
+            onSaveErrorShown = {},
+        )
+    }
+}

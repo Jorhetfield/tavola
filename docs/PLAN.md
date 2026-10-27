@@ -34,8 +34,8 @@ Marca `[x]` al terminar. Una tarea por vez; compilar y verificar antes de la sig
 - [ ] CRUD de recetas: lista, detalle y editor (el modelo ya tiene ingredientes estructurados y pasos)
   - [x] Persistence: Room for recipes and the calendar (`RoomRecipeRepository`, `RoomCalendarRepository`); no fake data in the app, sample data only through the debug menu ("Load sample data")
   - [x] List tab + detail (read-only), search and empty state
-  - [ ] Editor: title, prep time, free-text tags with suggestions, ingredients (keeping "to taste"), reorderable steps
-  - [ ] Delete with Undo (same pattern as task chips)
+  - [x] Editor: title, prep time, free-text tags with suggestions, ingredients (keeping "to taste"), reorderable steps
+  - [x] Delete with Undo: swipe a row in the list (same pattern as task chips)
 - [ ] Tareas por día
 
 ## Fase 4 — Lista de la compra y diseño premium

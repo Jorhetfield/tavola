@@ -48,12 +48,12 @@ import kotlinx.coroutines.launch
 private const val REMOVAL_GRACE_MILLIS = 1_500L
 
 /** How far along its width a row has to be when it is let go for the recipe to be deleted; less and it slides back. */
-private const val DELETE_THRESHOLD_FRACTION = 0.8f
+private const val DELETE_THRESHOLD_FRACTION = 0.5f
 
 private const val ARMED_ICON_SCALE = 1.3f
 
 /**
- * A recipe row that is deleted by dragging it to the start almost all the way. The same action is offered to
+ * A recipe row that is deleted by dragging it to the start at least halfway. The same action is offered to
  * accessibility services, which cannot swipe.
  *
  * It is a gesture of its own instead of Material's `SwipeToDismissBox` on purpose:

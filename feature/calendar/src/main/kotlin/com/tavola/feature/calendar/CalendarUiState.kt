@@ -8,13 +8,18 @@ import com.tavola.domain.model.MealType
 import com.tavola.domain.model.PlannedMeal
 import kotlinx.datetime.LocalDate
 
-/** Un día de la semana más su estado respecto a hoy (pasado, hoy o próximo). */
+/**
+ * A day of the week plus its state relative to today (past, today or upcoming).
+ *
+ * @property expanded whether the day is shown in full. Only a past day can be collapsed, and it starts collapsed; today and the
+ *   days to come are always expanded.
+ */
 @Immutable
-data class DayItem(val plan: DayPlan, val state: DayState) {
+data class DayItem(val plan: DayPlan, val state: DayState, val expanded: Boolean = true) {
     val date: LocalDate get() = plan.date
 }
 
-/** Hueco elegido para rellenar o cambiar: qué día, si es comida o cena y qué tiene ahora ([current], `null` si está vacío). */
+/** Slot to fill or change: which day, lunch or dinner and what it has now ([current], `null` if it is empty). */
 @Immutable
 data class MealPickerTarget(val date: LocalDate, val type: MealType, val current: PlannedMeal?)
 
@@ -28,10 +33,10 @@ sealed interface CalendarUiState {
     data object Error : CalendarUiState
 
     /**
-     * @property weekStart lunes de la semana mostrada.
-     * @property isCurrentWeek true si la semana mostrada contiene el día de hoy.
-     * @property addTaskDate día para el que está abierto el diálogo de nueva tarea, o `null` si está cerrado.
-     * @property mealPicker hueco para el que está abierto el selector de comida, o `null` si está cerrado.
+     * @property weekStart Monday of the week shown.
+     * @property isCurrentWeek true if the week shown contains today.
+     * @property addTaskDate day the new-task dialog is open for, or `null` if it is closed.
+     * @property mealPicker slot the meal picker is open for, or `null` if it is closed.
      * @property removedTask last removed task while it can still be undone; `null` if there is nothing to undo.
      */
     @Immutable

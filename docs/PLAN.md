@@ -48,7 +48,7 @@ The items are grouped by topic, not in work order: follow "Next up" above.
   - [x] Editor: title, prep time, free-text tags with suggestions, ingredients (keeping "to taste"), reorderable steps
   - [x] Delete with Undo: drag a row halfway across the list, with a countdown snackbar (same pattern as task chips)
 - [ ] Tasks per day
-- [ ] **Calendar: past days collapsed.** Every day before today, in the current week and in earlier ones, starts collapsed and can be expanded.
+- [x] **Calendar: past days collapsed.** Every day before today, in the current week and in earlier ones, starts collapsed and can be expanded.
   - Collapsed: only the date, the weekday and the lunch and the dinner with the name of the recipe or the quick meal. No tasks, no empty-slot buttons. The date and the weekday follow the app locale through the existing helpers in `CalendarFormatting.kt` (for example "27 oct" and "martes" in Spanish).
   - Today and the days to come keep the full card, as now.
   - Expand and collapse with a tap on the card, animated with the motion scheme (spatial spring for the size and the shape, effects spec for the opacity; the slots and tasks come in one after the other, the chevron turns). Respect reduced motion.
@@ -56,7 +56,7 @@ The items are grouped by topic, not in work order: follow "Next up" above.
   - "Today" comes from the existing `TodayProvider`, so the ViewModel and the screenshots can fix it.
   - Accessibility: the header of the card is the expandable control (role, expanded / collapsed state announced), with a touch target of at least 48 dp; once expanded, the meal slots and the tasks keep their own controls.
   - Done when: ViewModel tests (which days are past, toggling, reset on week change), screenshots of the collapsed and the expanded card in light, dark and large text, and the calendar screenshots updated.
-  - Open questions: what to show when a past day has no meal in a slot (a dash?), whether unfinished tasks of a past day deserve a small indicator, and whether a past day can still be edited once expanded (the proposal is yes, as today).
+  - Decided: an empty slot shows a dash; a collapsed day shows how many tasks are left (for example "2 tareas pendientes"); an expanded past day can still be edited, as today.
 - [ ] **Interactive widget** (to be defined; Jetpack Glance is the starting point).
   - Idea: a home-screen widget for today that is not only a viewer: the user can act on it without opening the app.
   - To decide:

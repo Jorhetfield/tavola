@@ -31,9 +31,10 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
     private val addTaskDate = MutableStateFlow<LocalDate?>(null)
     private val pickerSlot = MutableStateFlow<Pair<LocalDate, MealType>?>(null)
     private val removedTask = MutableStateFlow<RemovedTask?>(null)
+    private val expandedDays = MutableStateFlow<Set<LocalDate>>(emptySet())
     private val retryCount = MutableStateFlow(0)
 
-    /** La semana elegida; `null` si el repositorio falló al cargarla. */
+    /** The chosen week; `null` if the repository failed to load it. */
     @OptIn(ExperimentalCoroutinesApi::class)
     private val week = combine(selectedWeekStart, retryCount) { start, _ -> start }
         .flatMapLatest { start ->
@@ -42,16 +43,33 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
                 .catch { emit(null) }
         }
 
-    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate, pickerSlot, removedTask) { week, dialogDate, slot, removed ->
-        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot, removed)
+    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate, pickerSlot, removedTask, expandedDays) {
+            week,
+            dialogDate,
+            slot,
+            removed,
+            expanded,
+        ->
+        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot, removed, expanded)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CalendarUiState.Loading)
 
-    fun onPreviousWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(-1) }
+    fun onPreviousWeekClick() = showWeek(selectedWeekStart.value.plusWeeks(-1))
 
-    fun onNextWeekClick() = selectedWeekStart.update { weekStart -> weekStart.plusWeeks(1) }
+    fun onNextWeekClick() = showWeek(selectedWeekStart.value.plusWeeks(1))
 
-    fun onTodayClick() {
-        selectedWeekStart.value = todayProvider.today().startOfWeek()
+    fun onTodayClick() = showWeek(todayProvider.today().startOfWeek())
+
+    /** Opens or closes a past day. Today and the days to come are always shown in full, so asking for one of them does nothing. */
+    fun onDayToggle(date: LocalDate) {
+        if (date >= todayProvider.today()) return
+        expandedDays.update { expanded -> if (date in expanded) expanded - date else expanded + date }
+    }
+
+    /** Changes the week shown; the past days that were open start collapsed again in the new week. */
+    private fun showWeek(weekStart: LocalDate) {
+        if (weekStart == selectedWeekStart.value) return
+        expandedDays.value = emptySet()
+        selectedWeekStart.value = weekStart
     }
 
     fun onRetryClick() {
@@ -86,7 +104,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         removedTask.value = null
     }
 
-    /** Abre el selector de comida para este hueco (vacío o lleno). Quien elige y guarda es la pantalla del selector. */
+    /** Opens the meal picker for this slot (empty or full). The picker screen is the one that chooses and saves. */
     fun onMealClick(date: LocalDate, type: MealType) {
         pickerSlot.value = date to type
     }
@@ -116,6 +134,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
         dialogDate: LocalDate?,
         slot: Pair<LocalDate, MealType>?,
         removed: RemovedTask?,
+        expandedDays: Set<LocalDate>,
     ): CalendarUiState.Success {
         val today = todayProvider.today()
         val items = days.map { plan ->
@@ -124,7 +143,8 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
                 plan.date == today -> DayState.Today
                 else -> DayState.Upcoming
             }
-            DayItem(plan, state)
+            // A past day starts collapsed and is open only while the user has opened it; the others are always in full.
+            DayItem(plan, state, expanded = state != DayState.Past || plan.date in expandedDays)
         }
         return CalendarUiState.Success(
             weekStart = weekStart,

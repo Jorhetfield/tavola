@@ -16,7 +16,7 @@ import java.util.Locale
 @Composable
 internal fun rememberLocale(): Locale = LocalConfiguration.current.locales[0]
 
-/** Convierte los días del dominio en los modelos del design system (con textos según el idioma actual). */
+/** Turns the days of the domain into the design system models (with the texts of the current language). */
 @Composable
 internal fun rememberDayCardModels(days: List<DayItem>): List<DayCardModel> {
     val locale = rememberLocale()
@@ -29,6 +29,8 @@ internal fun DayItem.toCardModel(locale: Locale, resources: Resources): DayCardM
     weekday = date.weekdayName(locale),
     dayNumber = date.dayOfMonth.toString(),
     state = state,
+    monthShort = date.monthShortName(locale),
+    expanded = expanded,
     lunch = plan.lunch.toSlotModel(UiMealType.Lunch, resources),
     dinner = plan.dinner.toSlotModel(UiMealType.Dinner, resources),
     tasks = plan.tasks.map { task -> TaskChipModel(id = task.id, text = task.text, done = task.done) },

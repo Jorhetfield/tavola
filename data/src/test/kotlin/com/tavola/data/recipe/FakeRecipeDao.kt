@@ -6,7 +6,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 /** In-memory [RecipeDao] that sorts like the real query, so [RoomRecipeRepository] can be tested on the JVM. */
-internal class FakeRecipeDao : RecipeDao {
+internal class FakeRecipeDao : RecipeDao() {
+    /** Every call to [refreshPlannedMeals], in order, as `recipeId` to `title`. */
+    val refreshed = mutableListOf<Pair<String, String>>()
+
     private val stored = MutableStateFlow<List<RecipeEntity>>(emptyList())
 
     override fun observeAll(): Flow<List<RecipeEntity>> = stored.map { entities ->
@@ -18,6 +21,10 @@ internal class FakeRecipeDao : RecipeDao {
     }
 
     override suspend fun upsert(recipe: RecipeEntity) = upsertAll(listOf(recipe))
+
+    override suspend fun refreshPlannedMeals(recipeId: String, title: String, prepTimeMinutes: Int?, tagsJson: String) {
+        refreshed += recipeId to title
+    }
 
     override suspend fun upsertAll(recipes: List<RecipeEntity>) {
         stored.update { entities ->

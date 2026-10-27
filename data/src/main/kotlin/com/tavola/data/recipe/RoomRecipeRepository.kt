@@ -16,7 +16,7 @@ internal class RoomRecipeRepository @Inject constructor(private val recipeDao: R
 
     override suspend fun saveRecipe(recipe: Recipe): String {
         val saved = if (recipe.id.isBlank()) recipe.copy(id = UUID.randomUUID().toString()) else recipe
-        recipeDao.upsert(saved.toEntity())
+        recipeDao.save(saved.toEntity())
         return saved.id
     }
 

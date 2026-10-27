@@ -53,3 +53,22 @@ internal fun RecipeEditorUiState.Editing.toRecipe(id: String): Recipe = Recipe(
         },
     steps = steps.map { step -> step.text.trim() }.filter { step -> step.isNotEmpty() },
 )
+
+private const val MAX_QUANTITY_LENGTH = 8
+
+/** Keeps what can be a quantity: digits and a single "." or ",", so what is typed or pasted is never silently dropped on save. */
+internal fun sanitizeQuantity(text: String): String {
+    var separatorSeen = false
+    return text.filter { character ->
+        when {
+            character.isDigit() -> true
+
+            (character == '.' || character == ',') && !separatorSeen -> {
+                separatorSeen = true
+                true
+            }
+
+            else -> false
+        }
+    }.take(MAX_QUANTITY_LENGTH)
+}

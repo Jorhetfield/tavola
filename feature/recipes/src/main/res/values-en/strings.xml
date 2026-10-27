@@ -68,7 +68,6 @@
     <string name="recipe_list_remove">Delete recipe</string>
 
     <string name="recipe_editor_title_new">New recipe</string>
-    <string name="recipe_editor_title_edit">Edit recipe</string>
     <string name="recipe_editor_name_label">Recipe name</string>
     <string name="recipe_editor_name_required">Give the recipe a name</string>
     <string name="recipe_editor_prep_time_label">Preparation time (min)</string>

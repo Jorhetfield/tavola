@@ -214,4 +214,26 @@ class RecipeEditorViewModelTest {
             return delegate.saveRecipe(recipe)
         }
     }
+
+    @Test
+    fun `pasted text with several commas becomes several tags and leaves the rest in the field`() {
+        val viewModel = newRecipe()
+
+        viewModel.onTagInputChange("Griego,Arroz, Verano,sob")
+
+        val form = viewModel.form()
+        assertEquals(listOf("Griego", "Arroz", "Verano"), form.tags)
+        assertEquals("sob", form.tagInput)
+    }
+
+    @Test
+    fun `the quantity field only accepts what can be a quantity`() {
+        val viewModel = newRecipe()
+        viewModel.onIngredientAdd()
+        val key = viewModel.form().ingredients.single().key
+
+        viewModel.onIngredientQuantityChange(key, "1/2 kg")
+
+        assertEquals("12", viewModel.form().ingredients.single().quantity)
+    }
 }

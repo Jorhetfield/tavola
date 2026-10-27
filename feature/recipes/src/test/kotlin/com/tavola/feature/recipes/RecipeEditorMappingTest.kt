@@ -69,4 +69,13 @@ class RecipeEditorMappingTest {
         )
         assertEquals(listOf("Batir"), recipe.steps)
     }
+
+    @Test
+    fun `a quantity keeps only digits and one separator`() {
+        assertEquals("1,5", sanitizeQuantity("1,5"))
+        assertEquals("1.57", sanitizeQuantity("1.5.7"))
+        assertEquals("12", sanitizeQuantity("1/2"))
+        assertEquals("", sanitizeQuantity("abc"))
+        assertEquals("12345678", sanitizeQuantity("1234567890"))
+    }
 }

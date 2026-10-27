@@ -22,12 +22,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.tavola.core.designsystem.field.TavolaTextField
 import com.tavola.core.designsystem.theme.TavolaTheme
-
-private val StepBadgeSize = 32.dp
 
 /** Title, one card per step (with move up / down) and the add button. */
 internal fun LazyListScope.stepsSection(steps: List<StepDraft>, actions: RecipeEditorActions) {
@@ -47,6 +46,7 @@ private fun StepCard(
     actions: RecipeEditorActions,
     modifier: Modifier = Modifier,
 ) {
+    val focusManager = LocalFocusManager.current
     val spacing = TavolaTheme.spacing
     Surface(modifier = modifier, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Row(
@@ -54,25 +54,14 @@ private fun StepCard(
             horizontalArrangement = Arrangement.spacedBy(spacing.sm),
             verticalAlignment = Alignment.Top,
         ) {
-            Box(
-                modifier = Modifier
-                    .padding(top = spacing.md)
-                    .size(StepBadgeSize)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = number.toString(),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
+            StepNumberBadge(number = number, modifier = Modifier.padding(top = spacing.md))
             TavolaTextField(
                 value = step.text,
                 onValueChange = { text -> actions.onStepChange(step.key, text) },
                 label = stringResource(R.string.recipe_editor_step_label, number),
                 modifier = Modifier.weight(1f),
                 singleLine = false,
+                onImeAction = { focusManager.clearFocus() },
             )
             Column {
                 IconButton(onClick = { actions.onStepMove(step.key, -1) }, enabled = !isFirst) {

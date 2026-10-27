@@ -97,18 +97,6 @@ fun RecipeDetailContent(
 }
 
 @Composable
-private fun CenteredBox(contentPadding: PaddingValues, content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
-    }
-}
-
-@Composable
 private fun RecipeNotFound(onBack: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -124,17 +112,5 @@ private fun RecipeNotFound(onBack: () -> Unit) {
             actionText = stringResource(DesignSystemR.string.topbar_back),
             onActionClick = onBack,
         )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun MessageWithAction(message: String, actionText: String, onActionClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
-    ) {
-        Text(text = message, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-        Button(onClick = onActionClick, shapes = ButtonDefaults.shapes()) { Text(actionText) }
     }
 }

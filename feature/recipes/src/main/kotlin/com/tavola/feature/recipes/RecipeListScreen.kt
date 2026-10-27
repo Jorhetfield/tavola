@@ -84,15 +84,3 @@ fun RecipeListContent(state: RecipeListUiState, actions: RecipeListActions, modi
         }
     }
 }
-
-@Composable
-private fun CenteredBox(contentPadding: PaddingValues, content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
-    }
-}

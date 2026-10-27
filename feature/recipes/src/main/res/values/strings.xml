@@ -68,7 +68,6 @@
     <string name="recipe_list_remove">Eliminar receta</string>
 
     <string name="recipe_editor_title_new">Nueva receta</string>
-    <string name="recipe_editor_title_edit">Editar receta</string>
     <string name="recipe_editor_name_label">Nombre de la receta</string>
     <string name="recipe_editor_name_required">Pon un nombre a la receta</string>
     <string name="recipe_editor_prep_time_label">Tiempo de preparación (min)</string>

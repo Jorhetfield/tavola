@@ -6,6 +6,7 @@ import com.tavola.domain.model.Recipe
 import com.tavola.domain.repository.RecipeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -50,18 +51,37 @@ class RecipeListViewModel @Inject constructor(private val recipeRepository: Reci
 
     fun onRetryClick() = retryCount.update { count -> count + 1 }
 
-    /** Deletes the recipe and keeps it in [removedRecipe] so it can be undone. */
+    /**
+     * Deletes the recipe and, once it is gone, keeps it in [removedRecipe] so it can be undone. If the delete fails nothing is
+     * announced: the recipe is still in the list and there is nothing to undo.
+     */
     fun onRecipeRemove(recipeId: String) {
         val recipe = (uiState.value as? RecipeListUiState.Success)?.recipes?.firstOrNull { shown -> shown.id == recipeId } ?: return
-        removedRecipe.value = recipe
-        viewModelScope.launch { recipeRepository.deleteRecipe(recipeId) }
+        viewModelScope.launch {
+            try {
+                recipeRepository.deleteRecipe(recipeId)
+                removedRecipe.value = recipe
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Not deleted, so the recipe stays where it is.
+            }
+        }
     }
 
-    /** Saving the recipe again brings it back with the same id. */
+    /** Saving the recipe again brings it back with the same id. If that fails the notice comes back so Undo can be tried again. */
     fun onRecipeRemoveUndo() {
         val recipe = removedRecipe.value ?: return
         removedRecipe.value = null
-        viewModelScope.launch { recipeRepository.saveRecipe(recipe) }
+        viewModelScope.launch {
+            try {
+                recipeRepository.saveRecipe(recipe)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                removedRecipe.value = recipe
+            }
+        }
     }
 
     /** The "recipe deleted" notice ended without undo: there is nothing left to restore. */

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
@@ -31,7 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -90,34 +91,40 @@ fun TavolaFloatingNavBar(
 
     LaunchedEffect(selectedIndex) { position.animateTo(selectedIndex.toFloat(), motion.defaultSpatialSpec()) }
 
-    val destinations: @Composable RowScope.() -> Unit = {
-        NavBarLayout(position = { position.value }) {
-            Box(Modifier.background(MaterialTheme.colorScheme.primary, CircleShape))
-            items.forEachIndexed { index, item ->
-                NavBarItem(
-                    item = item,
-                    selected = index == selectedIndex,
-                    openness = { opennessAt(index, position.value) },
-                    onClick = {
-                        if (index != selectedIndex) haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
-                        onItemClick(item.key)
-                    },
-                )
+    val currentItems by rememberUpdatedState(items)
+    val currentSelectedIndex by rememberUpdatedState(selectedIndex)
+    val currentOnItemClick by rememberUpdatedState(onItemClick)
+    // One piece of content shown by either toolbar below: docking or undocking the action moves it instead of rebuilding it,
+    // so the pill, the label and the icon pop keep animating through a tab change.
+    val destinations = remember {
+        movableContentOf {
+            NavBarLayout(position = { position.value }) {
+                Box(Modifier.background(MaterialTheme.colorScheme.primary, CircleShape))
+                currentItems.forEachIndexed { index, item ->
+                    NavBarItem(
+                        item = item,
+                        selected = index == currentSelectedIndex,
+                        openness = { opennessAt(index, position.value) },
+                        onClick = {
+                            if (index != currentSelectedIndex) haptics.performHapticFeedback(HapticFeedbackType.ContextClick)
+                            currentOnItemClick(item.key)
+                        },
+                    )
+                }
             }
         }
     }
     val colors = FloatingToolbarDefaults.standardFloatingToolbarColors()
 
     if (action == null) {
-        HorizontalFloatingToolbar(expanded = true, modifier = modifier, colors = colors, content = destinations)
+        HorizontalFloatingToolbar(expanded = true, modifier = modifier, colors = colors) { destinations() }
     } else {
         HorizontalFloatingToolbar(
             expanded = true,
             floatingActionButton = { NavBarActionButton(action) },
             modifier = modifier,
             colors = colors,
-            content = destinations,
-        )
+        ) { destinations() }
     }
 }
 

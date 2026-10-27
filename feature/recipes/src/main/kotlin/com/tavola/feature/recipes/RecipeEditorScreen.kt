@@ -102,7 +102,7 @@ fun RecipeEditorContent(
         modifier = modifier.nestedScroll(topBarScroll.nestedScrollConnection),
         topBar = {
             TavolaTopBar(
-                title = stringResource(if (form?.isNew == false) R.string.recipe_editor_title_edit else R.string.recipe_editor_title_new),
+                title = stringResource(if (form?.isNew == false) R.string.recipe_detail_edit else R.string.recipe_editor_title_new),
                 navigationAction = TavolaTopBarAction(Icons.AutoMirrored.Rounded.ArrowBack, DesignSystemR.string.topbar_back, onBack),
                 actions = listOfNotNull(
                     form?.let { TavolaTopBarAction(Icons.Rounded.Check, DesignSystemR.string.topbar_save, actions.onSaveClick) },
@@ -129,29 +129,5 @@ fun RecipeEditorContent(
 
             is RecipeEditorUiState.Editing -> RecipeEditorBody(state, actions, contentPadding)
         }
-    }
-}
-
-@Composable
-private fun CenteredBox(contentPadding: PaddingValues, content: @Composable () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding),
-        contentAlignment = Alignment.Center,
-    ) {
-        content()
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun MessageWithAction(message: String, actionText: String, onActionClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.lg),
-    ) {
-        Text(text = message, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-        Button(onClick = onActionClick, shapes = ButtonDefaults.shapes()) { Text(actionText) }
     }
 }

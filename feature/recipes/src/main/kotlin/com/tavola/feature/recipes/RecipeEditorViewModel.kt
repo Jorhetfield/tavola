@@ -66,8 +66,13 @@ class RecipeEditorViewModel @AssistedInject constructor(
     fun onPrepTimeChange(text: String) = edit { form -> form.copy(prepTime = sanitizePrepTime(text)) }
 
     fun onTagInputChange(text: String) = edit { form ->
-        // A comma closes the tag, like pressing the keyboard action.
-        if (text.endsWith(TAG_SEPARATOR)) form.withTag(text.dropLast(1)) else form.copy(tagInput = text).withSuggestions()
+        // A comma closes a tag, like pressing the keyboard action; pasted text with several commas becomes several tags.
+        if (TAG_SEPARATOR in text) {
+            val parts = text.split(TAG_SEPARATOR)
+            parts.dropLast(1).fold(form) { current, part -> current.withTag(part) }.copy(tagInput = parts.last()).withSuggestions()
+        } else {
+            form.copy(tagInput = text).withSuggestions()
+        }
     }
 
     fun onTagAdd() = edit { form -> form.withTag(form.tagInput) }
@@ -82,7 +87,7 @@ class RecipeEditorViewModel @AssistedInject constructor(
 
     fun onIngredientNameChange(key: Int, text: String) = editIngredient(key) { draft -> draft.copy(name = text) }
 
-    fun onIngredientQuantityChange(key: Int, text: String) = editIngredient(key) { draft -> draft.copy(quantity = text) }
+    fun onIngredientQuantityChange(key: Int, text: String) = editIngredient(key) { draft -> draft.copy(quantity = sanitizeQuantity(text)) }
 
     fun onIngredientUnitChange(key: Int, unit: IngredientUnit) = editIngredient(key) { draft -> draft.copy(unit = unit) }
 

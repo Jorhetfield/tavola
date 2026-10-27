@@ -7,6 +7,12 @@ import com.tavola.core.testing.data.MediterraneanSampleData
 import com.tavola.core.testing.fake.FakeCalendarRepository
 import com.tavola.core.testing.fake.FixedTodayProvider
 import com.tavola.core.testing.rule.MainDispatcherExtension
+import com.tavola.domain.model.WeekPlan
+import com.tavola.domain.repository.CalendarRepository
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -151,6 +157,36 @@ class CalendarViewModelPastDaysTest {
 
             val current = viewModel.uiState.value as CalendarUiState.Success
             assertEquals(listOf(monday), current.expandedDates().filter { date -> date < today })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `the week that slides out keeps its open days until the next week arrives`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val slowRepository = object : CalendarRepository by calendarRepository {
+            override fun observeWeek(weekStart: LocalDate): Flow<WeekPlan> = flow {
+                if (weekStart != monday) gate.await()
+                emitAll(calendarRepository.observeWeek(weekStart))
+            }
+        }
+        val viewModel = CalendarViewModel(slowRepository, todayProvider)
+        viewModel.uiState.test {
+            awaitSuccess()
+            viewModel.onDayToggle(monday)
+            awaitSuccess { success -> success.days.first { day -> day.date == monday }.expanded }
+
+            viewModel.onNextWeekClick()
+            // The next week has not arrived: the week on screen must not collapse while it is waiting to slide out.
+            val waiting = viewModel.uiState.value as CalendarUiState.Success
+            assertEquals(monday, waiting.weekStart)
+            assertTrue(waiting.days.first { day -> day.date == monday }.expanded)
+
+            gate.complete(Unit)
+            awaitSuccess { success -> success.weekStart == LocalDate(2026, 10, 26) }
+            viewModel.onPreviousWeekClick()
+            val back = awaitSuccess { success -> success.weekStart == monday }
+            assertFalse(back.days.first { day -> day.date == monday }.expanded)
             cancelAndIgnoreRemainingEvents()
         }
     }

@@ -85,7 +85,6 @@ private fun DayList(week: CalendarUiState.Success, actions: CalendarActions, con
                 onTaskRemoveClick = { taskId -> actions.onTaskRemove(date, taskId) },
                 onAddTaskClick = { actions.onAddTaskClick(date) },
                 onToggleExpanded = { actions.onDayToggle(date) },
-                modifier = Modifier.animateItem(),
             )
         }
     }

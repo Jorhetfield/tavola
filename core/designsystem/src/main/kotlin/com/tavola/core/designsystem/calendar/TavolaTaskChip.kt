@@ -122,7 +122,7 @@ private fun TaskChipRemoveButton(taskText: String, content: Color, onRemoveClick
     ) {
         Icon(
             imageVector = Icons.Rounded.Close,
-            contentDescription = stringResource(R.string.calendar_remove_task, taskText),
+            contentDescription = stringResource(R.string.task_chip_remove, taskText),
             tint = content,
             modifier = Modifier.size(RemoveIconSize),
         )

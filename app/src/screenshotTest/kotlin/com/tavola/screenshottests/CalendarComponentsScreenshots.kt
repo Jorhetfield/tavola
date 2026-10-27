@@ -28,7 +28,7 @@ fun DayCardStatesScreenshot() {
     }
 }
 
-/** Mismas tarjetas con texto grande: aquí se ven los recortes. */
+/** The same cards with large text: this is where clipping shows. */
 @PreviewTest
 @TavolaFontScalePreviews
 @Composable
@@ -100,5 +100,41 @@ private fun DayCards() {
         ScreenshotSamples.days.forEach { day ->
             TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onTaskRemoveClick = {}, onAddTaskClick = {})
         }
+    }
+}
+
+/** Past days collapsed: date, weekday and the two meals; a dash for an empty slot and how many tasks are left. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun DayCardCollapsedScreenshot() {
+    TavolaTheme { CollapsedDayCards() }
+}
+
+/** The same collapsed days with large text: the names must be cut with an ellipsis and the header must keep its target. */
+@PreviewTest
+@TavolaFontScalePreviews
+@Composable
+fun DayCardCollapsedLargeFontScreenshot() {
+    TavolaTheme { CollapsedDayCards() }
+}
+
+@Composable
+private fun CollapsedDayCards() {
+    Column(
+        modifier = Modifier.padding(TavolaTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md),
+    ) {
+        ScreenshotSamples.collapsedDays.forEach { day ->
+            TavolaDayCard(day, onMealClick = {}, onTaskCheckedChange = { _, _ -> }, onTaskRemoveClick = {}, onAddTaskClick = {})
+        }
+        // The same first day once opened: the chevron turned and the meals and the tasks are back.
+        TavolaDayCard(
+            model = ScreenshotSamples.collapsedDays.first().copy(expanded = true),
+            onMealClick = {},
+            onTaskCheckedChange = { _, _ -> },
+            onTaskRemoveClick = {},
+            onAddTaskClick = {},
+        )
     }
 }

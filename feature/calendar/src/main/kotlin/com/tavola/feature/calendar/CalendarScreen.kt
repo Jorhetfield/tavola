@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -27,70 +26,55 @@ import com.tavola.core.designsystem.calendar.TavolaWeekSelector
 import com.tavola.core.designsystem.calendar.WeekSelectorModel
 import com.tavola.core.designsystem.loading.TavolaLoadingIndicator
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
+import com.tavola.core.designsystem.snackbar.TavolaSnackbarHost
+import com.tavola.core.designsystem.snackbar.TavolaUndoSnackbarEffect
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 import com.tavola.core.designsystem.topbar.TavolaTopBarAction
 
 /**
- * Landing de la app: calendario semanal.
+ * The landing screen of the app: the weekly calendar.
  *
- * @param floatingBar barra de navegación flotante; la aporta `:app`, que es quien conoce los destinos.
- * @param onOpenDebugMenu si no es `null` (solo en debug) añade un botón a la barra superior.
- * @param mealPicker contenido del selector de comida, que aporta `:app` (ver [MealPickerSlot]).
+ * @param onOpenDebugMenu if not `null` (debug builds only) adds a button to the top bar.
+ * @param mealPicker content of the meal picker, which `:app` provides (see [MealPickerSlot]).
  */
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
-    floatingBar: (@Composable () -> Unit)? = null,
     onOpenDebugMenu: (() -> Unit)? = null,
     mealPicker: MealPickerSlot? = null,
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel) {
-        CalendarActions(
-            onPreviousWeekClick = viewModel::onPreviousWeekClick,
-            onNextWeekClick = viewModel::onNextWeekClick,
-            onTodayClick = viewModel::onTodayClick,
-            onRetryClick = viewModel::onRetryClick,
-            onMealClick = viewModel::onMealClick,
-            onMealPickerDismiss = viewModel::onMealPickerDismiss,
-            onTaskCheckedChange = viewModel::onTaskCheckedChange,
-            onTaskRemove = viewModel::onTaskRemove,
-            onTaskRemoveUndo = viewModel::onTaskRemoveUndo,
-            onTaskRemovedShown = viewModel::onTaskRemovedShown,
-            onAddTaskClick = viewModel::onAddTaskClick,
-            onAddTaskDismiss = viewModel::onAddTaskDismiss,
-            onAddTaskConfirm = viewModel::onAddTaskConfirm,
-        )
-    }
-    CalendarContent(state, actions, modifier, floatingBar, onOpenDebugMenu, mealPicker)
+    val actions = remember(viewModel) { viewModel.toActions() }
+    CalendarContent(state, actions, modifier, onOpenDebugMenu, mealPicker)
 }
 
-/** Parte sin estado de la pantalla: recibe el estado y las acciones, así se puede previsualizar y testear. */
+/** Stateless part of the screen: it receives the state and the actions, so it can be previewed and tested. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarContent(
     state: CalendarUiState,
     actions: CalendarActions,
     modifier: Modifier = Modifier,
-    floatingBar: (@Composable () -> Unit)? = null,
     onOpenDebugMenu: (() -> Unit)? = null,
     mealPicker: MealPickerSlot? = null,
 ) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
-    RemovedTaskSnackbarEffect(
-        removedTask = (state as? CalendarUiState.Success)?.removedTask,
-        snackbarHostState = snackbarHostState,
+    TavolaUndoSnackbarEffect(
+        removed = (state as? CalendarUiState.Success)?.removedTask,
+        message = stringResource(R.string.calendar_task_removed),
+        undoLabel = stringResource(R.string.calendar_task_undo),
+        hostState = snackbarHostState,
         onUndo = actions.onTaskRemoveUndo,
         onShown = actions.onTaskRemovedShown,
     )
     TavolaScaffold(
         modifier = modifier.nestedScroll(topBarScroll.nestedScrollConnection),
         topBar = { CalendarTopBar(state, actions, onOpenDebugMenu, topBarScroll) },
-        floatingBar = floatingBar,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        reservesFloatingBarSpace = true,
+        snackbarHost = { TavolaSnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {
             CalendarUiState.Loading -> CenteredState(contentPadding) {

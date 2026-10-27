@@ -26,7 +26,7 @@ private val paella = PlannedMeal.FromRecipe(RecipeRef("paella", "Paella valencia
 private val moussaka = PlannedMeal.FromRecipe(RecipeRef("moussaka", "Moussaka", prepTimeMinutes = 70, tags = listOf("Griego")))
 private val risotto = PlannedMeal.FromRecipe(RecipeRef("risotto", "Risotto de setas", prepTimeMinutes = 40, tags = listOf("Italiano")))
 
-private fun week(weekStart: LocalDate): CalendarUiState.Success {
+private fun week(weekStart: LocalDate, openDays: Set<LocalDate> = emptySet()): CalendarUiState.Success {
     val plans = listOf(
         DayPlan(weekStart, gazpacho, risotto, listOf(DayTask("a", "Comprar pan", done = true))),
         DayPlan(weekStart.plus(1, DateTimeUnit.DAY), paella, tasks = listOf(DayTask("b", "Sacar pollo a descongelar"))),
@@ -44,13 +44,13 @@ private fun week(weekStart: LocalDate): CalendarUiState.Success {
                 plan.date == today -> DayState.Today
                 else -> DayState.Upcoming
             }
-            DayItem(plan, state)
+            DayItem(plan, state, expanded = state != DayState.Past || plan.date in openDays)
         },
         isCurrentWeek = weekStart == currentWeek,
     )
 }
 
-/** Landing con la semana actual: pasado, hoy y próximos, en móvil (light y dark), plegable y tablet. */
+/** Landing with the current week: past (collapsed), today and upcoming, on phone (light and dark), foldable and tablet. */
 @PreviewTest
 @TavolaAdaptivePreviews
 @Composable
@@ -58,7 +58,7 @@ fun CalendarCurrentWeekScreenshot() {
     TavolaTheme { CalendarContent(week(currentWeek), CalendarActions()) }
 }
 
-/** Otra semana: aparece el botón "Hoy" y todos los días son próximos. */
+/** Another week: the "Today" button shows up and every day is upcoming. */
 @PreviewTest
 @TavolaScreenPreviews
 @Composable
@@ -78,4 +78,20 @@ fun CalendarLoadingScreenshot() {
 @Composable
 fun CalendarErrorScreenshot() {
     TavolaTheme { CalendarContent(CalendarUiState.Error, CalendarActions()) }
+}
+
+/** The week that is over: every day is past and starts collapsed. */
+@PreviewTest
+@TavolaScreenPreviews
+@Composable
+fun CalendarPreviousWeekScreenshot() {
+    TavolaTheme { CalendarContent(week(currentWeek.plus(-7, DateTimeUnit.DAY)), CalendarActions()) }
+}
+
+/** The current week with Monday opened by the user: Tuesday stays collapsed, today and the days to come are in full. */
+@PreviewTest
+@TavolaScreenPreviews
+@Composable
+fun CalendarPastDayOpenScreenshot() {
+    TavolaTheme { CalendarContent(week(currentWeek, openDays = setOf(currentWeek)), CalendarActions()) }
 }

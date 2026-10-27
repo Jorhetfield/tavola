@@ -1,7 +1,7 @@
 package com.tavola.data.di
 
-import com.tavola.data.calendar.InMemoryCalendarRepository
-import com.tavola.data.recipe.InMemoryRecipeRepository
+import com.tavola.data.calendar.RoomCalendarRepository
+import com.tavola.data.recipe.RoomRecipeRepository
 import com.tavola.data.time.SystemTodayProvider
 import com.tavola.domain.repository.CalendarRepository
 import com.tavola.domain.repository.RecipeRepository
@@ -17,10 +17,10 @@ import javax.inject.Singleton
 internal abstract class RepositoryModule {
     @Binds
     @Singleton
-    abstract fun bindCalendarRepository(impl: InMemoryCalendarRepository): CalendarRepository
+    abstract fun bindCalendarRepository(impl: RoomCalendarRepository): CalendarRepository
 
     @Binds
-    abstract fun bindRecipeRepository(impl: InMemoryRecipeRepository): RecipeRepository
+    abstract fun bindRecipeRepository(impl: RoomRecipeRepository): RecipeRepository
 
     @Binds
     abstract fun bindTodayProvider(impl: SystemTodayProvider): TodayProvider

@@ -36,17 +36,21 @@ import kotlin.math.roundToInt
 private val SnackbarOuterPadding = 12.dp
 
 /**
- * Único scaffold permitido en la app (regla 4).
+ * The only scaffold allowed in the app (rule 4).
  *
- * Estrategia de insets (edge-to-edge, `enableEdgeToEdge()` en la Activity):
- * - El contenido se dibuja bajo las barras del sistema; el scaffold no recorta ni empuja nada.
- * - La barra superior gestiona el inset de la status bar por sí misma.
- * - La barra flotante se superpone al contenido (no es `bottomBar`), así que el contenido pasa por detrás.
- * - [content] recibe un [PaddingValues] con `top` = alto de la barra superior y `bottom` = hueco que ocupa
- *   la barra flotante más la navigation bar. Úsalo como `contentPadding` de la lista.
+ * Insets strategy (edge-to-edge, `enableEdgeToEdge()` in the Activity):
+ * - The content is drawn under the system bars; the scaffold neither clips nor pushes anything.
+ * - The top bar handles the status bar inset by itself.
+ * - The floating bar overlaps the content (it is not a `bottomBar`), so the content scrolls behind it.
+ * - [content] receives a [PaddingValues] with `top` = height of the top bar and `bottom` = the room taken by the
+ *   floating bar plus the navigation bar. Use it as the `contentPadding` of the list.
  *
- * Si [hideFloatingBarOnScroll] es true, la barra flotante se esconde al hacer scroll hacia abajo y reaparece
- * al subir. Se desplaza el contenedor completo (márgenes incluidos) para que no quede ni un borde visible.
+ * The floating bar can come in two ways. With [floatingBar] the scaffold draws it itself (previews, standalone
+ * screens). With [reservesFloatingBarSpace] the app shell draws one bar above the whole navigation and provides its
+ * [FloatingBarState] ([LocalFloatingBarState]); the scaffold only leaves room for it and hides it on scroll.
+ *
+ * If [hideFloatingBarOnScroll] is true, the floating bar hides when scrolling down and comes back when scrolling
+ * up. The whole container (margins included) moves so that no edge stays visible.
  *
  * [snackbarHost] is drawn just above the floating bar (or above the navigation bar when it is hidden or absent).
  */
@@ -55,21 +59,25 @@ fun TavolaScaffold(
     modifier: Modifier = Modifier,
     topBar: @Composable () -> Unit = {},
     floatingBar: (@Composable () -> Unit)? = null,
+    reservesFloatingBarSpace: Boolean = false,
     hideFloatingBarOnScroll: Boolean = true,
     snackbarHost: @Composable () -> Unit = {},
     content: @Composable (contentPadding: PaddingValues) -> Unit,
 ) {
     val spacing = TavolaTheme.spacing
     val density = LocalDensity.current
-    var floatingBarHeightPx by remember { mutableIntStateOf(0) }
-    var hiddenPx by remember { mutableFloatStateOf(0f) }
+    val shellBarState = LocalFloatingBarState.current
+    // A scaffold that draws its own bar keeps its own state; only one that relies on the shell shares the shell's.
+    val ownBarState = rememberFloatingBarState()
+    val barState = if (floatingBar == null) shellBarState ?: ownBarState else ownBarState
+    val hasFloatingBar = floatingBar != null || (shellBarState != null && reservesFloatingBarSpace)
 
-    val scrollConnection = remember(hideFloatingBarOnScroll) {
+    val scrollConnection = remember(hideFloatingBarOnScroll, hasFloatingBar, barState) {
         FloatingBarScrollConnection(
-            enabled = hideFloatingBarOnScroll,
-            maxHidden = { floatingBarHeightPx.toFloat() },
-            hidden = { hiddenPx },
-            onHiddenChange = { newHidden -> hiddenPx = newHidden },
+            enabled = hideFloatingBarOnScroll && hasFloatingBar,
+            maxHidden = { barState.heightPx.toFloat() },
+            hidden = { barState.hiddenPx },
+            onHiddenChange = { newHidden -> barState.hiddenPx = newHidden },
         )
     }
 
@@ -78,13 +86,13 @@ fun TavolaScaffold(
         topBar = topBar,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        val bottomClearance = with(density) { floatingBarHeightPx.toDp() } + spacing.lg
+        val bottomClearance = with(density) { barState.heightPx.toDp() } + spacing.lg
 
         Box(Modifier.fillMaxSize()) {
             content(
                 PaddingValues(
                     top = innerPadding.calculateTopPadding(),
-                    bottom = if (floatingBar == null) spacing.lg else bottomClearance,
+                    bottom = if (hasFloatingBar) bottomClearance else spacing.lg,
                 ),
             )
             // The snackbar follows the floating bar: `lg` above it while visible and `lg` above the navigation bar
@@ -96,7 +104,7 @@ fun TavolaScaffold(
                     .align(Alignment.BottomCenter)
                     .padding(horizontal = snackbarMargin)
                     .offset {
-                        val visibleBarPx = if (floatingBar == null) 0 else floatingBarHeightPx - hiddenPx.roundToInt()
+                        val visibleBarPx = if (hasFloatingBar) barState.heightPx - barState.hiddenPx.roundToInt() else 0
                         IntOffset(x = 0, y = -(maxOf(visibleBarPx, navigationBarPx) + snackbarMargin.roundToPx()))
                     },
             ) {
@@ -106,8 +114,8 @@ fun TavolaScaffold(
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
-                        .onSizeChanged { size -> floatingBarHeightPx = size.height }
-                        .graphicsLayer { translationY = hiddenPx }
+                        .onSizeChanged { size -> barState.heightPx = size.height }
+                        .graphicsLayer { translationY = barState.hiddenPx }
                         .navigationBarsPadding()
                         .padding(bottom = spacing.lg),
                 ) {
@@ -118,7 +126,7 @@ fun TavolaScaffold(
     }
 }
 
-/** Convierte el scroll del contenido en cuánto está escondida la barra flotante (0 = visible). */
+/** Turns the scroll of the content into how much of the floating bar is hidden (0 = visible). */
 private class FloatingBarScrollConnection(
     private val enabled: Boolean,
     private val maxHidden: () -> Float,

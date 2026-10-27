@@ -23,7 +23,7 @@ import kotlinx.datetime.LocalDate
 
 private const val SLIDE_DIVISOR = 4
 
-/** Lista de días de la semana. Al cambiar de semana, el contenido se desliza hacia el lado correspondiente. */
+/** The days of the week. When the week changes, the content slides towards the matching side. */
 @Composable
 internal fun WeekContent(
     state: CalendarUiState.Success,
@@ -84,7 +84,7 @@ private fun DayList(week: CalendarUiState.Success, actions: CalendarActions, con
                 onTaskCheckedChange = { taskId, checked -> actions.onTaskCheckedChange(date, taskId, checked) },
                 onTaskRemoveClick = { taskId -> actions.onTaskRemove(date, taskId) },
                 onAddTaskClick = { actions.onAddTaskClick(date) },
-                modifier = Modifier.animateItem(),
+                onToggleExpanded = { actions.onDayToggle(date) },
             )
         }
     }

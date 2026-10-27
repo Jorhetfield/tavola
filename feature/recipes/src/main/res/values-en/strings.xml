@@ -25,4 +25,74 @@
 
     <string name="meal_picker_error">The recipes could not be loaded</string>
     <string name="meal_picker_retry">Retry</string>
+
+    <string name="recipe_list_title">Recipes</string>
+    <plurals name="recipe_list_count">
+        <item quantity="one">%d recipe</item>
+        <item quantity="other">%d recipes</item>
+    </plurals>
+    <string name="recipe_list_search_placeholder">Search recipe or ingredient</string>
+    <string name="recipe_list_search_clear">Clear search</string>
+    <string name="recipe_list_no_results">No results for “%1$s”</string>
+    <string name="recipe_list_empty_title">No recipes yet</string>
+    <string name="recipe_list_empty_hint">Tap + to create the first one.</string>
+    <string name="recipe_list_error">The recipes could not be loaded</string>
+    <string name="recipe_list_retry">Retry</string>
+
+    <string name="ingredient_unit_gram">%1$s g</string>
+    <string name="ingredient_unit_kilogram">%1$s kg</string>
+    <string name="ingredient_unit_milliliter">%1$s ml</string>
+    <string name="ingredient_unit_liter">%1$s l</string>
+    <string name="ingredient_unit_teaspoon">%1$s tsp</string>
+    <string name="ingredient_unit_tablespoon">%1$s tbsp</string>
+    <string name="ingredient_unit_piece">%1$s</string>
+    <plurals name="ingredient_unit_pinch">
+        <item quantity="one">%1$s pinch</item>
+        <item quantity="other">%1$s pinches</item>
+    </plurals>
+    <string name="ingredient_unit_to_taste">to taste</string>
+
+    <string name="recipe_detail_title_fallback">Recipe</string>
+    <string name="recipe_detail_prep_time">%1$d min</string>
+    <string name="recipe_detail_ingredients">Ingredients</string>
+    <string name="recipe_detail_no_ingredients">This recipe has no ingredients yet.</string>
+    <string name="recipe_detail_steps">Method</string>
+    <string name="recipe_detail_no_steps">This recipe has no steps yet.</string>
+    <string name="recipe_detail_not_found">This recipe no longer exists</string>
+    <string name="recipe_detail_error">The recipe could not be loaded</string>
+    <string name="recipe_detail_retry">Retry</string>
+    <string name="recipe_detail_edit">Edit recipe</string>
+
+    <string name="recipe_list_removed">Recipe deleted</string>
+    <string name="recipe_list_undo">Undo</string>
+    <string name="recipe_list_remove">Delete recipe</string>
+
+    <string name="recipe_editor_title_new">New recipe</string>
+    <string name="recipe_editor_name_label">Recipe name</string>
+    <string name="recipe_editor_name_required">Give the recipe a name</string>
+    <string name="recipe_editor_prep_time_label">Preparation time (min)</string>
+    <string name="recipe_editor_tags">Tags</string>
+    <string name="recipe_editor_tag_label">New tag</string>
+    <string name="recipe_editor_tag_add">Add tag</string>
+    <string name="recipe_editor_tag_remove">Remove the tag %1$s</string>
+    <string name="recipe_editor_ingredient_name">Ingredient</string>
+    <string name="recipe_editor_ingredient_quantity">Quantity</string>
+    <string name="recipe_editor_ingredient_add">Add ingredient</string>
+    <string name="recipe_editor_ingredient_remove">Remove ingredient</string>
+    <string name="recipe_editor_step_label">Step %1$d</string>
+    <string name="recipe_editor_step_add">Add step</string>
+    <string name="recipe_editor_step_remove">Remove step</string>
+    <string name="recipe_editor_step_move_up">Move step up</string>
+    <string name="recipe_editor_step_move_down">Move step down</string>
+    <string name="recipe_editor_unit_gram">g</string>
+    <string name="recipe_editor_unit_kilogram">kg</string>
+    <string name="recipe_editor_unit_milliliter">ml</string>
+    <string name="recipe_editor_unit_liter">l</string>
+    <string name="recipe_editor_unit_teaspoon">tsp</string>
+    <string name="recipe_editor_unit_tablespoon">tbsp</string>
+    <string name="recipe_editor_unit_piece">pc</string>
+    <string name="recipe_editor_unit_pinch">pinch</string>
+    <string name="recipe_editor_error">The recipe could not be opened</string>
+    <string name="recipe_editor_retry">Retry</string>
+    <string name="recipe_editor_save_failed">The recipe could not be saved</string>
 </resources>

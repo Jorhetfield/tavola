@@ -38,4 +38,11 @@
 
     <string name="showcase_calendar_title">Calendario</string>
     <string name="showcase_loading_label">Preparando tu semana…</string>
+
+    <string name="showcase_sample_data_title">Datos de ejemplo</string>
+    <string name="showcase_sample_data_load">Cargar datos de ejemplo</string>
+    <string name="showcase_sample_data_clear">Borrar todo</string>
+    <string name="showcase_sample_data_loaded">Recetas y semanas de ejemplo cargadas.</string>
+    <string name="showcase_sample_data_cleared">Todos los datos borrados.</string>
+    <string name="showcase_sample_data_failed">No se pudo completar la acción: %1$s</string>
 </resources>

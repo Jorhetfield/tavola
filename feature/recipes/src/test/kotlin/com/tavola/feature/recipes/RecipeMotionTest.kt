@@ -27,4 +27,13 @@ class RecipeMotionTest {
     fun `a negative index counts as the first item`() {
         assertEquals(0L, entranceDelayMillis(-3))
     }
+
+    @Test
+    fun `only the first rows take part in the cascade, never the ones reached by scrolling`() {
+        assertTrue(takesPartInCascade(0))
+        assertTrue(takesPartInCascade(8))
+        assertEquals(false, takesPartInCascade(9))
+        assertEquals(false, takesPartInCascade(40))
+        assertEquals(false, takesPartInCascade(-1))
+    }
 }

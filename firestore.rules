@@ -6,6 +6,7 @@ rules_version = '2';
 //   users/{userId}                    { groupId }                  the group of a person, or null
 //   groups/{groupId}                  { name, memberIds, inviteCode, createdBy }
 //   groups/{groupId}/members/{userId} { displayName, photoUrl, colorIndex, joinCode? }
+//   groups/{groupId}/recipes/{recipeId} { title, prepTimeMinutes?, tags, ingredients, steps, createdBy? }
 //   invites/{code}                    { groupId }                  lets a person who knows the code find the group
 //
 // The ideas, from the decisions in docs/PLAN.md:
@@ -51,6 +52,18 @@ service cloud.firestore {
     // 8 characters of the alphabet without look-alikes (no 0, O, 1, I or L).
     function validCode(code) {
       return code is string && code.matches('^[A-HJKMNP-Z2-9]{8}$');
+    }
+
+    // A recipe: a title, an optional time, and lists of tags, ingredients and steps, within sizes a person would never reach.
+    // `createdBy` is who made it; it is only written when the recipe is created.
+    function validRecipe(recipe) {
+      return recipe.keys().hasOnly(['title', 'prepTimeMinutes', 'tags', 'ingredients', 'steps', 'createdBy'])
+        && recipe.title is string && recipe.title.size() >= 1 && recipe.title.size() <= 120
+        && (recipe.prepTimeMinutes == null || (recipe.prepTimeMinutes is int && recipe.prepTimeMinutes >= 0))
+        && recipe.tags is list && recipe.tags.size() <= 30
+        && recipe.ingredients is list && recipe.ingredients.size() <= 100
+        && recipe.steps is list && recipe.steps.size() <= 100
+        && (!('createdBy' in recipe.keys()) || recipe.createdBy is string);
     }
 
     function invitePath(code) {
@@ -129,6 +142,14 @@ service cloud.firestore {
 
       // A group is never deleted: when the last member leaves it stays, without members.
       allow delete: if false;
+
+      // The recipe book of the group: every member reads, creates, edits and deletes recipes (all members have the same
+      // permissions). Only the shape is checked, so a broken client cannot fill the database with arbitrary data.
+      match /recipes/{recipeId} {
+        allow read: if signedIn() && isMember(get(groupPath(groupId)).data);
+        allow create, update: if signedIn() && isMember(get(groupPath(groupId)).data) && validRecipe(request.resource.data);
+        allow delete: if signedIn() && isMember(get(groupPath(groupId)).data);
+      }
 
       match /members/{memberId} {
         allow read: if signedIn() && isMember(get(groupPath(groupId)).data);

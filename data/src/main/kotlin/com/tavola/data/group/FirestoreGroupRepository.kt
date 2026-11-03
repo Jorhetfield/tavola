@@ -49,18 +49,21 @@ internal class FirestoreGroupRepository @Inject constructor(
     private val random = SecureRandom().asKotlinRandom()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override val myGroup: Flow<MyGroupState> = authRepository.currentUser.flatMapLatest { user ->
-        if (user == null) flowOf(MyGroupState.None) else observeGroupOf(user.id)
+    override val groupId: Flow<String?> = authRepository.currentUser.flatMapLatest { user ->
+        if (user == null) flowOf(null) else observeGroupIdOf(user.id)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeGroupOf(userId: String): Flow<MyGroupState> = userRef(userId).snapshots(MetadataChanges.INCLUDE)
+    override val myGroup: Flow<MyGroupState> = groupId.flatMapLatest { id ->
+        if (id == null) flowOf(MyGroupState.None) else observeGroup(id)
+    }
+
+    private fun observeGroupIdOf(userId: String): Flow<String?> = userRef(userId).snapshots(MetadataChanges.INCLUDE)
         // A document that is not in the local cache first shows up as "missing, from the cache". Waiting for the server's answer
         // keeps someone who already has a group (on a new phone, say) from seeing the first step for a moment.
         .filter { snapshot -> snapshot.exists() || !snapshot.metadata.isFromCache }
         .map { snapshot -> snapshot.getString(GroupFields.GROUP_ID) }
         .distinctUntilChanged()
-        .flatMapLatest { groupId -> if (groupId == null) flowOf(MyGroupState.None) else observeGroup(groupId) }
 
     private fun observeGroup(groupId: String): Flow<MyGroupState> {
         val groupRef = groupRef(groupId)

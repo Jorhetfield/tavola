@@ -33,16 +33,25 @@ Groups decisions (agreed for PR 2, which is split in 2a data and rules, and 2b s
 | 4 | When the last member leaves, **nothing is deleted** (the group stays without members). Leaving is done from a "My group" screen (name, code, members, leave with a confirmation). |
 | 5 | The creator chooses the **name**, and any member can rename it. **Nobody can remove another member.** |
 
+Data decisions (agreed for PRs 3 and 4):
+| # | Decision |
+|---|---|
+| 1 | **Recipes go first, the calendar second.** A planned meal refers to a recipe by id, so the calendar can only be shared once the recipes are. |
+| 2 | The **debug menu goes away completely**: "Load sample data", "Clear everything", the calendar button and the design showcase screen (`:feature:showcase`, which was only reachable from that menu; it stays in the git history). |
+| 3 | When a group is **created**, it gets **three example recipes** (Gazpacho, Tortilla de patatas and Pasta al pomodoro, complete, with ingredients and steps) that the creator can delete like any other. A use case in `:domain` does it, since it combines the group and the recipe repositories. Joining a group adds nothing. |
+| 4 | Recipes live at `groups/{groupId}/recipes/{recipeId}` with the ingredients and the steps inside the document; any member reads and writes them (rules in `firestore.rules`). The author (`createdBy`) is stored, not shown. |
+| 5 | Real-time updates need nothing more than the Firestore listeners, so they arrive with each repository; PR 5 is only the rules and the checks. |
+
 Planned PRs, each one building, tested and reviewed on its own:
 1. Firebase and Auth with Google sign-in.
 2. Groups with an invite code, in two PRs: 2a the group model, the Firestore repository and `firestore.rules` (the group, the members and the invites); 2b the screens (create or join, "My group") and the session gate with a group.
-3. The calendar in Firestore behind the same `CalendarRepository` (Room out).
-4. The recipes in Firestore behind `RecipeRepository`. Once both are in, remove the Room code and dependency, and update `CLAUDE.md` (`:data` is described as Firestore/Room) and the README, which still mention Room.
-5. The security rules for the calendar and the recipes, and real-time updates between members.
+3. The recipes in Firestore behind `RecipeRepository`, the example recipes of a new group, and the debug menu out (see "Data decisions").
+4. The calendar in Firestore behind the same `CalendarRepository`. Once it is in, remove the Room code and dependency, and update `CLAUDE.md` (`:data` is described as Firestore/Room) and the README, which still mention Room.
+5. The security rules for the calendar and a check of the whole flow between two accounts (the real-time updates come with the Firestore listeners of PRs 3 and 4).
 
 Still to decide, each before the PR that needs it (these came out of the review of the decisions above):
 - ~~Joining by code with member-only rules~~ Decided in PR 2: an `invites/{code}` document read by its exact id (see "Groups decisions").
-- **Debug menu on shared data** (PR 3). Decision 3 keeps "Load sample data" and "Clear everything", but there is one Firebase project, so a debug build in the real group could wipe or fill the real calendar. Proposal, to confirm: the debug menu only works on a separate test group, or "Clear everything" is limited to what the loader added.
+- ~~Debug menu on shared data~~ Decided: the debug menu is removed (see "Data decisions").
 - **First launch** (decided in PR 1, to confirm): the app opens on the sign-in screen when nobody is signed in; a stored session is kept offline. Cancelling the Google sheet shows nothing; no connection, no Google account on the phone and any other failure show their own message with the button still there. There is no way to use the app without an account.
 - ~~Leaving a group~~ Decided in PR 2: nothing is deleted when the last member leaves; the code can be renewed (see "Groups decisions").
 

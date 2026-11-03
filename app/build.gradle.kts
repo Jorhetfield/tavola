@@ -72,8 +72,6 @@ dependencies {
     implementation(projects.feature.calendar)
     implementation(projects.feature.groups)
     implementation(projects.feature.recipes)
-    // La pantalla de muestra solo existe en debug (ver src/debug/.../DebugNavigation.kt).
-    debugImplementation(projects.feature.showcase)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)

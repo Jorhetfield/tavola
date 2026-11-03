@@ -2,9 +2,9 @@ package com.tavola.data.di
 
 import android.content.Context
 import androidx.room.Room
+import com.tavola.data.MIGRATION_1_2
 import com.tavola.data.TavolaDatabase
 import com.tavola.data.calendar.CalendarDao
-import com.tavola.data.recipe.RecipeDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,11 +21,9 @@ internal object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context, migrationPolicy: DatabaseMigrationPolicy): TavolaDatabase =
         Room.databaseBuilder(context, TavolaDatabase::class.java, DATABASE_NAME)
+            .addMigrations(MIGRATION_1_2)
             .apply { if (migrationPolicy.destructive) fallbackToDestructiveMigration(dropAllTables = true) }
             .build()
-
-    @Provides
-    fun provideRecipeDao(database: TavolaDatabase): RecipeDao = database.recipeDao()
 
     @Provides
     fun provideCalendarDao(database: TavolaDatabase): CalendarDao = database.calendarDao()

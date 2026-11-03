@@ -1,10 +1,13 @@
 package com.tavola.feature.groups
 
 import com.tavola.core.testing.fake.FakeGroupRepository
+import com.tavola.core.testing.fake.FakeRecipeRepository
 import com.tavola.core.testing.rule.MainDispatcherExtension
 import com.tavola.domain.model.GroupFailure
 import com.tavola.domain.model.GroupRules
 import com.tavola.domain.model.MyGroupState
+import com.tavola.domain.model.StarterRecipes
+import com.tavola.domain.usecase.CreateGroupWithStarterRecipesUseCase
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,7 +22,8 @@ class SetupGroupViewModelTest {
     val mainDispatcher = MainDispatcherExtension()
 
     private val repository = FakeGroupRepository()
-    private val viewModel = SetupGroupViewModel(repository)
+    private val recipes = FakeRecipeRepository(initialRecipes = emptyList())
+    private val viewModel = SetupGroupViewModel(repository, CreateGroupWithStarterRecipesUseCase(repository, recipes))
 
     private val state get() = viewModel.uiState.value
 
@@ -76,6 +80,32 @@ class SetupGroupViewModelTest {
 
         assertTrue(repository.myGroup.first() is MyGroupState.Joined)
         assertEquals(SetupGroupUiState(), state)
+    }
+
+    @Test
+    fun `a new group starts with the example recipes`() = runTest {
+        viewModel.onCreateOptionClick()
+        viewModel.onNameChange("Casa")
+
+        viewModel.onCreateClick()
+
+        assertEquals(
+            StarterRecipes.all.map { recipe ->
+                recipe.title
+            }.sorted(),
+            recipes.observeRecipes().first().map { recipe -> recipe.title }.sorted(),
+        )
+    }
+
+    @Test
+    fun `joining a group adds no recipes`() = runTest {
+        repository.seedGroup("Casa de Luis", memberIds = listOf("user-luis"), inviteCode = "K7M2QX4R")
+        viewModel.onJoinOptionClick()
+        viewModel.onCodeChange("K7M2QX4R")
+
+        viewModel.onJoinClick()
+
+        assertTrue(recipes.observeRecipes().first().isEmpty())
     }
 
     @Test

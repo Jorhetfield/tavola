@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.Flow
  * is none.
  */
 interface GroupRepository {
+    /** The id of the group of the signed-in person, or `null` if there is none or nobody is signed in; emits again when it changes. */
+    val groupId: Flow<String?>
+
     /** Emits the group of the signed-in person with its members (or that there is none) now and every time it changes. */
     val myGroup: Flow<MyGroupState>
 

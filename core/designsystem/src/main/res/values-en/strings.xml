@@ -29,6 +29,7 @@
         <item quantity="other">%1$d tasks left</item>
     </plurals>
     <string name="task_chip_remove">Remove task: %1$s</string>
+    <string name="task_chip_edit">Edit task</string>
 
     <string name="week_selector_previous">Previous week</string>
     <string name="week_selector_next">Next week</string>

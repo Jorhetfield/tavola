@@ -23,6 +23,10 @@ data class DayItem(val plan: DayPlan, val state: DayState, val expanded: Boolean
 @Immutable
 data class MealPickerTarget(val date: LocalDate, val type: MealType, val current: PlannedMeal?)
 
+/** Task [taskId] of [date] whose [text] is being edited. */
+@Immutable
+data class EditingTask(val date: LocalDate, val taskId: String, val text: String)
+
 /** Task removed from [date] that was at position [index]; keeps what is needed to undo it. */
 @Immutable
 data class RemovedTask(val date: LocalDate, val task: DayTask, val index: Int)
@@ -36,6 +40,7 @@ sealed interface CalendarUiState {
      * @property weekStart Monday of the week shown.
      * @property isCurrentWeek true if the week shown contains today.
      * @property addTaskDate day the new-task dialog is open for, or `null` if it is closed.
+     * @property editTask task whose text the dialog is editing, or `null` if no task is being edited.
      * @property mealPicker slot the meal picker is open for, or `null` if it is closed.
      * @property removedTask last removed task while it can still be undone; `null` if there is nothing to undo.
      */
@@ -45,6 +50,7 @@ sealed interface CalendarUiState {
         val days: List<DayItem>,
         val isCurrentWeek: Boolean,
         val addTaskDate: LocalDate? = null,
+        val editTask: EditingTask? = null,
         val mealPicker: MealPickerTarget? = null,
         val removedTask: RemovedTask? = null,
     ) : CalendarUiState

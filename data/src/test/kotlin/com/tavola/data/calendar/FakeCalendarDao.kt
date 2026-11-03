@@ -40,6 +40,10 @@ internal class FakeCalendarDao : CalendarDao() {
         tasks.update { stored -> stored.map { task -> if (task.id == id) task.copy(done = done) else task } }
     }
 
+    override suspend fun setTaskText(id: String, text: String) {
+        tasks.update { stored -> stored.map { task -> if (task.id == id) task.copy(text = text) else task } }
+    }
+
     override suspend fun deleteTask(id: String) {
         tasks.update { stored -> stored.filterNot { task -> task.id == id } }
     }

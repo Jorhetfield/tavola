@@ -5,7 +5,7 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 ## Next up (agreed order)
 1. ~~Clear the small pending checks~~ Done: the recipe CRUD is merged (PR #5), the `strings.xml` prefixes are in and both emulator checkpoints are passed.
 2. **Past days collapsed** (Phase 3): self-contained in the calendar, no backend, and the most visible change for the daily use of the app.
-3. **Tasks per day** (Phase 3): completes the local features, and the widget needs it.
+3. ~~Tasks per day~~ Done: add, tick, remove with Undo and edit the text were already in; this closed it with the "Add task" chip, read-only past days and editing by long press.
 4. **Interactive widget** (Phase 3): define it first (open questions below), then build it on the same repositories as the app.
 5. Firebase + Auth + groups, then the shared calendar in real time: the biggest change to the data layer, so it goes after the local features are settled. The widget reads through the repositories, so it follows the move.
 6. Shopping list, recipe photos and carousel, import by URL, push notifications (Phase 4).
@@ -47,7 +47,12 @@ The items are grouped by topic, not in work order: follow "Next up" above.
   - [x] List tab + detail (read-only), search and empty state
   - [x] Editor: title, prep time, free-text tags with suggestions, ingredients (keeping "to taste"), reorderable steps
   - [x] Delete with Undo: drag a row halfway across the list, with a countdown snackbar (same pattern as task chips)
-- [ ] Tasks per day
+- [x] Tasks per day
+  - [x] Persistence in Room, add, tick and remove with Undo (5 second snackbar)
+  - [x] "Add task" chip at the end of the task list of today and the days to come (no "+" in the header)
+  - [x] Past days are read-only: tasks can only be ticked, and their recipe meals open the recipe detail
+  - [x] Edit the text of a task: long press on its chip opens the task dialog with the current text (today and the days to come)
+  - Not done, to decide if it is worth it: move a pending task to another day, repeat tasks, reorder within a day
 - [x] **Calendar: past days collapsed.** Every day before today, in the current week and in earlier ones, starts collapsed and can be expanded.
   - Collapsed: one compact, flat row of about 68 dp (smaller corners and padding than the full card, no shadow) with the date, the weekday, the month and the lunch and the dinner on two short lines with the name of the recipe or the quick meal. No tasks, no empty-slot buttons. The date and the weekday follow the app locale through the existing helpers in `CalendarFormatting.kt` (for example "27 oct" and "martes" in Spanish). With large text (above 1.3x) the two meals go under the date, where they stay readable. A whole past week fits in one screen.
   - Today and the days to come keep the full card, as now.
@@ -74,6 +79,11 @@ The items are grouped by topic, not in work order: follow "Next up" above.
 - [ ] Recipe photos, recipe book carousel
 - [ ] Import a recipe by URL
 - [ ] Push notifications
+- [ ] Onboarding / feature discovery: tell the user about the features that are not visible on screen. To decide the form (first-run tour, coach marks, tips) once there are more features. Hidden gestures so far:
+  - long press on a task chip edits its text
+  - drag a recipe row halfway to delete it (with Undo)
+  - tap the header of a past day to open or close it
+  - tap a recipe meal of a past day to see the recipe
 
 ## Phase 5 — AI (at the end)
 - [ ] Suggestions by ingredients, weekly planner, suggestions in the shopping list

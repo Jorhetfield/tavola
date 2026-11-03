@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -32,6 +32,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -49,7 +52,8 @@ internal val TaskChipMinHeight = 40.dp
 /**
  * Quick task of the day ("take the chicken out to thaw", "buy peppers"). It is checked by tapping the text and
  * removed with the X on the right, a separate touch target so it is not removed by mistake. Done tasks do not
- * show the X. With [removable] off (a day that is over) there is no X for any task.
+ * show the X. With [removable] off (a day that is over) there is no X for any task. A long press on the text calls
+ * [onEditClick] (announced as "Edit task" by screen readers); with `null`, as on a day that is over, the text only checks.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -59,6 +63,7 @@ fun TavolaTaskChip(
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier,
     removable: Boolean = true,
+    onEditClick: (() -> Unit)? = null,
 ) {
     val colors = TavolaTheme.colors
     val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Color>()
@@ -73,7 +78,7 @@ fun TavolaTaskChip(
             .heightIn(min = TaskChipMinHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TaskChipLabel(model, content, onCheckedChange, modifier = Modifier.weight(1f, fill = false))
+        TaskChipLabel(model, content, onCheckedChange, onEditClick, modifier = Modifier.weight(1f, fill = false))
         // A done task is not removed from here: uncheck it first.
         if (model.done || !removable) {
             Spacer(Modifier.width(TavolaTheme.spacing.lg))
@@ -84,11 +89,17 @@ fun TavolaTaskChip(
 }
 
 @Composable
-private fun TaskChipLabel(model: TaskChipModel, content: Color, onCheckedChange: (Boolean) -> Unit, modifier: Modifier = Modifier) {
+private fun TaskChipLabel(
+    model: TaskChipModel,
+    content: Color,
+    onCheckedChange: (Boolean) -> Unit,
+    onEditClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
     val spacing = TavolaTheme.spacing
     Row(
         modifier = modifier
-            .toggleable(value = model.done, role = Role.Checkbox, onValueChange = onCheckedChange)
+            .checkable(model.done, onCheckedChange, onEditClick)
             .heightIn(min = TaskChipMinHeight)
             .padding(start = spacing.md),
         verticalAlignment = Alignment.CenterVertically,
@@ -112,6 +123,19 @@ private fun TaskChipLabel(model: TaskChipModel, content: Color, onCheckedChange:
         )
     }
 }
+
+/**
+ * Makes the text a checkbox that also answers a long press with [onEditClick], which a plain `toggleable` cannot, so the
+ * checkbox state is set by hand. It is the same path with or without an edit handler (a day that is over has none), so a
+ * screen reader announces every task in the same way.
+ */
+@Composable
+private fun Modifier.checkable(done: Boolean, onCheckedChange: (Boolean) -> Unit, onEditClick: (() -> Unit)?): Modifier = combinedClickable(
+    role = Role.Checkbox,
+    onLongClickLabel = onEditClick?.let { stringResource(R.string.task_chip_edit) },
+    onLongClick = onEditClick,
+    onClick = { onCheckedChange(!done) },
+).semantics { toggleableState = ToggleableState(done) }
 
 @Composable
 private fun TaskChipRemoveButton(taskText: String, content: Color, onRemoveClick: () -> Unit) {

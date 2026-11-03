@@ -50,14 +50,16 @@ internal fun WeekContent(
         if (mealPicker != null) MealPickerHost(target, actions.onMealPickerDismiss, mealPicker)
     }
 
-    state.addTaskDate?.let {
+    if (state.addTaskDate != null || state.editTask != null) {
+        val editing = state.editTask
         TavolaAddTaskDialog(
-            title = stringResource(R.string.calendar_add_task_title),
+            title = stringResource(if (editing == null) R.string.calendar_add_task_title else R.string.calendar_edit_task_title),
             label = stringResource(R.string.calendar_add_task_label),
-            confirmText = stringResource(R.string.calendar_add_task_confirm),
+            confirmText = stringResource(if (editing == null) R.string.calendar_add_task_confirm else R.string.calendar_edit_task_confirm),
             dismissText = stringResource(R.string.calendar_add_task_dismiss),
-            onConfirm = actions.onAddTaskConfirm,
-            onDismiss = actions.onAddTaskDismiss,
+            onConfirm = actions.onTaskDialogConfirm,
+            onDismiss = actions.onTaskDialogDismiss,
+            initialText = editing?.text.orEmpty(),
         )
     }
 }
@@ -90,6 +92,7 @@ private fun DayList(
                 onRecipeClick = onOpenRecipe,
                 onTaskCheckedChange = { taskId, checked -> actions.onTaskCheckedChange(date, taskId, checked) },
                 onTaskRemoveClick = { taskId -> actions.onTaskRemove(date, taskId) },
+                onTaskEditClick = { taskId -> actions.onTaskEditClick(date, taskId) },
                 onAddTaskClick = { actions.onAddTaskClick(date) },
                 onToggleExpanded = { actions.onDayToggle(date) },
             )

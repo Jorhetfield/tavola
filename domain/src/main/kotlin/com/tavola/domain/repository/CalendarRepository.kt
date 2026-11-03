@@ -17,6 +17,9 @@ interface CalendarRepository {
     /** Añade una tarea rápida (pendiente) al día [date]. */
     suspend fun addTask(date: LocalDate, text: String)
 
+    /** Changes the text of the task [taskId] of the day [date]; its position and whether it is done stay as they were. */
+    suspend fun updateTaskText(date: LocalDate, taskId: String, text: String)
+
     /** Removes the task [taskId] from the day [date]. */
     suspend fun removeTask(date: LocalDate, taskId: String)
 

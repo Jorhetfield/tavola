@@ -17,6 +17,7 @@ import com.tavola.core.designsystem.calendar.TavolaMealSlot
 import com.tavola.core.designsystem.calendar.TavolaTaskChip
 import com.tavola.core.designsystem.calendar.TavolaWeekSelector
 import com.tavola.core.designsystem.calendar.WeekSelectorModel
+import com.tavola.core.designsystem.dialog.TavolaAddTaskDialog
 import com.tavola.core.designsystem.preview.TavolaFontScalePreviews
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
@@ -92,6 +93,24 @@ fun AddTaskChipScreenshot() {
             TavolaTaskChip(TaskChipModel("1", "Comprar pimientos"), onCheckedChange = {}, onRemoveClick = {})
             TavolaAddTaskChip(onClick = {})
         }
+    }
+}
+
+/** The task dialog editing a long text: the field grows to several lines so all of it can be read. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun EditTaskDialogScreenshot() {
+    TavolaTheme {
+        TavolaAddTaskDialog(
+            title = "Editar tarea",
+            label = "¿Qué hay que hacer?",
+            confirmText = "Guardar",
+            dismissText = "Cancelar",
+            onConfirm = {},
+            onDismiss = {},
+            initialText = "Sacar el pollo del congelador a media mañana y dejarlo en la nevera para que esté listo para la cena",
+        )
     }
 }
 

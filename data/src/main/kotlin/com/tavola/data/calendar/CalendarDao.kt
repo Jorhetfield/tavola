@@ -30,6 +30,9 @@ internal abstract class CalendarDao {
     @Query("UPDATE day_tasks SET done = :done WHERE id = :id")
     abstract suspend fun setTaskDone(id: String, done: Boolean)
 
+    @Query("UPDATE day_tasks SET text = :text WHERE id = :id")
+    abstract suspend fun setTaskText(id: String, text: String)
+
     @Query("DELETE FROM day_tasks WHERE id = :id")
     abstract suspend fun deleteTask(id: String)
 

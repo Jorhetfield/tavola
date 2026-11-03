@@ -55,6 +55,24 @@ class FakeCalendarRepositoryTest {
     }
 
     @Test
+    fun `updateTaskText changes only the text of that task`() = runTest {
+        val repository = FakeCalendarRepository()
+        val tuesday = weekStart.let { monday -> LocalDate(monday.year, monday.month, monday.day + 1) }
+
+        repository.observeWeek(weekStart).test {
+            awaitItem()
+
+            repository.updateTaskText(tuesday, "t-pimientos", "Comprar pimientos rojos")
+
+            val tasks = awaitItem().days[1].tasks
+            assertEquals(listOf("t-pollo", "t-pimientos"), tasks.map { task -> task.id })
+            assertEquals(listOf("Sacar pollo a descongelar", "Comprar pimientos rojos"), tasks.map { task -> task.text })
+            assertTrue(tasks.last().done)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `removeTask removes the task and restoreTask puts it back at its position`() = runTest {
         val repository = FakeCalendarRepository()
         val tuesday = weekStart.let { monday -> LocalDate(monday.year, monday.month, monday.day + 1) }

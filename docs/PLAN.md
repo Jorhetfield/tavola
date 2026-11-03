@@ -6,7 +6,7 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 1. ~~Clear the small pending checks~~ Done: the recipe CRUD is merged (PR #5), the `strings.xml` prefixes are in and both emulator checkpoints are passed.
 2. ~~Past days collapsed~~ Done (PR #8).
 3. ~~Tasks per day~~ Done: add, tick, remove with Undo and edit the text were already in; this closed it with the "Add task" chip, read-only past days and editing by long press (PRs #10 and #11).
-4. **Close 0.0.3 and open 0.1.0**: merge `release/0.0.3` into `main` for a stable APK with everything local, then cut `release/0.1.0` for Firebase.
+4. ~~Close 0.0.3 and open 0.1.0~~ Done: `release/0.0.3` is in `main` (PR #13, pre-release `v0.0.3`) and `release/0.1.0` is open for Firebase.
 5. **Firebase + Auth + groups, then the shared calendar in real time** (decisions below): the biggest change to the data layer, in 4 or 5 small PRs. It goes before the widget because the widget reads through the repositories and would have to be reworked after the move.
 6. **Interactive widget** (Phase 3): it can be defined on paper any time (open questions below), but it is built after Firebase.
 7. Shopping list, recipe photos and carousel, import by URL, push notifications (Phase 4).

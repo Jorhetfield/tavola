@@ -2,7 +2,6 @@ package com.tavola.data.recipe
 
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.snapshots
 import com.tavola.data.group.GroupPaths
@@ -40,7 +39,7 @@ internal class FirestoreRecipeRepository @Inject constructor(
         if (groupId == null) {
             flowOf(emptyList())
         } else {
-            recipes(groupId).snapshots(MetadataChanges.INCLUDE).map { snapshot ->
+            recipes(groupId).snapshots().map { snapshot ->
                 snapshot.documents
                     .mapNotNull { document -> document.data?.toRecipe(document.id) }
                     .sortedBy { recipe -> recipe.title.lowercase() }

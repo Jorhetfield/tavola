@@ -8,6 +8,7 @@ import com.tavola.domain.model.MyGroupState
 import com.tavola.domain.repository.GroupRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -19,6 +20,10 @@ class GroupGateViewModelTest {
     val mainDispatcher = MainDispatcherExtension()
 
     private val repository = FakeGroupRepository()
+
+    private companion object {
+        const val BACKGROUND_MILLIS = 10_000L
+    }
 
     @Test
     fun `someone with no group sees the first step`() = runTest {
@@ -57,6 +62,24 @@ class GroupGateViewModelTest {
             awaitState(GroupGateUiState.HasGroup)
 
             repository.renameGroup("Piso")
+
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `coming back after the app was in the background keeps the app and does not flash the loading state`() = runTest {
+        repository.createGroup("Casa")
+        val viewModel = GroupGateViewModel(repository)
+        viewModel.uiState.test {
+            awaitState(GroupGateUiState.HasGroup)
+            cancelAndIgnoreRemainingEvents()
+        }
+        // Long enough for the collection to stop, as it does when the app is in the background.
+        advanceTimeBy(BACKGROUND_MILLIS)
+
+        viewModel.uiState.test {
+            assertEquals(GroupGateUiState.HasGroup, awaitItem())
 
             expectNoEvents()
         }

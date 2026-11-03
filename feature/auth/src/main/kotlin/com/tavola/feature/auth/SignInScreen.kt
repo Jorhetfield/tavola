@@ -42,6 +42,7 @@ import androidx.credentials.CredentialManager
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tavola.core.designsystem.badge.TavolaIconBadge
+import com.tavola.core.designsystem.field.TavolaErrorMessage
 import com.tavola.core.designsystem.preview.TavolaAdaptivePreviews
 import com.tavola.core.designsystem.preview.TavolaFontScalePreviews
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
@@ -117,7 +118,7 @@ private fun SignInColumn(isBusy: Boolean, error: SignInError?, onContinueWithGoo
         )
         Spacer(Modifier.height(spacing.xxl))
         GoogleButton(isBusy, onContinueWithGoogle)
-        SignInErrorMessage(error)
+        TavolaErrorMessage(message = error?.let { shown -> stringResource(shown.messageRes()) }, textAlign = TextAlign.Center)
         Spacer(Modifier.height(spacing.lg))
         Text(
             text = stringResource(R.string.auth_google_note),
@@ -135,30 +136,6 @@ private fun GoogleButton(isBusy: Boolean, onClick: () -> Unit) {
         Crossfade(targetState = isBusy, animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(), label = "signInButton") { busy ->
             Text(text = stringResource(if (busy) R.string.auth_signing_in else R.string.auth_continue_with_google))
         }
-    }
-}
-
-/** The reason the last attempt failed, below the button; it is announced to screen readers when it appears. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun SignInErrorMessage(error: SignInError?) {
-    val motion = MaterialTheme.motionScheme
-    AnimatedVisibility(
-        visible = error != null,
-        enter = expandVertically(motion.defaultSpatialSpec<IntSize>()) + fadeIn(motion.defaultEffectsSpec()),
-        exit = shrinkVertically(motion.fastSpatialSpec<IntSize>()) + fadeOut(motion.fastEffectsSpec()),
-    ) {
-        // The text of the error that was last shown stays while it fades out.
-        val message = error?.let { shown -> stringResource(shown.messageRes()) }.orEmpty()
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .padding(top = TavolaTheme.spacing.md)
-                .semantics { liveRegion = LiveRegionMode.Polite },
-        )
     }
 }
 

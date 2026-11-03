@@ -23,13 +23,15 @@ class GroupGateViewModel @Inject constructor(groupRepository: GroupRepository) :
     private val retryCount = MutableStateFlow(0)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<GroupGateUiState> = retryCount.flatMapLatest {
+    val uiState: StateFlow<GroupGateUiState> = retryCount.flatMapLatest { attempt ->
         groupRepository.myGroup
             .map<MyGroupState, GroupGateUiState> { group ->
                 if (group is MyGroupState.Joined) GroupGateUiState.HasGroup else GroupGateUiState.NoGroup
             }
             .catch { emit(GroupGateUiState.Error) }
-            .onStart { emit(GroupGateUiState.Loading) }
+            // Loading is only for a retry. When the collection restarts after the app was in the background the last state stands
+            // until the new one arrives; showing Loading would swap the whole app for the loading screen on every return.
+            .onStart { if (attempt > 0) emit(GroupGateUiState.Loading) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), GroupGateUiState.Loading)
 
     fun onRetryClick() {

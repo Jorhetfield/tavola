@@ -40,9 +40,11 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import com.tavola.core.designsystem.badge.TavolaIconBadge
+import com.tavola.core.designsystem.field.TavolaErrorMessage
 import com.tavola.core.designsystem.field.TavolaTextField
 import com.tavola.core.designsystem.theme.TavolaTheme
 
@@ -101,7 +103,7 @@ internal fun CreateStep(state: SetupGroupUiState, actions: SetupGroupActions) {
             onImeAction = { if (state.canCreate) actions.onCreateClick() },
             isError = state.error != null,
         )
-        SetupError(state.error)
+        TavolaErrorMessage(message = state.error?.let { shown -> stringResource(shown.messageRes()) }, modifier = Modifier.fillMaxWidth())
         ConfirmButton(
             text = stringResource(if (state.isWorking) R.string.group_creating else R.string.group_create_confirm),
             enabled = state.canCreate,
@@ -125,9 +127,11 @@ internal fun JoinStep(state: SetupGroupUiState, actions: SetupGroupActions) {
             imeAction = ImeAction.Done,
             onImeAction = { if (state.canJoin) actions.onJoinClick() },
             capitalization = KeyboardCapitalization.Characters,
+            keyboardType = KeyboardType.Ascii,
+            autoCorrect = false,
             isError = state.error != null,
         )
-        SetupError(state.error)
+        TavolaErrorMessage(message = state.error?.let { shown -> stringResource(shown.messageRes()) }, modifier = Modifier.fillMaxWidth())
         ConfirmButton(
             text = stringResource(if (state.isWorking) R.string.group_joining else R.string.group_join_confirm),
             enabled = state.canJoin,
@@ -215,30 +219,6 @@ private fun ConfirmButton(text: String, enabled: Boolean, onClick: () -> Unit) {
             .padding(top = TavolaTheme.spacing.lg),
     ) {
         Text(text)
-    }
-}
-
-/** Why the last attempt failed, below the field; it is announced to screen readers when it appears. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun SetupError(error: SetupGroupError?) {
-    val motion = MaterialTheme.motionScheme
-    AnimatedVisibility(
-        visible = error != null,
-        enter = expandVertically(motion.defaultSpatialSpec<IntSize>()) + fadeIn(motion.defaultEffectsSpec()),
-        exit = shrinkVertically(motion.fastSpatialSpec<IntSize>()) + fadeOut(motion.fastEffectsSpec()),
-    ) {
-        // The text of the error that was last shown stays while it fades out.
-        val message = error?.let { shown -> stringResource(shown.messageRes()) }.orEmpty()
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = TavolaTheme.spacing.md)
-                .semantics { liveRegion = LiveRegionMode.Polite },
-        )
     }
 }
 

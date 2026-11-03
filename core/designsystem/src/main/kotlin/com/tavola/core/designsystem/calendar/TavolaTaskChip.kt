@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -126,19 +125,17 @@ private fun TaskChipLabel(
 }
 
 /**
- * Makes the text a checkbox. With [onEditClick] it also answers a long press, which a plain `toggleable` cannot, so the
- * checkbox semantics are set by hand.
+ * Makes the text a checkbox that also answers a long press with [onEditClick], which a plain `toggleable` cannot, so the
+ * checkbox state is set by hand. It is the same path with or without an edit handler (a day that is over has none), so a
+ * screen reader announces every task in the same way.
  */
 @Composable
-private fun Modifier.checkable(done: Boolean, onCheckedChange: (Boolean) -> Unit, onEditClick: (() -> Unit)?): Modifier {
-    if (onEditClick == null) return toggleable(value = done, role = Role.Checkbox, onValueChange = onCheckedChange)
-    return combinedClickable(
-        role = Role.Checkbox,
-        onLongClickLabel = stringResource(R.string.task_chip_edit),
-        onLongClick = onEditClick,
-        onClick = { onCheckedChange(!done) },
-    ).semantics { toggleableState = ToggleableState(done) }
-}
+private fun Modifier.checkable(done: Boolean, onCheckedChange: (Boolean) -> Unit, onEditClick: (() -> Unit)?): Modifier = combinedClickable(
+    role = Role.Checkbox,
+    onLongClickLabel = onEditClick?.let { stringResource(R.string.task_chip_edit) },
+    onLongClick = onEditClick,
+    onClick = { onCheckedChange(!done) },
+).semantics { toggleableState = ToggleableState(done) }
 
 @Composable
 private fun TaskChipRemoveButton(taskText: String, content: Color, onRemoveClick: () -> Unit) {

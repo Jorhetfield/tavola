@@ -134,14 +134,17 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
     }
 
     /** Closes the task dialog, whether it was adding a task or editing one. */
-    fun onAddTaskDismiss() {
+    fun onTaskDialogDismiss() {
         taskDialog.value = null
     }
 
-    /** Saves what the task dialog asked for: a new task, or the new text of the one being edited. Blank text is ignored. */
-    fun onAddTaskConfirm(text: String) {
+    /**
+     * Saves what the task dialog asked for: a new task, or the new text of the one being edited. Blank text is ignored, and line
+     * breaks (from a paste or a hardware keyboard) become spaces, because a task is one line and its chip shows only the first.
+     */
+    fun onTaskDialogConfirm(text: String) {
         val dialog = taskDialog.value ?: return
-        val task = text.trim()
+        val task = text.trim().replace(LINE_BREAKS, " ")
         if (task.isEmpty()) return
 
         taskDialog.value = null
@@ -186,6 +189,9 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
+
+        /** A run of line breaks with the spaces around it. */
+        val LINE_BREAKS = Regex("\\s*[\\r\\n]+\\s*")
     }
 }
 

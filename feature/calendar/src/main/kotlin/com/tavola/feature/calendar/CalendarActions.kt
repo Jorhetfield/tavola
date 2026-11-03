@@ -18,8 +18,8 @@ data class CalendarActions(
     val onTaskRemovedShown: () -> Unit = {},
     val onAddTaskClick: (date: LocalDate) -> Unit = {},
     val onTaskEditClick: (date: LocalDate, taskId: String) -> Unit = { _, _ -> },
-    val onAddTaskDismiss: () -> Unit = {},
-    val onAddTaskConfirm: (text: String) -> Unit = {},
+    val onTaskDialogDismiss: () -> Unit = {},
+    val onTaskDialogConfirm: (text: String) -> Unit = {},
 )
 
 /**
@@ -40,6 +40,6 @@ internal fun CalendarViewModel.toActions(): CalendarActions = CalendarActions(
     onTaskRemovedShown = ::onTaskRemovedShown,
     onAddTaskClick = ::onAddTaskClick,
     onTaskEditClick = ::onTaskEditClick,
-    onAddTaskDismiss = ::onAddTaskDismiss,
-    onAddTaskConfirm = ::onAddTaskConfirm,
+    onTaskDialogDismiss = ::onTaskDialogDismiss,
+    onTaskDialogConfirm = ::onTaskDialogConfirm,
 )

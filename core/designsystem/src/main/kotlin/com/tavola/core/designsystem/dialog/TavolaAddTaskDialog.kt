@@ -28,10 +28,10 @@ import com.tavola.core.designsystem.theme.TavolaTheme
 private const val MAX_VISIBLE_LINES = 4
 
 /**
- * Diálogo con un campo de texto para escribir una tarea. Los textos llegan por parámetro (los pone la pantalla).
- * [onConfirm] solo se invoca con texto no vacío; el texto se conserva al rotar la pantalla. Para editar una tarea, [initialText]
- * trae el texto actual y el cursor empieza al final, para seguir escribiendo. El campo crece hasta [MAX_VISIBLE_LINES] líneas
- * para que un texto largo se lea entero; el teclado sigue ofreciendo "Hecho", no un salto de línea.
+ * Dialog with a text field to write a task. The texts come as parameters (the screen provides them). [onConfirm] is only
+ * called with non-blank text; the text survives a rotation. To edit a task, [initialText] brings its current text and the
+ * cursor starts at the end, to keep typing. The field grows up to [MAX_VISIBLE_LINES] lines so a long text can be read in
+ * full; the keyboard still offers "Done", not a line break.
  */
 @Composable
 fun TavolaAddTaskDialog(

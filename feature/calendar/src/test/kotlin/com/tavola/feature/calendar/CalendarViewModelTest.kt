@@ -192,11 +192,11 @@ class CalendarViewModelTest {
             viewModel.onAddTaskClick(thursday)
             awaitSuccess { success -> success.addTaskDate == thursday }
 
-            viewModel.onAddTaskConfirm("   ")
+            viewModel.onTaskDialogConfirm("   ")
             expectNoEvents()
             assertEquals(thursday, (viewModel.uiState.value as CalendarUiState.Success).addTaskDate)
 
-            viewModel.onAddTaskConfirm("  Comprar limones ")
+            viewModel.onTaskDialogConfirm("  Comprar limones ")
             val state = awaitSuccess { success -> success.days[3].plan.tasks.isNotEmpty() }
             assertNull(state.addTaskDate)
             assertEquals("Comprar limones", state.days[3].plan.tasks.last().text)
@@ -212,7 +212,7 @@ class CalendarViewModelTest {
             viewModel.onAddTaskClick(thursday)
             awaitSuccess { success -> success.addTaskDate != null }
 
-            viewModel.onAddTaskDismiss()
+            viewModel.onTaskDialogDismiss()
 
             val state = awaitSuccess { success -> success.addTaskDate == null }
             assertTrue(state.days[3].plan.tasks.isEmpty())
@@ -231,7 +231,7 @@ class CalendarViewModelTest {
             assertEquals(EditingTask(today, "t-masa", "Preparar la masa"), editing.editTask)
             assertNull(editing.addTaskDate)
 
-            viewModel.onAddTaskConfirm("  Preparar la masa de pizza ")
+            viewModel.onTaskDialogConfirm("  Preparar la masa de pizza ")
             val state = awaitSuccess { success -> success.days[2].plan.tasks.first().text != "Preparar la masa" }
             assertNull(state.editTask)
             assertEquals(listOf("Preparar la masa de pizza"), state.days[2].plan.tasks.map { task -> task.text })
@@ -247,13 +247,34 @@ class CalendarViewModelTest {
             viewModel.onTaskEditClick(today, "t-masa")
             awaitSuccess { success -> success.editTask != null }
 
-            viewModel.onAddTaskConfirm("   ")
+            viewModel.onTaskDialogConfirm("   ")
             expectNoEvents()
             assertEquals("t-masa", (viewModel.uiState.value as CalendarUiState.Success).editTask?.taskId)
 
-            viewModel.onAddTaskConfirm("Preparar la masa")
+            viewModel.onTaskDialogConfirm("Preparar la masa")
             val state = awaitSuccess { success -> success.editTask == null }
             assertEquals(listOf("Preparar la masa"), state.days[2].plan.tasks.map { task -> task.text })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `line breaks in the text of a task become spaces, for a new task and for an edit`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onAddTaskClick(thursday)
+            awaitSuccess { success -> success.addTaskDate == thursday }
+            viewModel.onTaskDialogConfirm("Comprar pan\nComprar leche \r\n")
+            var state = awaitSuccess { success -> success.days[3].plan.tasks.isNotEmpty() }
+            assertEquals("Comprar pan Comprar leche", state.days[3].plan.tasks.last().text)
+
+            viewModel.onTaskEditClick(today, "t-masa")
+            awaitSuccess { success -> success.editTask != null }
+            viewModel.onTaskDialogConfirm("Preparar\nla masa de pizza")
+            state = awaitSuccess { success -> success.days[2].plan.tasks.first().text == "Preparar la masa de pizza" }
+            assertEquals("Preparar la masa de pizza", state.days[2].plan.tasks.first().text)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -266,7 +287,7 @@ class CalendarViewModelTest {
             viewModel.onTaskEditClick(today, "t-masa")
             awaitSuccess { success -> success.editTask != null }
 
-            viewModel.onAddTaskDismiss()
+            viewModel.onTaskDialogDismiss()
 
             val state = awaitSuccess { success -> success.editTask == null }
             assertEquals("Preparar la masa", state.days[2].plan.tasks.first().text)

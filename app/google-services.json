@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "640477347756",
+    "project_id": "gentle-scene-223112",
+    "storage_bucket": "gentle-scene-223112.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640477347756:android:7ce80bb8d09ceeb4f4c409",
+        "android_client_info": {
+          "package_name": "com.tavola"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "640477347756-s4o1eonsnais0vec1r0odfcgmp0rhpmq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tavola",
+            "certificate_hash": "589bac9c84521013403781cccee96bc471b90c52"
+          }
+        },
+        {
+          "client_id": "640477347756-o53rtd4875g9gd89jtin7502qcduvfb3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaSGRMiOUex6obqG4m30ScV6taRyEP_f0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "640477347756-o53rtd4875g9gd89jtin7502qcduvfb3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

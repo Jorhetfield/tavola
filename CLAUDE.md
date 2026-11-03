@@ -128,7 +128,7 @@ Clean Architecture multi-módulo por capas:
 :core:testing          fakes (FakeCalendarRepository), datos de ejemplo mediterráneos y MainDispatcherExtension (JUnit 5)
 ```
 Dependencias: `:domain` no depende de nadie; `:data` depende de `:domain`; `:core:*` nunca depende de `:feature:*`; `:core:designsystem` solo de Compose/M3 (ni `:domain`); cada `:feature:*` depende de `:domain` y `:core:designsystem`, **nunca de otra feature**. Para que una feature use a otra, `:app` le cede el contenido por un *slot* (p. ej. la hoja del selector en el calendario) y la comunicación va por IDs y repositorios del dominio; `:app` ensambla todo y es el único que conoce las rutas de navegación.
-Hoy existen `:feature:calendar` (landing: calendario semanal con datos fake) y `:feature:showcase` (pantalla temporal para ver el tema y los componentes; `:app` la incluye solo en debug y se abre desde el botón de depuración del calendario, ver `src/debug/.../DebugNavigation.kt`). Una funcionalidad nueva = un módulo `:feature:<nombre>` nuevo.
+Hoy existen `:feature:auth` (login con Google y `AuthGate`, que decide entre la pantalla de acceso y la app), `:feature:calendar` (landing: calendario semanal con datos fake) y `:feature:showcase` (pantalla temporal para ver el tema y los componentes; `:app` la incluye solo en debug y se abre desde el botón de depuración del calendario, ver `src/debug/.../DebugNavigation.kt`). Una funcionalidad nueva = un módulo `:feature:<nombre>` nuevo.
 
 **UI:** MVVM clásico. `ViewModel` + `StateFlow<UiState>` con `UiState` como `sealed class` (Loading / Success / Error).
 Estructura por feature: `XScreen.kt` (solo composables) · `XViewModel.kt` · `XUiState.kt` · `components/`.

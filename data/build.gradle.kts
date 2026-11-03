@@ -9,6 +9,12 @@ plugins {
 
 android {
     namespace = "com.tavola.data"
+
+    testOptions {
+        // The Firebase exceptions use a few Android helpers (TextUtils) in their constructors; with default values they can be
+        // built in a JVM test.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {

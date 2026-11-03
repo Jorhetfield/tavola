@@ -73,7 +73,7 @@ class FakeCalendarRepositoryTest {
     }
 
     @Test
-    fun `removeTask removes the task and restoreTask puts it back at its position`() = runTest {
+    fun `removeTask removes the task and restoreTask puts it back where it was`() = runTest {
         val repository = FakeCalendarRepository()
         val tuesday = weekStart.let { monday -> LocalDate(monday.year, monday.month, monday.day + 1) }
 
@@ -84,24 +84,28 @@ class FakeCalendarRepositoryTest {
             repository.removeTask(tuesday, removed.id)
             assertEquals(original.drop(1), awaitItem().days[1].tasks)
 
-            repository.restoreTask(tuesday, removed, index = 0)
+            repository.restoreTask(tuesday, removed)
             assertEquals(original, awaitItem().days[1].tasks)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `restoreTask clamps an out of range index to the end of the list`() = runTest {
-        val repository = FakeCalendarRepository(initialDays = listOf(DayPlan(weekStart)))
-        repository.addTask(weekStart, "Comprar pan")
+    fun `a restored task goes by its creation time even when others were added meanwhile`() = runTest {
+        val repository = FakeCalendarRepository()
+        val tuesday = weekStart.let { monday -> LocalDate(monday.year, monday.month, monday.day + 1) }
 
         repository.observeWeek(weekStart).test {
-            val original = awaitItem().days.first().tasks
-            val extra = original.first().copy(id = "extra", text = "Extra")
+            val removed = awaitItem().days[1].tasks.first()
+            repository.removeTask(tuesday, removed.id)
+            awaitItem()
+            repository.addTask(tuesday, "Hecha mientras tanto")
+            awaitItem()
 
-            repository.restoreTask(weekStart, extra, index = 99)
+            repository.restoreTask(tuesday, removed)
 
-            assertEquals(original + extra, awaitItem().days.first().tasks)
+            val titles = awaitItem().days[1].tasks.map { task -> task.text }
+            assertEquals(listOf(removed.text, "Comprar pimientos", "Hecha mientras tanto"), titles)
             cancelAndIgnoreRemainingEvents()
         }
     }

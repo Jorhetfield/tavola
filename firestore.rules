@@ -7,6 +7,8 @@ rules_version = '2';
 //   groups/{groupId}                  { name, memberIds, inviteCode, createdBy }
 //   groups/{groupId}/members/{userId} { displayName, photoUrl, colorIndex, joinCode? }
 //   groups/{groupId}/recipes/{recipeId} { title, prepTimeMinutes?, tags, ingredients, steps, createdBy? }
+//   groups/{groupId}/meals/{date}_{type} { date, type, title, recipeId?, prepTimeMinutes?, tags, note?, createdBy? }
+//   groups/{groupId}/tasks/{taskId}     { date, text, done, createdAt, createdBy? }
 //   invites/{code}                    { groupId }                  lets a person who knows the code find the group
 //
 // The ideas, from the decisions in docs/PLAN.md:
@@ -64,6 +66,36 @@ service cloud.firestore {
         && recipe.ingredients is list && recipe.ingredients.size() <= 100
         && recipe.steps is list && recipe.steps.size() <= 100
         && (!('createdBy' in recipe.keys()) || recipe.createdBy is string);
+    }
+
+    // An ISO date such as 2026-10-21.
+    function validDate(date) {
+      return date is string && date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    // A meal of a slot: its id is the day and the meal ("2026-10-21_Lunch"), so a slot never holds two meals. A recipe carries a
+    // copy of its title, time and tags, so the calendar can be drawn without loading the recipes.
+    function validMeal(mealId, meal) {
+      return meal.keys().hasOnly(['date', 'type', 'title', 'recipeId', 'prepTimeMinutes', 'tags', 'note', 'createdBy'])
+        && validDate(meal.date)
+        && meal.type in ['Lunch', 'Dinner']
+        && mealId == meal.date + '_' + meal.type
+        && meal.title is string && meal.title.size() >= 1 && meal.title.size() <= 120
+        && (!('recipeId' in meal.keys()) || meal.recipeId == null || meal.recipeId is string)
+        && (!('prepTimeMinutes' in meal.keys()) || meal.prepTimeMinutes == null || (meal.prepTimeMinutes is int && meal.prepTimeMinutes >= 0))
+        && (!('tags' in meal.keys()) || (meal.tags is list && meal.tags.size() <= 30))
+        && (!('note' in meal.keys()) || meal.note == null || (meal.note is string && meal.note.size() <= 500))
+        && (!('createdBy' in meal.keys()) || meal.createdBy is string);
+    }
+
+    // A task of a day: a text, whether it is done, and when it was created (which is what orders the tasks of a day).
+    function validTask(task) {
+      return task.keys().hasOnly(['date', 'text', 'done', 'createdAt', 'createdBy'])
+        && validDate(task.date)
+        && task.text is string && task.text.size() >= 1 && task.text.size() <= 200
+        && task.done is bool
+        && task.createdAt is int
+        && (!('createdBy' in task.keys()) || task.createdBy is string);
     }
 
     function invitePath(code) {
@@ -148,6 +180,20 @@ service cloud.firestore {
       match /recipes/{recipeId} {
         allow read: if signedIn() && isMember(get(groupPath(groupId)).data);
         allow create, update: if signedIn() && isMember(get(groupPath(groupId)).data) && validRecipe(request.resource.data);
+        allow delete: if signedIn() && isMember(get(groupPath(groupId)).data);
+      }
+
+      // The calendar of the group: the meals (one document per slot, with the id of the slot) and the tasks (one document each).
+      // Every member reads and writes them; only the shape is checked.
+      match /meals/{mealId} {
+        allow read: if signedIn() && isMember(get(groupPath(groupId)).data);
+        allow create, update: if signedIn() && isMember(get(groupPath(groupId)).data) && validMeal(mealId, request.resource.data);
+        allow delete: if signedIn() && isMember(get(groupPath(groupId)).data);
+      }
+
+      match /tasks/{taskId} {
+        allow read: if signedIn() && isMember(get(groupPath(groupId)).data);
+        allow create, update: if signedIn() && isMember(get(groupPath(groupId)).data) && validTask(request.resource.data);
         allow delete: if signedIn() && isMember(get(groupPath(groupId)).data);
       }
 

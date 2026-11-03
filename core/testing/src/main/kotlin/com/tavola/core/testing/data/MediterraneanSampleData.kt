@@ -35,16 +35,21 @@ object MediterraneanSampleData {
 
     /** Semana completa de [start]; el jueves queda sin planificar a propósito y el domingo cena fuera. */
     fun week(start: LocalDate = weekStart): List<DayPlan> = listOf(
-        DayPlan(start.day(0), gazpacho.asMeal(), tortilla.asMeal(), listOf(DayTask("t-huevos", "Comprar huevos", done = true))),
+        DayPlan(
+            start.day(0),
+            gazpacho.asMeal(),
+            tortilla.asMeal(),
+            listOf(DayTask("t-huevos", "Comprar huevos", done = true, createdAt = 1)),
+        ),
         DayPlan(
             date = start.day(1),
             lunch = paella.asMeal(),
             tasks = listOf(
-                DayTask("t-pollo", "Sacar pollo a descongelar"),
-                DayTask("t-pimientos", "Comprar pimientos", done = true),
+                DayTask("t-pollo", "Sacar pollo a descongelar", createdAt = 1),
+                DayTask("t-pimientos", "Comprar pimientos", done = true, createdAt = 2),
             ),
         ),
-        DayPlan(start.day(2), moussaka.asMeal(), risotto.asMeal(), listOf(DayTask("t-masa", "Preparar la masa"))),
+        DayPlan(start.day(2), moussaka.asMeal(), risotto.asMeal(), listOf(DayTask("t-masa", "Preparar la masa", createdAt = 1))),
         DayPlan(start.day(3)),
         DayPlan(start.day(4), greekSalad.asMeal(), pomodoro.asMeal()),
         DayPlan(start.day(5), pizza.asMeal(), tiramisu.asMeal()),

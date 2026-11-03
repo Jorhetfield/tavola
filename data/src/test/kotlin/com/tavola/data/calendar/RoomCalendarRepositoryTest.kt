@@ -95,6 +95,26 @@ class RoomCalendarRepositoryTest {
     }
 
     @Test
+    fun `editing the text of a task keeps its position and whether it is done`() = runTest {
+        repository.addTask(tuesday, "Una")
+        repository.addTask(tuesday, "Dos")
+
+        repository.observeWeek(monday).test {
+            val first = awaitItem().days[1].tasks.first()
+            repository.setTaskDone(tuesday, first.id, done = true)
+            awaitItem()
+
+            repository.updateTaskText(tuesday, first.id, "Uno corregido")
+
+            val tasks = awaitItem().days[1].tasks
+            assertEquals(listOf("Uno corregido", "Dos"), tasks.map { task -> task.text })
+            assertEquals(first.id, tasks.first().id)
+            assertTrue(tasks.first().done)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `checking a task keeps it in place`() = runTest {
         repository.addTask(tuesday, "Una")
         repository.addTask(tuesday, "Dos")

@@ -221,6 +221,75 @@ class CalendarViewModelTest {
     }
 
     @Test
+    fun `editing a task opens the dialog with its text and saving changes only that text`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onTaskEditClick(today, "t-masa")
+            val editing = awaitSuccess { success -> success.editTask != null }
+            assertEquals(EditingTask(today, "t-masa", "Preparar la masa"), editing.editTask)
+            assertNull(editing.addTaskDate)
+
+            viewModel.onAddTaskConfirm("  Preparar la masa de pizza ")
+            val state = awaitSuccess { success -> success.days[2].plan.tasks.first().text != "Preparar la masa" }
+            assertNull(state.editTask)
+            assertEquals(listOf("Preparar la masa de pizza"), state.days[2].plan.tasks.map { task -> task.text })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `saving an edit with blank or unchanged text keeps the task as it was`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+            viewModel.onTaskEditClick(today, "t-masa")
+            awaitSuccess { success -> success.editTask != null }
+
+            viewModel.onAddTaskConfirm("   ")
+            expectNoEvents()
+            assertEquals("t-masa", (viewModel.uiState.value as CalendarUiState.Success).editTask?.taskId)
+
+            viewModel.onAddTaskConfirm("Preparar la masa")
+            val state = awaitSuccess { success -> success.editTask == null }
+            assertEquals(listOf("Preparar la masa"), state.days[2].plan.tasks.map { task -> task.text })
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `cancelling an edit closes the dialog and the text stays`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+            viewModel.onTaskEditClick(today, "t-masa")
+            awaitSuccess { success -> success.editTask != null }
+
+            viewModel.onAddTaskDismiss()
+
+            val state = awaitSuccess { success -> success.editTask == null }
+            assertEquals("Preparar la masa", state.days[2].plan.tasks.first().text)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a task of a day that is over or one that does not exist cannot be edited`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onTaskEditClick(monday, "t-huevos")
+            viewModel.onTaskEditClick(today, "no-such-task")
+
+            expectNoEvents()
+            assertNull((viewModel.uiState.value as CalendarUiState.Success).editTask)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `si el repositorio falla muestra error y reintentar lo recupera`() = runTest {
         val flaky = FlakyCalendarRepository(calendarRepository)
         val viewModel = viewModel(flaky)

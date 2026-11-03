@@ -50,7 +50,7 @@ internal fun WeekContent(
         if (mealPicker != null) MealPickerHost(target, actions.onMealPickerDismiss, mealPicker)
     }
 
-    state.addTaskDate?.let {
+    if (state.addTaskDate != null) {
         TavolaAddTaskDialog(
             title = stringResource(R.string.calendar_add_task_title),
             label = stringResource(R.string.calendar_add_task_label),
@@ -58,6 +58,18 @@ internal fun WeekContent(
             dismissText = stringResource(R.string.calendar_add_task_dismiss),
             onConfirm = actions.onAddTaskConfirm,
             onDismiss = actions.onAddTaskDismiss,
+        )
+    }
+
+    state.editTask?.let { task ->
+        TavolaAddTaskDialog(
+            title = stringResource(R.string.calendar_edit_task_title),
+            label = stringResource(R.string.calendar_add_task_label),
+            confirmText = stringResource(R.string.calendar_edit_task_confirm),
+            dismissText = stringResource(R.string.calendar_add_task_dismiss),
+            onConfirm = actions.onAddTaskConfirm,
+            onDismiss = actions.onAddTaskDismiss,
+            initialText = task.text,
         )
     }
 }
@@ -90,6 +102,7 @@ private fun DayList(
                 onRecipeClick = onOpenRecipe,
                 onTaskCheckedChange = { taskId, checked -> actions.onTaskCheckedChange(date, taskId, checked) },
                 onTaskRemoveClick = { taskId -> actions.onTaskRemove(date, taskId) },
+                onTaskEditClick = { taskId -> actions.onTaskEditClick(date, taskId) },
                 onAddTaskClick = { actions.onAddTaskClick(date) },
                 onToggleExpanded = { actions.onDayToggle(date) },
             )

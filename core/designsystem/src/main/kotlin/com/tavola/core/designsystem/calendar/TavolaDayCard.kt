@@ -84,6 +84,7 @@ fun TavolaDayCard(
     modifier: Modifier = Modifier,
     onToggleExpanded: () -> Unit = {},
     onRecipeClick: (recipeId: String) -> Unit = {},
+    onTaskEditClick: (taskId: String) -> Unit = {},
 ) {
     val spacing = TavolaTheme.spacing
     val motion = MaterialTheme.motionScheme
@@ -124,7 +125,7 @@ fun TavolaDayCard(
                     DayCardMeals(model, palette, onMealClick, onRecipeClick)
                     // A day that is over only shows its tasks if it has any; the others always show the zone, where "Add task" lives.
                     if (model.isEditable || model.tasks.isNotEmpty()) {
-                        DayCardTasks(model, palette, onTaskCheckedChange, onTaskRemoveClick, onAddTaskClick)
+                        DayCardTasks(model, palette, onTaskCheckedChange, onTaskRemoveClick, onTaskEditClick, onAddTaskClick)
                     }
                 }
             }
@@ -309,6 +310,7 @@ private fun DayCardTasks(
     palette: DayCardPalette,
     onTaskCheckedChange: (String, Boolean) -> Unit,
     onTaskRemoveClick: (String) -> Unit,
+    onTaskEditClick: (String) -> Unit,
     onAddTaskClick: () -> Unit,
 ) {
     FlowRow(
@@ -321,6 +323,7 @@ private fun DayCardTasks(
                 onCheckedChange = { checked -> onTaskCheckedChange(task.id, checked) },
                 onRemoveClick = { onTaskRemoveClick(task.id) },
                 removable = model.isEditable,
+                onEditClick = if (model.isEditable) ({ onTaskEditClick(task.id) }) else null,
             )
         }
         if (model.isEditable) TavolaAddTaskChip(onClick = onAddTaskClick, contentColor = palette.content)

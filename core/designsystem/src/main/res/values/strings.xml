@@ -29,6 +29,7 @@
         <item quantity="other">%1$d tareas pendientes</item>
     </plurals>
     <string name="task_chip_remove">Eliminar tarea: %1$s</string>
+    <string name="task_chip_edit">Editar tarea</string>
 
     <string name="week_selector_previous">Semana anterior</string>
     <string name="week_selector_next">Semana siguiente</string>

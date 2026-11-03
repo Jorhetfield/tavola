@@ -38,6 +38,10 @@ internal class RoomCalendarRepository @Inject constructor(private val calendarDa
         calendarDao.appendTask(id = UUID.randomUUID().toString(), date = date.toString(), text = text)
     }
 
+    override suspend fun updateTaskText(date: LocalDate, taskId: String, text: String) {
+        calendarDao.setTaskText(taskId, text)
+    }
+
     override suspend fun removeTask(date: LocalDate, taskId: String) {
         calendarDao.deleteTask(taskId)
     }

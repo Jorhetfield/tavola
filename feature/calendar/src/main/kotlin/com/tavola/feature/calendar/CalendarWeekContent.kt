@@ -30,6 +30,7 @@ internal fun WeekContent(
     actions: CalendarActions,
     contentPadding: PaddingValues,
     mealPicker: MealPickerSlot? = null,
+    onOpenRecipe: (recipeId: String) -> Unit = {},
 ) {
     AnimatedContent(
         targetState = state,
@@ -42,27 +43,34 @@ internal fun WeekContent(
         },
         label = "week",
     ) { week ->
-        DayList(week, actions, contentPadding)
+        DayList(week, actions, contentPadding, onOpenRecipe)
     }
 
     state.mealPicker?.let { target ->
         if (mealPicker != null) MealPickerHost(target, actions.onMealPickerDismiss, mealPicker)
     }
 
-    state.addTaskDate?.let {
+    if (state.addTaskDate != null || state.editTask != null) {
+        val editing = state.editTask
         TavolaAddTaskDialog(
-            title = stringResource(R.string.calendar_add_task_title),
+            title = stringResource(if (editing == null) R.string.calendar_add_task_title else R.string.calendar_edit_task_title),
             label = stringResource(R.string.calendar_add_task_label),
-            confirmText = stringResource(R.string.calendar_add_task_confirm),
+            confirmText = stringResource(if (editing == null) R.string.calendar_add_task_confirm else R.string.calendar_edit_task_confirm),
             dismissText = stringResource(R.string.calendar_add_task_dismiss),
-            onConfirm = actions.onAddTaskConfirm,
-            onDismiss = actions.onAddTaskDismiss,
+            onConfirm = actions.onTaskDialogConfirm,
+            onDismiss = actions.onTaskDialogDismiss,
+            initialText = editing?.text.orEmpty(),
         )
     }
 }
 
 @Composable
-private fun DayList(week: CalendarUiState.Success, actions: CalendarActions, contentPadding: PaddingValues) {
+private fun DayList(
+    week: CalendarUiState.Success,
+    actions: CalendarActions,
+    contentPadding: PaddingValues,
+    onOpenRecipe: (recipeId: String) -> Unit,
+) {
     val spacing = TavolaTheme.spacing
     val cards = rememberDayCardModels(week.days)
 
@@ -81,8 +89,10 @@ private fun DayList(week: CalendarUiState.Success, actions: CalendarActions, con
             TavolaDayCard(
                 model = card,
                 onMealClick = { type -> actions.onMealClick(date, type.toDomain()) },
+                onRecipeClick = onOpenRecipe,
                 onTaskCheckedChange = { taskId, checked -> actions.onTaskCheckedChange(date, taskId, checked) },
                 onTaskRemoveClick = { taskId -> actions.onTaskRemove(date, taskId) },
+                onTaskEditClick = { taskId -> actions.onTaskEditClick(date, taskId) },
                 onAddTaskClick = { actions.onAddTaskClick(date) },
                 onToggleExpanded = { actions.onDayToggle(date) },
             )

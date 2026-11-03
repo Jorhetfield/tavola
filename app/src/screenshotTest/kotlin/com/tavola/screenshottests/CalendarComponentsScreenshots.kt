@@ -2,6 +2,7 @@ package com.tavola.screenshottests
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -10,11 +11,13 @@ import com.android.tools.screenshot.PreviewTest
 import com.tavola.core.designsystem.calendar.MealSlotModel
 import com.tavola.core.designsystem.calendar.MealType
 import com.tavola.core.designsystem.calendar.TaskChipModel
+import com.tavola.core.designsystem.calendar.TavolaAddTaskChip
 import com.tavola.core.designsystem.calendar.TavolaDayCard
 import com.tavola.core.designsystem.calendar.TavolaMealSlot
 import com.tavola.core.designsystem.calendar.TavolaTaskChip
 import com.tavola.core.designsystem.calendar.TavolaWeekSelector
 import com.tavola.core.designsystem.calendar.WeekSelectorModel
+import com.tavola.core.designsystem.dialog.TavolaAddTaskDialog
 import com.tavola.core.designsystem.preview.TavolaFontScalePreviews
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
@@ -72,6 +75,61 @@ fun TaskChipScreenshot() {
         ) {
             TavolaTaskChip(TaskChipModel("1", "Sacar pollo a descongelar"), onCheckedChange = {}, onRemoveClick = {})
             TavolaTaskChip(TaskChipModel("2", "Comprar pimientos", done = true), onCheckedChange = {}, onRemoveClick = {})
+        }
+    }
+}
+
+/** The last chip of the task list, next to a task so both can be compared. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun AddTaskChipScreenshot() {
+    TavolaTheme {
+        FlowRow(
+            modifier = Modifier.padding(TavolaTheme.spacing.lg),
+            horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
+        ) {
+            TavolaTaskChip(TaskChipModel("1", "Comprar pimientos"), onCheckedChange = {}, onRemoveClick = {})
+            TavolaAddTaskChip(onClick = {})
+        }
+    }
+}
+
+/** The task dialog editing a long text: the field grows to several lines so all of it can be read. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun EditTaskDialogScreenshot() {
+    TavolaTheme {
+        TavolaAddTaskDialog(
+            title = "Editar tarea",
+            label = "¿Qué hay que hacer?",
+            confirmText = "Guardar",
+            dismissText = "Cancelar",
+            onConfirm = {},
+            onDismiss = {},
+            initialText = "Sacar el pollo del congelador a media mañana y dejarlo en la nevera para que esté listo para la cena",
+        )
+    }
+}
+
+/** Slots of a day that is over: no touch response, a dash where nothing was planned. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun ReadOnlyMealSlotScreenshot() {
+    TavolaTheme {
+        Row(
+            modifier = Modifier.padding(TavolaTheme.spacing.lg),
+            horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md),
+        ) {
+            TavolaMealSlot(
+                model = MealSlotModel(MealType.Lunch, "Gazpacho", "15 min", recipeId = "gazpacho"),
+                onClick = null,
+                modifier = Modifier.weight(1f),
+            )
+            TavolaMealSlot(model = MealSlotModel(MealType.Dinner), onClick = null, modifier = Modifier.weight(1f))
         }
     }
 }

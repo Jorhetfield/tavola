@@ -15,6 +15,7 @@
     <string name="meal_slot_lunch">Lunch</string>
     <string name="meal_slot_dinner">Dinner</string>
     <string name="meal_slot_add">Add</string>
+    <string name="meal_slot_open_recipe">View recipe</string>
     <string name="day_card_today">TODAY</string>
     <string name="day_card_unplanned">Not planned</string>
     <string name="day_card_add_task">Add task</string>
@@ -28,6 +29,7 @@
         <item quantity="other">%1$d tasks left</item>
     </plurals>
     <string name="task_chip_remove">Remove task: %1$s</string>
+    <string name="task_chip_edit">Edit task</string>
 
     <string name="week_selector_previous">Previous week</string>
     <string name="week_selector_next">Next week</string>

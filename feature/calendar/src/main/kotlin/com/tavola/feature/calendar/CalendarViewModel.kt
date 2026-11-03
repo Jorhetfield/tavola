@@ -29,7 +29,7 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
     ViewModel() {
     private var visits = 0
     private val selectedWeek = MutableStateFlow(SelectedWeek(todayProvider.today().startOfWeek(), visit = visits))
-    private val addTaskDate = MutableStateFlow<LocalDate?>(null)
+    private val taskDialog = MutableStateFlow<TaskDialog?>(null)
     private val pickerSlot = MutableStateFlow<Pair<LocalDate, MealType>?>(null)
     private val removedTask = MutableStateFlow<RemovedTask?>(null)
     private val openDays = MutableStateFlow(OpenDays(visit = visits, dates = emptySet()))
@@ -44,14 +44,14 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
                 .catch { emit(null) }
         }
 
-    val uiState: StateFlow<CalendarUiState> = combine(week, addTaskDate, pickerSlot, removedTask, openDays) {
+    val uiState: StateFlow<CalendarUiState> = combine(week, taskDialog, pickerSlot, removedTask, openDays) {
             week,
-            dialogDate,
+            dialog,
             slot,
             removed,
             open,
         ->
-        if (week == null) CalendarUiState.Error else week.toSuccess(dialogDate, slot, removed, open)
+        if (week == null) CalendarUiState.Error else week.toSuccess(dialog, slot, removed, open)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), CalendarUiState.Loading)
 
     fun onPreviousWeekClick() = showWeek(selectedWeek.value.start.plusWeeks(-1))
@@ -122,24 +122,43 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
     }
 
     fun onAddTaskClick(date: LocalDate) {
-        addTaskDate.value = date
+        taskDialog.value = TaskDialog.Add(date)
     }
 
-    fun onAddTaskDismiss() {
-        addTaskDate.value = null
+    /** Opens the task dialog with the current text of the task. A day that is over is a record, so its tasks cannot be edited. */
+    fun onTaskEditClick(date: LocalDate, taskId: String) {
+        if (date < todayProvider.today()) return
+        val success = uiState.value as? CalendarUiState.Success ?: return
+        val task = success.days.firstOrNull { item -> item.date == date }?.plan?.tasks?.firstOrNull { dayTask -> dayTask.id == taskId }
+        if (task != null) taskDialog.value = TaskDialog.Edit(EditingTask(date, task.id, task.text))
     }
 
-    fun onAddTaskConfirm(text: String) {
-        val date = addTaskDate.value ?: return
-        val task = text.trim()
+    /** Closes the task dialog, whether it was adding a task or editing one. */
+    fun onTaskDialogDismiss() {
+        taskDialog.value = null
+    }
+
+    /**
+     * Saves what the task dialog asked for: a new task, or the new text of the one being edited. Blank text is ignored, and line
+     * breaks (from a paste or a hardware keyboard) become spaces, because a task is one line and its chip shows only the first.
+     */
+    fun onTaskDialogConfirm(text: String) {
+        val dialog = taskDialog.value ?: return
+        val task = text.trim().replace(LINE_BREAKS, " ")
         if (task.isEmpty()) return
 
-        addTaskDate.value = null
-        viewModelScope.launch { calendarRepository.addTask(date, task) }
+        taskDialog.value = null
+        when (dialog) {
+            is TaskDialog.Add -> viewModelScope.launch { calendarRepository.addTask(dialog.date, task) }
+
+            is TaskDialog.Edit -> if (task != dialog.task.text) {
+                viewModelScope.launch { calendarRepository.updateTaskText(dialog.task.date, dialog.task.taskId, task) }
+            }
+        }
     }
 
     private fun LoadedWeek.toSuccess(
-        dialogDate: LocalDate?,
+        dialog: TaskDialog?,
         slot: Pair<LocalDate, MealType>?,
         removed: RemovedTask?,
         open: OpenDays,
@@ -159,7 +178,8 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
             weekStart = plan.weekStart,
             days = items,
             isCurrentWeek = plan.weekStart == today.startOfWeek(),
-            addTaskDate = dialogDate,
+            addTaskDate = (dialog as? TaskDialog.Add)?.date,
+            editTask = (dialog as? TaskDialog.Edit)?.task,
             removedTask = removed,
             mealPicker = slot?.let { (date, type) ->
                 MealPickerTarget(date, type, items.firstOrNull { item -> item.date == date }?.plan?.meal(type))
@@ -169,7 +189,17 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
+
+        /** A run of line breaks with the spaces around it. */
+        val LINE_BREAKS = Regex("\\s*[\\r\\n]+\\s*")
     }
+}
+
+/** The task dialog that is open: for a new task on a day, or for the text of an existing one. */
+private sealed interface TaskDialog {
+    data class Add(val date: LocalDate) : TaskDialog
+
+    data class Edit(val task: EditingTask) : TaskDialog
 }
 
 /** The week the user is looking at. [visit] is new every time they move to a week, even one they had seen before. */

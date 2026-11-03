@@ -41,6 +41,12 @@ class FakeCalendarRepository(initialDays: List<DayPlan> = MediterraneanSampleDat
         updateDay(date) { day -> day.copy(tasks = day.tasks + DayTask(id = "fake-task-${nextTaskId++}", text = text)) }
     }
 
+    override suspend fun updateTaskText(date: LocalDate, taskId: String, text: String) {
+        updateDay(date) { day ->
+            day.copy(tasks = day.tasks.map { task -> if (task.id == taskId) task.copy(text = text) else task })
+        }
+    }
+
     override suspend fun removeTask(date: LocalDate, taskId: String) {
         updateDay(date) { day -> day.copy(tasks = day.tasks.filterNot { task -> task.id == taskId }) }
     }

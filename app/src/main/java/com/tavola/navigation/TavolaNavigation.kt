@@ -71,6 +71,7 @@ fun TavolaNavigation() {
                     entry<CalendarRoute>(clazzContentKey = { CALENDAR_KEY }, metadata = motion.tabMetadata) {
                         CalendarScreen(
                             onOpenDebugMenu = debugMenuAction(backStack),
+                            onOpenRecipe = { recipeId -> backStack.add(RecipeDetailRoute(recipeId)) },
                             mealPicker = { target, onClose ->
                                 MealPickerSheetContent(date = target.date, type = target.type, current = target.current, onClose = onClose)
                             },

@@ -37,17 +37,19 @@ import com.tavola.core.designsystem.topbar.TavolaTopBarAction
  *
  * @param onOpenDebugMenu if not `null` (debug builds only) adds a button to the top bar.
  * @param mealPicker content of the meal picker, which `:app` provides (see [MealPickerSlot]).
+ * @param onOpenRecipe asks `:app` to show a recipe; a meal of a day that is over opens its recipe this way.
  */
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
     onOpenDebugMenu: (() -> Unit)? = null,
     mealPicker: MealPickerSlot? = null,
+    onOpenRecipe: (recipeId: String) -> Unit = {},
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val actions = remember(viewModel) { viewModel.toActions() }
-    CalendarContent(state, actions, modifier, onOpenDebugMenu, mealPicker)
+    CalendarContent(state, actions, modifier, onOpenDebugMenu, mealPicker, onOpenRecipe)
 }
 
 /** Stateless part of the screen: it receives the state and the actions, so it can be previewed and tested. */
@@ -59,6 +61,7 @@ fun CalendarContent(
     modifier: Modifier = Modifier,
     onOpenDebugMenu: (() -> Unit)? = null,
     mealPicker: MealPickerSlot? = null,
+    onOpenRecipe: (recipeId: String) -> Unit = {},
 ) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -83,7 +86,7 @@ fun CalendarContent(
 
             CalendarUiState.Error -> CenteredState(contentPadding) { CalendarError(actions.onRetryClick) }
 
-            is CalendarUiState.Success -> WeekContent(state, actions, contentPadding, mealPicker)
+            is CalendarUiState.Success -> WeekContent(state, actions, contentPadding, mealPicker, onOpenRecipe)
         }
     }
 }

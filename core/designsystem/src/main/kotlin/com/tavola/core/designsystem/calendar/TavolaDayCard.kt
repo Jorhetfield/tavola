@@ -26,12 +26,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -86,6 +83,7 @@ fun TavolaDayCard(
     onAddTaskClick: () -> Unit,
     modifier: Modifier = Modifier,
     onToggleExpanded: () -> Unit = {},
+    onRecipeClick: (recipeId: String) -> Unit = {},
 ) {
     val spacing = TavolaTheme.spacing
     val motion = MaterialTheme.motionScheme
@@ -109,7 +107,7 @@ fun TavolaDayCard(
                 .then(if (model.isCollapsible) Modifier else Modifier.animateContentSize(motion.defaultSpatialSpec()))
                 .padding(horizontal = spacing.lg, vertical = lerp(spacing.md, spacing.lg, openness).coerceAtLeast(0.dp)),
         ) {
-            DayCardHeader(model, palette, openness, showMeals = isCompactRow && mealsBesideDate, onAddTaskClick, onToggleExpanded)
+            DayCardHeader(model, palette, openness, showMeals = isCompactRow && mealsBesideDate, onToggleExpanded)
             AnimatedVisibility(
                 visible = isCompactRow && !mealsBesideDate,
                 enter = expandVertically(motion.defaultSpatialSpec<IntSize>()) + fadeIn(motion.defaultEffectsSpec()),
@@ -123,9 +121,10 @@ fun TavolaDayCard(
                 exit = shrinkVertically(motion.fastSpatialSpec<IntSize>()) + fadeOut(motion.fastEffectsSpec()),
             ) {
                 Column(modifier = Modifier.padding(top = spacing.lg), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-                    DayCardMeals(model, palette, onMealClick)
-                    if (model.tasks.isNotEmpty()) {
-                        DayCardTasks(model.tasks, onTaskCheckedChange, onTaskRemoveClick)
+                    DayCardMeals(model, palette, onMealClick, onRecipeClick)
+                    // A day that is over only shows its tasks if it has any; the others always show the zone, where "Add task" lives.
+                    if (model.isEditable || model.tasks.isNotEmpty()) {
+                        DayCardTasks(model, palette, onTaskCheckedChange, onTaskRemoveClick, onAddTaskClick)
                     }
                 }
             }
@@ -149,7 +148,6 @@ private fun DayCardHeader(
     palette: DayCardPalette,
     openness: Float,
     showMeals: Boolean,
-    onAddTaskClick: () -> Unit,
     onToggleExpanded: () -> Unit,
 ) {
     val spacing = TavolaTheme.spacing
@@ -184,15 +182,6 @@ private fun DayCardHeader(
                 .weight(1f)
                 .padding(horizontal = spacing.md),
         )
-        AnimatedVisibility(
-            visible = model.isShownInFull,
-            enter = fadeIn(motion.defaultEffectsSpec()) + scaleIn(motion.defaultSpatialSpec()),
-            exit = fadeOut(motion.fastEffectsSpec()) + scaleOut(motion.fastSpatialSpec()),
-        ) {
-            FilledTonalIconButton(onClick = onAddTaskClick, shapes = IconButtonDefaults.shapes()) {
-                Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.day_card_add_task))
-            }
-        }
         if (model.isCollapsible) {
             AnimatedVisibility(
                 visible = model.isCollapsible && !model.expanded && model.pendingTasks > 0,
@@ -281,15 +270,29 @@ private fun TodayBadge(palette: DayCardPalette) {
 }
 
 @Composable
-private fun DayCardMeals(model: DayCardModel, palette: DayCardPalette, onMealClick: (MealType) -> Unit) {
+private fun DayCardMeals(
+    model: DayCardModel,
+    palette: DayCardPalette,
+    onMealClick: (MealType) -> Unit,
+    onRecipeClick: (recipeId: String) -> Unit,
+) {
+    val openRecipeLabel = stringResource(R.string.meal_slot_open_recipe)
     Row(
         modifier = Modifier.height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md),
     ) {
         listOf(model.lunch, model.dinner).forEach { slot ->
+            // A day that is over only lets you look at a recipe; an empty slot or a quick meal has nothing to open.
+            val recipeId = slot.recipeId
+            val onClick: (() -> Unit)? = when {
+                model.isEditable -> ({ onMealClick(slot.type) })
+                recipeId != null -> ({ onRecipeClick(recipeId) })
+                else -> null
+            }
             TavolaMealSlot(
                 model = slot,
-                onClick = { onMealClick(slot.type) },
+                onClick = onClick,
+                clickLabel = if (model.isEditable) null else openRecipeLabel,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),
@@ -301,18 +304,26 @@ private fun DayCardMeals(model: DayCardModel, palette: DayCardPalette, onMealCli
 }
 
 @Composable
-private fun DayCardTasks(tasks: List<TaskChipModel>, onTaskCheckedChange: (String, Boolean) -> Unit, onTaskRemoveClick: (String) -> Unit) {
+private fun DayCardTasks(
+    model: DayCardModel,
+    palette: DayCardPalette,
+    onTaskCheckedChange: (String, Boolean) -> Unit,
+    onTaskRemoveClick: (String) -> Unit,
+    onAddTaskClick: () -> Unit,
+) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
         verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
     ) {
-        tasks.forEach { task ->
+        model.tasks.forEach { task ->
             TavolaTaskChip(
                 model = task,
                 onCheckedChange = { checked -> onTaskCheckedChange(task.id, checked) },
                 onRemoveClick = { onTaskRemoveClick(task.id) },
+                removable = model.isEditable,
             )
         }
+        if (model.isEditable) TavolaAddTaskChip(onClick = onAddTaskClick, contentColor = palette.content)
     }
 }
 

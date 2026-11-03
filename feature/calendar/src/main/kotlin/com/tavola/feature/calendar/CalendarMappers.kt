@@ -44,7 +44,7 @@ private fun PlannedMeal?.toSlotModel(type: UiMealType, resources: Resources): Me
             recipe.prepTimeMinutes?.let { minutes -> resources.getString(R.string.calendar_prep_time, minutes) },
             recipe.tags.firstOrNull(),
         )
-        MealSlotModel(type = type, title = title, subtitle = details.joinToString(" · ").ifEmpty { null })
+        MealSlotModel(type = type, title = title, subtitle = details.joinToString(" · ").ifEmpty { null }, recipeId = recipe.recipeId)
     }
 
     is PlannedMeal.Quick -> MealSlotModel(type = type, title = title, subtitle = note)

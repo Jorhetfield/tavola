@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -57,13 +58,17 @@ private const val ENTER_OFFSET_DIVISOR = 4
  * Lunch or dinner slot. Filled: the title of the recipe or meal and a detail. Empty: a dashed border with "Add".
  * When it is filled or emptied, the border fades, the background changes color (effects animation) and the content slides
  * in with a spatial spring. [containerColor] and [contentColor] let the day card adapt it to its state.
+ *
+ * A `null` [onClick] makes the slot read-only (a day that is over): it has no touch response and an empty one shows a dash
+ * instead of "Add", since nothing can be planned in it. [clickLabel] says what a tap does, for screen readers.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TavolaMealSlot(
     model: MealSlotModel,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    clickLabel: String? = null,
     containerColor: Color = TavolaTheme.colors.mealSlot,
     contentColor: Color = TavolaTheme.colors.onMealSlot,
 ) {
@@ -76,7 +81,7 @@ fun TavolaMealSlot(
         label = "slotBackground",
     )
     val borderAlpha by animateFloatAsState(
-        if (model.isEmpty) EMPTY_BORDER_ALPHA else 0f,
+        if (model.isEmpty && onClick != null) EMPTY_BORDER_ALPHA else 0f,
         motion.defaultEffectsSpec(),
         label = "slotBorder",
     )
@@ -86,7 +91,7 @@ fun TavolaMealSlot(
             .clip(shape)
             .background(background)
             .dashedBorder(contentColor.copy(alpha = borderAlpha), shape)
-            .clickable(onClick = onClick)
+            .then(if (onClick == null) Modifier else Modifier.clickable(onClickLabel = clickLabel, role = Role.Button, onClick = onClick))
             .animateContentSize(motion.defaultSpatialSpec())
             .defaultMinSize(minHeight = SlotMinHeight)
             .padding(spacing.md),
@@ -103,7 +108,11 @@ fun TavolaMealSlot(
             },
             label = "slotBody",
         ) { (title, subtitle) ->
-            if (title == null) EmptySlotBody(contentColor) else FilledSlotBody(title, subtitle, contentColor)
+            when {
+                title != null -> FilledSlotBody(title, subtitle, contentColor)
+                onClick == null -> ReadOnlyEmptySlotBody(contentColor)
+                else -> EmptySlotBody(contentColor)
+            }
         }
     }
 }
@@ -180,6 +189,15 @@ private fun EmptySlotBody(contentColor: Color) {
             color = contentColor,
         )
     }
+}
+
+@Composable
+private fun ReadOnlyEmptySlotBody(contentColor: Color) {
+    Text(
+        text = stringResource(R.string.day_card_summary_empty),
+        style = MaterialTheme.typography.titleSmall,
+        color = contentColor.copy(alpha = 0.7f),
+    )
 }
 
 private fun Modifier.dashedBorder(color: Color, shape: Shape): Modifier = drawWithCache {

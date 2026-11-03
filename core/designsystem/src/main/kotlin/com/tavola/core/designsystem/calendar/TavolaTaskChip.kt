@@ -42,12 +42,14 @@ import com.tavola.core.designsystem.theme.TavolaTheme
 private val CheckIconSize = 20.dp
 private val RemoveIconSize = 18.dp
 private val RemoveTargetWidth = 40.dp
-private val ChipMinHeight = 40.dp
+
+/** Height of a chip of the task list; the "Add task" chip uses it too, so both line up on the same row. */
+internal val TaskChipMinHeight = 40.dp
 
 /**
  * Quick task of the day ("take the chicken out to thaw", "buy peppers"). It is checked by tapping the text and
  * removed with the X on the right, a separate touch target so it is not removed by mistake. Done tasks do not
- * show the X.
+ * show the X. With [removable] off (a day that is over) there is no X for any task.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -56,6 +58,7 @@ fun TavolaTaskChip(
     onCheckedChange: (checked: Boolean) -> Unit,
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier,
+    removable: Boolean = true,
 ) {
     val colors = TavolaTheme.colors
     val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Color>()
@@ -67,12 +70,12 @@ fun TavolaTaskChip(
             .animateContentSize(MaterialTheme.motionScheme.defaultSpatialSpec())
             .clip(CircleShape)
             .background(container)
-            .heightIn(min = ChipMinHeight),
+            .heightIn(min = TaskChipMinHeight),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TaskChipLabel(model, content, onCheckedChange, modifier = Modifier.weight(1f, fill = false))
         // A done task is not removed from here: uncheck it first.
-        if (model.done) {
+        if (model.done || !removable) {
             Spacer(Modifier.width(TavolaTheme.spacing.lg))
         } else {
             TaskChipRemoveButton(model.text, content, onRemoveClick)
@@ -86,7 +89,7 @@ private fun TaskChipLabel(model: TaskChipModel, content: Color, onCheckedChange:
     Row(
         modifier = modifier
             .toggleable(value = model.done, role = Role.Checkbox, onValueChange = onCheckedChange)
-            .heightIn(min = ChipMinHeight)
+            .heightIn(min = TaskChipMinHeight)
             .padding(start = spacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(spacing.sm),
@@ -115,7 +118,7 @@ private fun TaskChipRemoveButton(taskText: String, content: Color, onRemoveClick
     Box(
         modifier = Modifier
             .width(RemoveTargetWidth)
-            .heightIn(min = ChipMinHeight)
+            .heightIn(min = TaskChipMinHeight)
             .clip(CircleShape)
             .clickable(role = Role.Button, onClick = onRemoveClick),
         contentAlignment = Alignment.Center,

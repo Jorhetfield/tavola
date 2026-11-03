@@ -53,6 +53,21 @@ service cloud.firestore {
       return code is string && code.matches('^[A-HJKMNP-Z2-9]{8}$');
     }
 
+    function invitePath(code) {
+      return /databases/$(database)/documents/invites/$(code);
+    }
+
+    // The invite of a group and the code the group says it has always go together: `invites/{code}` has to point to the group, in
+    // the same transaction that gives the group that code. When a code is renewed the old invite has to be gone by the end of it.
+    function inviteMatchesNewGroup(groupId, code) {
+      return getAfter(invitePath(code)).data.groupId == groupId;
+    }
+
+    function inviteIsRenewed(groupId, oldCode, newCode) {
+      return oldCode == newCode
+        || (getAfter(invitePath(newCode)).data.groupId == groupId && !existsAfter(invitePath(oldCode)));
+    }
+
     // The group of a person. Only they can read or write it, and it only ever holds the id of a group (or null).
     match /users/{uid} {
       allow read: if signedIn() && userId() == uid;
@@ -89,14 +104,17 @@ service cloud.firestore {
         && request.resource.data.memberIds == [userId()]
         && request.resource.data.createdBy == userId()
         && validName(request.resource.data.name)
-        && validCode(request.resource.data.inviteCode);
+        && validCode(request.resource.data.inviteCode)
+        && inviteMatchesNewGroup(groupId, request.resource.data.inviteCode);
 
       allow update: if signedIn() && (
-        // A member renames the group or renews its code (changing nothing else).
+        // A member renames the group or renews its code (changing nothing else). A new code needs its invite, and the old
+        // invite has to be deleted in the same transaction, so a code that no one can use is never left in the group.
         (isMember(resource.data)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'inviteCode'])
           && validName(request.resource.data.name)
-          && validCode(request.resource.data.inviteCode))
+          && validCode(request.resource.data.inviteCode)
+          && inviteIsRenewed(groupId, resource.data.inviteCode, request.resource.data.inviteCode))
         // A member leaves: the only change is that they are no longer in the list. Nobody can remove someone else.
         || (isMember(resource.data)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])

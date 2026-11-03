@@ -26,6 +26,20 @@ class GroupRulesTest {
     }
 
     @Test
+    fun `a name is never cut in the middle of an emoji`() {
+        val grinning = "😀"
+
+        val name = GroupRules.cleanName("a".repeat(GroupRules.MAX_NAME_LENGTH - 1) + grinning)
+
+        assertEquals("a".repeat(GroupRules.MAX_NAME_LENGTH - 1), name)
+        // An emoji that fits is kept whole.
+        assertEquals(
+            "a".repeat(GroupRules.MAX_NAME_LENGTH - 2) + grinning,
+            GroupRules.cleanName("a".repeat(GroupRules.MAX_NAME_LENGTH - 2) + grinning),
+        )
+    }
+
+    @Test
     fun `the color of a member depends only on who they are and stays in the palette`() {
         val first = GroupRules.memberColorIndex("user-marta")
 

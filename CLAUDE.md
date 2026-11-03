@@ -159,10 +159,12 @@ Convenciones de estado (guía de arquitectura de Google):
 
 ## Modelo de datos (Firestore)
 ```
-Group        { id, name, memberIds[], inviteCode }
+Group        { id, name, memberIds[], inviteCode, createdBy }
 WeekPlan     { groupId, weekStart, days[{ date, lunch: PlannedMeal?, dinner: PlannedMeal?, tasks[] }] }
 PlannedMeal  FromRecipe(RecipeRef: recipeId + título copiado) | Quick(title, note?)
 Recipe       { id, ownerId, title, photoUrl, ingredients[{ name, quantity?, unit }], steps[], tags[], prepTimeMinutes }
 ShoppingList { groupId, items[{ name, category, checked, addedBy }] }
-GroupMember  { userId, displayName, avatarUrl, color }
+GroupMember  { userId, displayName, photoUrl, colorIndex, joinCode? }   (groups/{groupId}/members/{userId}; joinCode solo lo lleva quien entra con un código)
+User         { groupId? }                                              (users/{userId}: el grupo de la persona, uno como máximo)
+Invite       { groupId }                                               (invites/{código}: se lee por su id exacto, nunca se lista)
 ```

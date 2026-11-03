@@ -33,8 +33,15 @@ object GroupRules {
     /** How many member colors the palette has; the screens wrap a member's color index around the colors they actually have. */
     const val MEMBER_COLOR_COUNT = 8
 
-    /** The name as it is stored: line breaks become spaces, the ends are trimmed and it is cut at the limit; `null` if nothing is left. */
-    fun cleanName(input: String): String? = input.replace(LINE_BREAKS, " ").trim().take(MAX_NAME_LENGTH).trim().ifEmpty { null }
+    /**
+     * The name as it is stored: line breaks become spaces, the ends are trimmed and it is cut at the limit (never in the middle of
+     * an emoji, which takes two characters); `null` if nothing is left.
+     */
+    fun cleanName(input: String): String? {
+        val cut = input.replace(LINE_BREAKS, " ").trim().take(MAX_NAME_LENGTH)
+        val whole = if (cut.lastOrNull()?.isHighSurrogate() == true) cut.dropLast(1) else cut
+        return whole.trim().ifEmpty { null }
+    }
 
     /** A color for a member that depends only on who they are, so it is the same on every phone and nobody has to coordinate. */
     fun memberColorIndex(userId: String): Int = (userId.hashCode() and Int.MAX_VALUE) % MEMBER_COLOR_COUNT

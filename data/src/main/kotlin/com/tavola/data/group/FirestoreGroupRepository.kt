@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Groups in Firestore (see `GroupDocuments.kt` for how they are stored). Every change that touches more than one document goes
@@ -129,9 +130,23 @@ internal class FirestoreGroupRepository @Inject constructor(
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (failure: Exception) {
-            // A group that was renewed a moment ago can also be refused by the rules; the person is told the code is not valid.
-            if (failure.isPermissionDenied()) JoinGroupResult.InvalidCode else JoinGroupResult.Failed(failure.toGroupFailure())
+            // A code renewed a moment ago is refused by the rules because its invite is gone, and that is a code that is not valid.
+            // A refusal while the invite is still there is not about the code (for example the rules are not published).
+            if (failure.isPermissionDenied() && !inviteExists(parsed)) {
+                JoinGroupResult.InvalidCode
+            } else {
+                JoinGroupResult.Failed(failure.toGroupFailure())
+            }
         }
+    }
+
+    /** Whether the invite of [code] is there; if that cannot be told, it is taken to be there, so the refusal is not blamed on the code. */
+    private suspend fun inviteExists(code: String): Boolean = try {
+        inviteRef(code).get().await().exists()
+    } catch (cancellation: CancellationException) {
+        throw cancellation
+    } catch (failure: Exception) {
+        true
     }
 
     override suspend fun renameGroup(name: String): GroupActionResult = groupAction { user ->
@@ -140,7 +155,9 @@ internal class FirestoreGroupRepository @Inject constructor(
         if (groupId == null) {
             GroupActionResult.Failed(GroupFailure.Other)
         } else {
-            groupRef(groupId).update(GroupFields.NAME, cleanName).await()
+            // A write only completes once the server has it. With no connection it is kept and sent later, and the screen already
+            // shows it, so after a short wait for the answer (a refusal comes within it) the rename counts as done.
+            withTimeoutOrNull(ACKNOWLEDGEMENT_WAIT_MILLIS) { groupRef(groupId).update(GroupFields.NAME, cleanName).await() }
             GroupActionResult.Done
         }
     }
@@ -212,6 +229,9 @@ internal class FirestoreGroupRepository @Inject constructor(
     private companion object {
         /** A new code can only clash with an existing one by a one-in-a-trillion chance; a few attempts are plenty. */
         const val MAX_CODE_ATTEMPTS = 3
+
+        /** How long a single write waits for the server before it is left to finish on its own. */
+        const val ACKNOWLEDGEMENT_WAIT_MILLIS = 4_000L
     }
 }
 

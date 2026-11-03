@@ -28,8 +28,14 @@ Planned PRs, each one building, tested and reviewed on its own:
 1. Firebase and Auth with Google sign-in.
 2. Groups with an invite code.
 3. The calendar in Firestore behind the same `CalendarRepository` (Room out).
-4. The recipes in Firestore behind `RecipeRepository`.
+4. The recipes in Firestore behind `RecipeRepository`. Once both are in, remove the Room code and dependency, and update `CLAUDE.md` (`:data` is described as Firestore/Room) and the README, which still mention Room.
 5. Security rules and real-time updates between members.
+
+Still to decide, each before the PR that needs it (these came out of the review of the decisions above):
+- **Joining by code with member-only rules** (PR 2 and 5). A person who is not a member yet has to find a group by its code, so the rules of decision 7 cannot hide the groups from them, and Spark has no Cloud Functions. Proposal, to confirm: a separate `invites/{code}` document that anyone signed in can read by its exact id (no listing) and that only holds the group id; the code is long and random enough to be hard to guess; the group itself stays members-only.
+- **Debug menu on shared data** (PR 3). Decision 3 keeps "Load sample data" and "Clear everything", but there is one Firebase project, so a debug build in the real group could wipe or fill the real calendar. Proposal, to confirm: the debug menu only works on a separate test group, or "Clear everything" is limited to what the loader added.
+- **First launch.** The app needs a signed-in user, so decide what shows when someone opens it with no network, cancels the Google prompt or fails to sign in (PR 1).
+- **Leaving a group** (PR 2). With one group per person, leaving is the only way to join another one. Decide what happens to the data when the last member leaves, and whether an invite code can be renewed.
 
 To check before or while doing it:
 - **Recipe photos and the Spark plan.** Firebase Storage may need the paid Blaze plan, even on a new project. Verify before planning the photos (Phase 4); it may change decision 7 or postpone them.

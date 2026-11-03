@@ -1,0 +1,133 @@
+rules_version = '2';
+
+// Security rules of Tavola's Firestore. They have to match how the app stores things: see
+// data/src/main/kotlin/com/tavola/data/group/GroupDocuments.kt, which lists the shape of every document.
+//
+//   users/{userId}                    { groupId }                  the group of a person, or null
+//   groups/{groupId}                  { name, memberIds, inviteCode, createdBy }
+//   groups/{groupId}/members/{userId} { displayName, photoUrl, colorIndex, joinCode? }
+//   invites/{code}                    { groupId }                  lets a person who knows the code find the group
+//
+// The ideas, from the decisions in docs/PLAN.md:
+// - Everything is closed by default: only what is matched below can be read or written, and only by a signed-in person.
+// - A group, its members and (later) its calendar and recipes can only be read by the members of that group, who all have the
+//   same permissions: nobody can remove another member, and a group is never deleted.
+// - A person who is not a member yet finds a group by reading `invites/{code}` by its exact id (`get`, never a list), which only
+//   holds the id of the group. To join, they write their own member document carrying the code and add themselves to the group
+//   in the same transaction; the rules check that the code they carry is the current one of the group.
+// - Renewing a code deletes the old invite and creates the new one in the same transaction, so the old code stops working.
+//
+// How to publish them: paste this file in the Firebase console (Firestore Database, Rules, Publish), or run
+// `firebase deploy --only firestore:rules` with the Firebase CLI. The rules are not part of the app: a change here is live as soon
+// as it is published, and the app has to be compatible with the rules that are live.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userId() {
+      return request.auth.uid;
+    }
+
+    function groupPath(groupId) {
+      return /databases/$(database)/documents/groups/$(groupId);
+    }
+
+    function memberPath(groupId, memberId) {
+      return /databases/$(database)/documents/groups/$(groupId)/members/$(memberId);
+    }
+
+    function isMember(groupData) {
+      return userId() in groupData.memberIds;
+    }
+
+    // A name of 1 to 40 characters (the app cuts it at 40 and removes line breaks).
+    function validName(name) {
+      return name is string && name.size() >= 1 && name.size() <= 40;
+    }
+
+    // 8 characters of the alphabet without look-alikes (no 0, O, 1, I or L).
+    function validCode(code) {
+      return code is string && code.matches('^[A-HJKMNP-Z2-9]{8}$');
+    }
+
+    // The group of a person. Only they can read or write it, and it only ever holds the id of a group (or null).
+    match /users/{uid} {
+      allow read: if signedIn() && userId() == uid;
+      allow create, update: if signedIn() && userId() == uid
+        && request.resource.data.keys().hasOnly(['groupId'])
+        && (request.resource.data.groupId == null || request.resource.data.groupId is string);
+      allow delete: if false;
+    }
+
+    // Found by its exact id to join a group; never listed.
+    match /invites/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+
+      // Created with a group (or when its code is renewed): the code has to be the current one of a group the person is in.
+      allow create: if signedIn()
+        && validCode(code)
+        && request.resource.data.keys().hasOnly(['groupId'])
+        && request.resource.data.groupId is string
+        && getAfter(groupPath(request.resource.data.groupId)).data.inviteCode == code
+        && isMember(getAfter(groupPath(request.resource.data.groupId)).data);
+      allow update: if false;
+
+      // Deleted when its code is renewed, by a member of the group it points to.
+      allow delete: if signedIn() && isMember(get(groupPath(resource.data.groupId)).data);
+    }
+
+    match /groups/{groupId} {
+      allow read: if signedIn() && isMember(resource.data);
+
+      // A person creates a group with themselves as its only member.
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['name', 'memberIds', 'inviteCode', 'createdBy'])
+        && request.resource.data.memberIds == [userId()]
+        && request.resource.data.createdBy == userId()
+        && validName(request.resource.data.name)
+        && validCode(request.resource.data.inviteCode);
+
+      allow update: if signedIn() && (
+        // A member renames the group or renews its code (changing nothing else).
+        (isMember(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'inviteCode'])
+          && validName(request.resource.data.name)
+          && validCode(request.resource.data.inviteCode))
+        // A member leaves: the only change is that they are no longer in the list. Nobody can remove someone else.
+        || (isMember(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+          && request.resource.data.memberIds.toSet() == resource.data.memberIds.toSet().difference([userId()].toSet()))
+        // Someone who is not a member joins: the only change is that they are added at the end of the list, and the member
+        // document they write in the same transaction carries the current code of the group.
+        || (!isMember(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+          && request.resource.data.memberIds == resource.data.memberIds.concat([userId()])
+          && getAfter(memberPath(groupId, userId())).data.joinCode == resource.data.inviteCode)
+      );
+
+      // A group is never deleted: when the last member leaves it stays, without members.
+      allow delete: if false;
+
+      match /members/{memberId} {
+        allow read: if signedIn() && isMember(get(groupPath(groupId)).data);
+
+        // A person writes only their own member document, and only as part of becoming a member: the group has to list them
+        // once the transaction is done. Whoever creates the group has no code; whoever joins carries the current one.
+        allow create: if signedIn() && memberId == userId()
+          && request.resource.data.keys().hasOnly(['displayName', 'photoUrl', 'colorIndex', 'joinCode'])
+          && request.resource.data.colorIndex is int
+          && isMember(getAfter(groupPath(groupId)).data)
+          && (!exists(groupPath(groupId))
+            || request.resource.data.joinCode == get(groupPath(groupId)).data.inviteCode);
+        allow update: if false;
+
+        // A person can remove their own member document (they do it when they leave).
+        allow delete: if signedIn() && memberId == userId();
+      }
+    }
+  }
+}

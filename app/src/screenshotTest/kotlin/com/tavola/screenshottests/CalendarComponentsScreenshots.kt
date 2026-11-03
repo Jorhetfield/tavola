@@ -106,7 +106,7 @@ fun ReadOnlyMealSlotScreenshot() {
             horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md),
         ) {
             TavolaMealSlot(
-                model = MealSlotModel(MealType.Lunch, "Gazpacho", "15 min", hasRecipe = true),
+                model = MealSlotModel(MealType.Lunch, "Gazpacho", "15 min", recipeId = "gazpacho"),
                 onClick = null,
                 modifier = Modifier.weight(1f),
             )

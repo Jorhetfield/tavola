@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -59,7 +60,7 @@ private const val ENTER_OFFSET_DIVISOR = 4
  * in with a spatial spring. [containerColor] and [contentColor] let the day card adapt it to its state.
  *
  * A `null` [onClick] makes the slot read-only (a day that is over): it has no touch response and an empty one shows a dash
- * instead of "Add", since nothing can be planned in it.
+ * instead of "Add", since nothing can be planned in it. [clickLabel] says what a tap does, for screen readers.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -67,6 +68,7 @@ fun TavolaMealSlot(
     model: MealSlotModel,
     onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    clickLabel: String? = null,
     containerColor: Color = TavolaTheme.colors.mealSlot,
     contentColor: Color = TavolaTheme.colors.onMealSlot,
 ) {
@@ -89,7 +91,7 @@ fun TavolaMealSlot(
             .clip(shape)
             .background(background)
             .dashedBorder(contentColor.copy(alpha = borderAlpha), shape)
-            .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
+            .then(if (onClick == null) Modifier else Modifier.clickable(onClickLabel = clickLabel, role = Role.Button, onClick = onClick))
             .animateContentSize(motion.defaultSpatialSpec())
             .defaultMinSize(minHeight = SlotMinHeight)
             .padding(spacing.md),

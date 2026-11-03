@@ -86,14 +86,8 @@ private fun DayList(
             val date = LocalDate.parse(card.id)
             TavolaDayCard(
                 model = card,
-                // A day that is over is a record: its meals open the recipe instead of the picker.
-                onMealClick = { type ->
-                    if (card.isEditable) {
-                        actions.onMealClick(date, type.toDomain())
-                    } else {
-                        week.days.firstOrNull { day -> day.date == date }?.recipeIdOf(type)?.let(onOpenRecipe)
-                    }
-                },
+                onMealClick = { type -> actions.onMealClick(date, type.toDomain()) },
+                onRecipeClick = onOpenRecipe,
                 onTaskCheckedChange = { taskId, checked -> actions.onTaskCheckedChange(date, taskId, checked) },
                 onTaskRemoveClick = { taskId -> actions.onTaskRemove(date, taskId) },
                 onAddTaskClick = { actions.onAddTaskClick(date) },

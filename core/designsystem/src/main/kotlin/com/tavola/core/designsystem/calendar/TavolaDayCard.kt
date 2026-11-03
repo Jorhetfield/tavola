@@ -83,6 +83,7 @@ fun TavolaDayCard(
     onAddTaskClick: () -> Unit,
     modifier: Modifier = Modifier,
     onToggleExpanded: () -> Unit = {},
+    onRecipeClick: (recipeId: String) -> Unit = {},
 ) {
     val spacing = TavolaTheme.spacing
     val motion = MaterialTheme.motionScheme
@@ -120,7 +121,7 @@ fun TavolaDayCard(
                 exit = shrinkVertically(motion.fastSpatialSpec<IntSize>()) + fadeOut(motion.fastEffectsSpec()),
             ) {
                 Column(modifier = Modifier.padding(top = spacing.lg), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
-                    DayCardMeals(model, palette, onMealClick)
+                    DayCardMeals(model, palette, onMealClick, onRecipeClick)
                     // A day that is over only shows its tasks if it has any; the others always show the zone, where "Add task" lives.
                     if (model.isEditable || model.tasks.isNotEmpty()) {
                         DayCardTasks(model, palette, onTaskCheckedChange, onTaskRemoveClick, onAddTaskClick)
@@ -269,17 +270,29 @@ private fun TodayBadge(palette: DayCardPalette) {
 }
 
 @Composable
-private fun DayCardMeals(model: DayCardModel, palette: DayCardPalette, onMealClick: (MealType) -> Unit) {
+private fun DayCardMeals(
+    model: DayCardModel,
+    palette: DayCardPalette,
+    onMealClick: (MealType) -> Unit,
+    onRecipeClick: (recipeId: String) -> Unit,
+) {
+    val openRecipeLabel = stringResource(R.string.meal_slot_open_recipe)
     Row(
         modifier = Modifier.height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.md),
     ) {
         listOf(model.lunch, model.dinner).forEach { slot ->
             // A day that is over only lets you look at a recipe; an empty slot or a quick meal has nothing to open.
-            val clickable = model.isEditable || slot.hasRecipe
+            val recipeId = slot.recipeId
+            val onClick: (() -> Unit)? = when {
+                model.isEditable -> ({ onMealClick(slot.type) })
+                recipeId != null -> ({ onRecipeClick(recipeId) })
+                else -> null
+            }
             TavolaMealSlot(
                 model = slot,
-                onClick = if (clickable) ({ onMealClick(slot.type) }) else null,
+                onClick = onClick,
+                clickLabel = if (model.isEditable) null else openRecipeLabel,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(),

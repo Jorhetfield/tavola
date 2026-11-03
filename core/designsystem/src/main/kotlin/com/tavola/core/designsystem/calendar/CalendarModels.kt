@@ -8,9 +8,9 @@ enum class MealType { Lunch, Dinner }
 
 enum class DayState { Past, Today, Upcoming }
 
-/** Lunch or dinner slot. Without a [title] it is empty (drawn as "Add"). [hasRecipe] tells a recipe from a quick meal. */
+/** Lunch or dinner slot. Without a [title] it is empty (drawn as "Add"). [recipeId] is set when it holds a recipe, not a quick meal. */
 @Immutable
-data class MealSlotModel(val type: MealType, val title: String? = null, val subtitle: String? = null, val hasRecipe: Boolean = false) {
+data class MealSlotModel(val type: MealType, val title: String? = null, val subtitle: String? = null, val recipeId: String? = null) {
     val isEmpty: Boolean get() = title == null
 }
 

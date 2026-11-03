@@ -25,7 +25,6 @@ import com.tavola.core.designsystem.R
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
 
-private val ChipMinHeight = 40.dp
 private val AddIconSize = 18.dp
 private val OutlineWidth = 1.5.dp
 private const val OUTLINE_ALPHA = 0.4f
@@ -43,7 +42,7 @@ fun TavolaAddTaskChip(onClick: () -> Unit, modifier: Modifier = Modifier, conten
             .clip(CircleShape)
             .border(OutlineWidth, contentColor.copy(alpha = OUTLINE_ALPHA), CircleShape)
             .clickable(role = Role.Button, onClick = onClick)
-            .heightIn(min = ChipMinHeight)
+            .heightIn(min = TaskChipMinHeight)
             .padding(horizontal = spacing.md),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(spacing.xs),

@@ -47,6 +47,7 @@ Still to decide, each before the PR that needs it (these came out of the review 
 - ~~Leaving a group~~ Decided in PR 2: nothing is deleted when the last member leaves; the code can be renewed (see "Groups decisions").
 
 To check before or while doing it:
+- **First launch of a person who already has a group, with no network.** The group gate waits for the server's answer about their group (so a person on a new phone does not see the first step for a moment). With no connection on a phone where the app was never used, it keeps the loading screen. Decide what to show after a while (a message and a retry) when there is time.
 - **Firestore rules are published by hand and not tested with the emulator.** `firestore.rules` (PR 2a) is pasted in the Firebase console (Firestore Database, Rules, Publish) or deployed with `firebase deploy --only firestore:rules`; the repository only works against the rules that are live. There is no Node here, so the rules were not run in the Firebase emulator; they are checked by the console when published and by trying the flows in the app (PR 2b). Add emulator tests (`@firebase/rules-unit-testing`) when Node is available, before the rules grow with the calendar and the recipes.
 - **Recipe photos and the Spark plan.** Firebase Storage may need the paid Blaze plan, even on a new project. Verify before planning the photos (Phase 4); it may change decision 7 or postpone them.
 - **Google sign-in in the CI APK.** It needs the SHA-1 of the signing key registered in Firebase, and CI signs the debug APK with its own key, so that APK may not be able to sign in. Decide how to sign it (a fixed key) before publishing.
@@ -84,7 +85,7 @@ The items are grouped by topic, not in work order: follow "Next up" above.
 
 - [ ] Firebase + Auth + groups with an invite code (see "Firebase decisions" above)
   - [x] Firebase and Auth with Google sign-in: `:feature:auth` has the sign-in screen and the session gate (`AuthGate`); `AuthRepository` in `:domain`, Firebase Auth in `:data`. Still to do: register the SHA-1 of the CI signing key in Firebase so the CI APK can sign in.
-  - [ ] Groups with an invite code (2a data and rules, 2b screens)
+  - [ ] Groups with an invite code: 2a data and rules (done), 2b the gate and the first step, create or join (done), 2c the "My group" screen with the button in the calendar bar (to do: code, share, renew, rename, members, leave)
 - [ ] Shared calendar in real time (Firestore)
   - [ ] The calendar in Firestore, Room out
   - [ ] The recipes in Firestore

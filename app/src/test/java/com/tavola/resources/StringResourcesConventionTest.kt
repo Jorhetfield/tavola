@@ -21,6 +21,7 @@ class StringResourcesConventionTest {
         "core/designsystem" to setOf("topbar", "search_field", "snackbar", "nav", "meal_slot", "day_card", "task_chip", "week_selector"),
         "feature/auth" to setOf("auth"),
         "feature/calendar" to setOf("calendar"),
+        "feature/groups" to setOf("group"),
         "feature/recipes" to setOf("recipe", "meal_picker", "ingredient_unit"),
         "feature/showcase" to setOf("showcase"),
     )

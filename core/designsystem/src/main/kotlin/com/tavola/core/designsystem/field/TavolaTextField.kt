@@ -37,7 +37,8 @@ internal fun tavolaFieldColors(): TextFieldColors {
 
 /**
  * Text field with a floating label, rounded shape and the theme colors. One line unless [singleLine] is `false`, in which
- * case it grows with the text up to [maxLines]. [keyboardType] picks the keyboard (numeric, decimal...).
+ * case it grows with the text up to [maxLines]. [keyboardType] picks the keyboard (numeric, decimal...) and [capitalization] how it
+ * capitalizes (a code is typed in capitals).
  */
 @Composable
 fun TavolaTextField(
@@ -50,6 +51,7 @@ fun TavolaTextField(
     singleLine: Boolean = true,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     keyboardType: KeyboardType = KeyboardType.Text,
+    capitalization: KeyboardCapitalization = KeyboardCapitalization.Sentences,
     isError: Boolean = false,
 ) {
     TextField(
@@ -63,7 +65,7 @@ fun TavolaTextField(
         shape = MaterialTheme.shapes.large,
         colors = tavolaFieldColors(),
         keyboardOptions = KeyboardOptions(
-            capitalization = KeyboardCapitalization.Sentences,
+            capitalization = capitalization,
             keyboardType = keyboardType,
             imeAction = imeAction,
         ),

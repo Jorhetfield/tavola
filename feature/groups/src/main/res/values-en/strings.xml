@@ -23,4 +23,29 @@
     <string name="group_error_network">There is no connection. Check your network and try again.</string>
     <string name="group_error_invalid_code">That code is not valid. Check it or ask for a new one.</string>
     <string name="group_error_other">We could not do it. Try again.</string>
+
+    <string name="group_my_title">My group</string>
+    <string name="group_rename_description">Change the name of the group</string>
+    <string name="group_invite_title">Invite code</string>
+    <string name="group_invite_hint">Share it with whoever you want to join. Any member can renew it.</string>
+    <string name="group_copy_code">Copy</string>
+    <string name="group_share_code">Share</string>
+    <string name="group_renew_code">Renew code</string>
+    <string name="group_members_title">Members · %1$d</string>
+    <string name="group_member_you">You</string>
+    <string name="group_member_unnamed">No name</string>
+    <string name="group_leave">Leave the group</string>
+    <string name="group_cancel">Cancel</string>
+    <string name="group_rename_title">Change the name</string>
+    <string name="group_rename_confirm">Save</string>
+    <string name="group_renew_title">Renew the code?</string>
+    <string name="group_renew_message">The current code will stop working. People who are already in the group are not affected.</string>
+    <string name="group_renew_confirm">Renew</string>
+    <string name="group_leave_title">Leave the group?</string>
+    <string name="group_leave_message">You will stop seeing the calendar and the recipes of “%1$s”. The others stay in the group; if you are the last one, the group is left without members and nothing is deleted.</string>
+    <string name="group_leave_confirm">Leave</string>
+    <string name="group_share_text">Join my group “%1$s” in Tavola with this code: %2$s</string>
+    <string name="group_share_chooser">Share the code</string>
+    <string name="group_clipboard_label">Invite code</string>
+    <string name="group_code_copied">Code copied</string>
 </resources>

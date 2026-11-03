@@ -21,6 +21,7 @@ data class TavolaColors(
     val onTaskChip: Color,
     val taskChipDone: Color,
     val onTaskChipDone: Color,
+    val memberColors: List<TavolaMemberColor>,
 )
 
 internal val TavolaLightExtraColors = TavolaColors(
@@ -38,6 +39,7 @@ internal val TavolaLightExtraColors = TavolaColors(
     onTaskChip = Color(0xFF5A3000),
     taskChipDone = Color(0xFFEAE3D6),
     onTaskChipDone = Color(0xFF8A8576),
+    memberColors = TavolaLightMemberColors,
 )
 
 internal val TavolaDarkExtraColors = TavolaColors(
@@ -55,6 +57,7 @@ internal val TavolaDarkExtraColors = TavolaColors(
     onTaskChip = TerracotaNocheTexto,
     taskChipDone = Color(0xFF1F3347),
     onTaskChipDone = Color(0xFF7F93A8),
+    memberColors = TavolaDarkMemberColors,
 )
 
 internal val LocalTavolaColors = staticCompositionLocalOf { TavolaLightExtraColors }

@@ -5,7 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.snapshots
+import com.tavola.data.firestore.snapshotFlow
 import com.tavola.data.group.GroupPaths
 import com.tavola.domain.model.DayPlan
 import com.tavola.domain.model.DayTask
@@ -52,7 +52,7 @@ internal class FirestoreCalendarRepository @Inject constructor(
         } else {
             val first = dates.first().toString()
             val last = dates.last().toString()
-            combine(meals(groupId).between(first, last).snapshots(), tasks(groupId).between(first, last).snapshots()) {
+            combine(meals(groupId).between(first, last).snapshotFlow(), tasks(groupId).between(first, last).snapshotFlow()) {
                     mealsSnapshot,
                     tasksSnapshot,
                 ->

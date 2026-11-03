@@ -3,7 +3,7 @@ package com.tavola.data.recipe
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
-import com.google.firebase.firestore.snapshots
+import com.tavola.data.firestore.snapshotFlow
 import com.tavola.data.group.GroupPaths
 import com.tavola.domain.model.Recipe
 import com.tavola.domain.repository.AuthRepository
@@ -39,7 +39,7 @@ internal class FirestoreRecipeRepository @Inject constructor(
         if (groupId == null) {
             flowOf(emptyList())
         } else {
-            recipes(groupId).snapshots().map { snapshot ->
+            recipes(groupId).snapshotFlow().map { snapshot ->
                 snapshot.documents
                     .mapNotNull { document -> document.data?.toRecipe(document.id) }
                     .sortedBy { recipe -> recipe.title.lowercase() }
@@ -54,7 +54,7 @@ internal class FirestoreRecipeRepository @Inject constructor(
         ) {
             flowOf(null)
         } else {
-            recipes(groupId).document(id).snapshots().map { snapshot -> snapshot.data?.toRecipe(snapshot.id) }
+            recipes(groupId).document(id).snapshotFlow().map { snapshot -> snapshot.data?.toRecipe(snapshot.id) }
         }
     }
 

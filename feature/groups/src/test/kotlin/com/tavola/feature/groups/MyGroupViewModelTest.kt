@@ -146,7 +146,7 @@ class MyGroupViewModelTest {
     }
 
     @Test
-    fun `a copied code shows a notice until it has been shown`() = runTest {
+    fun `a copied code is remembered until its message has been shown`() = runTest {
         joinedGroup()
         val viewModel = viewModel()
 
@@ -154,10 +154,10 @@ class MyGroupViewModelTest {
             awaitSuccess()
 
             viewModel.onCodeCopied()
-            assertEquals(MyGroupNotice.CodeCopied, awaitSuccess { state -> state.notice != null }.notice)
+            assertTrue(awaitSuccess { state -> state.isCodeCopied }.isCodeCopied)
 
-            viewModel.onNoticeShown()
-            assertNull(awaitSuccess { state -> state.notice == null }.notice)
+            viewModel.onCodeCopiedShown()
+            assertFalse(awaitSuccess { state -> !state.isCodeCopied }.isCodeCopied)
             cancelAndIgnoreRemainingEvents()
         }
     }

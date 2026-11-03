@@ -2,15 +2,23 @@ package com.tavola.feature.groups
 
 import android.content.ClipData
 import android.content.Intent
+import android.os.Build
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -20,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.ClipEntry
@@ -31,12 +40,15 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tavola.core.designsystem.R as DesignSystemR
 import com.tavola.core.designsystem.loading.TavolaLoadingIndicator
+import com.tavola.core.designsystem.preview.TavolaAdaptivePreviews
+import com.tavola.core.designsystem.preview.TavolaFontScalePreviews
 import com.tavola.core.designsystem.scaffold.TavolaScaffold
 import com.tavola.core.designsystem.snackbar.TavolaSnackbarHost
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 import com.tavola.core.designsystem.topbar.TavolaTopBarAction
 import com.tavola.domain.model.Group
+import com.tavola.domain.model.GroupMember
 import com.tavola.domain.model.InviteCode
 import kotlinx.coroutines.launch
 
@@ -58,7 +70,8 @@ fun MyGroupScreen(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel: 
             val label = resources.getString(R.string.group_clipboard_label)
             scope.launch {
                 clipboard.setClipEntry(ClipEntry(ClipData.newPlainText(label, InviteCode.format(group.inviteCode))))
-                actions.onCodeCopied()
+                // From Android 13 the system confirms a copy by itself; a second message would say the same twice.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) actions.onCodeCopied()
             }
         },
         onShareCode = { group ->
@@ -97,15 +110,36 @@ fun MyGroupContent(
         snackbarHost = { TavolaSnackbarHost(snackbarHostState) },
     ) { contentPadding ->
         when (state) {
-            MyGroupUiState.Loading -> TavolaLoadingIndicator(modifier = Modifier.padding(contentPadding))
+            MyGroupUiState.Loading -> CenteredBox(contentPadding) { TavolaLoadingIndicator() }
 
-            MyGroupUiState.Error -> GroupGateError(onRetryClick = actions.onRetryClick, modifier = Modifier.padding(contentPadding))
+            MyGroupUiState.Error -> CenteredBox(contentPadding) { GroupGateError(onRetryClick = actions.onRetryClick) }
 
             is MyGroupUiState.Success -> {
                 MyGroupBody(state, actions, contentPadding, onCopyCode, onShareCode)
+                WorkingBar(visible = state.isWorking, contentPadding = contentPadding)
                 MyGroupDialogs(state, actions)
             }
         }
+    }
+}
+
+@Composable
+private fun CenteredBox(contentPadding: PaddingValues, content: @Composable () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize().padding(contentPadding), contentAlignment = Alignment.Center) { content() }
+}
+
+/** A thin bar under the top bar while an action (renew, rename, leave) waits for the server. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun WorkingBar(visible: Boolean, contentPadding: PaddingValues) {
+    val motion = MaterialTheme.motionScheme
+    AnimatedVisibility(
+        visible = visible,
+        modifier = Modifier.padding(top = contentPadding.calculateTopPadding()),
+        enter = fadeIn(motion.defaultEffectsSpec()),
+        exit = fadeOut(motion.fastEffectsSpec()),
+    ) {
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -152,23 +186,59 @@ private fun MyGroupBody(
     }
 }
 
-/** Shows a failure or a notice as a message at the bottom, and tells the ViewModel when it has been shown. */
+private val PreviewGroup = Group("g1", "Casa de Marta", listOf("marta", "luis", "ana"), "K7M2QX4R")
+
+private val PreviewMembers = listOf(
+    MemberItem(GroupMember("marta", "Marta Ruiz", null, colorIndex = 0), isMe = true),
+    MemberItem(GroupMember("luis", "Luis Gómez", null, colorIndex = 1), isMe = false),
+    MemberItem(GroupMember("ana", null, null, colorIndex = 2), isMe = false),
+)
+
+@TavolaAdaptivePreviews
+@Composable
+private fun MyGroupPreview() {
+    TavolaTheme {
+        MyGroupContent(
+            state = MyGroupUiState.Success(PreviewGroup, PreviewMembers),
+            actions = MyGroupActions(),
+            onBack = {},
+            onCopyCode = {},
+            onShareCode = {},
+        )
+    }
+}
+
+@TavolaFontScalePreviews
+@Composable
+private fun MyGroupFontScalePreview() {
+    TavolaTheme {
+        MyGroupContent(
+            state = MyGroupUiState.Success(PreviewGroup, PreviewMembers, isWorking = true),
+            actions = MyGroupActions(),
+            onBack = {},
+            onCopyCode = {},
+            onShareCode = {},
+        )
+    }
+}
+
+/** Shows a failure, or that the code was copied, as a message at the bottom, and tells the ViewModel when it has been shown. */
 @Composable
 private fun SnackbarMessages(state: MyGroupUiState.Success?, actions: MyGroupActions, hostState: SnackbarHostState) {
     val failureText = state?.failure?.let { failure ->
         stringResource(if (failure == MyGroupFailure.Network) R.string.group_error_network else R.string.group_error_other)
     }
-    val noticeText = state?.notice?.let { stringResource(R.string.group_code_copied) }
+    val copiedText = if (state?.isCodeCopied == true) stringResource(R.string.group_code_copied) else null
     LaunchedEffect(failureText) {
         if (failureText != null) {
             hostState.showSnackbar(failureText)
             actions.onFailureShown()
         }
     }
-    LaunchedEffect(noticeText) {
-        if (noticeText != null) {
-            hostState.showSnackbar(noticeText)
-            actions.onNoticeShown()
+    LaunchedEffect(copiedText) {
+        if (copiedText != null) {
+            hostState.showSnackbar(copiedText)
+            actions.onCodeCopiedShown()
         }
     }
 }

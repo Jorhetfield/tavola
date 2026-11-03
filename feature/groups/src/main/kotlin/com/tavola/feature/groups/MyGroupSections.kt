@@ -26,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.tavola.core.designsystem.member.TavolaMemberAvatar
+import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
+import com.tavola.domain.model.GroupMember
 import com.tavola.domain.model.InviteCode
 
 /** The name of the group, with the button to change it. */
@@ -130,5 +132,25 @@ internal fun LeaveGroupButton(enabled: Boolean, onClick: () -> Unit, modifier: M
         modifier = modifier.fillMaxWidth(),
     ) {
         Text(stringResource(R.string.group_leave))
+    }
+}
+
+@TavolaPreviews
+@Composable
+private fun InviteCodeCardPreview() {
+    TavolaTheme {
+        InviteCodeCard(code = "K7M2QX4R", enabled = true, onCopyClick = {
+        }, onShareClick = {}, onRenewClick = {}, modifier = Modifier.padding(TavolaTheme.spacing.lg))
+    }
+}
+
+@TavolaPreviews
+@Composable
+private fun MemberRowPreview() {
+    TavolaTheme {
+        Column(modifier = Modifier.padding(TavolaTheme.spacing.lg)) {
+            MemberRow(MemberItem(GroupMember("marta", "Marta Ruiz", null, colorIndex = 0), isMe = true))
+            MemberRow(MemberItem(GroupMember("luis", null, null, colorIndex = 1), isMe = false))
+        }
     }
 }

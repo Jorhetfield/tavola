@@ -50,7 +50,7 @@ class MyGroupViewModel @Inject constructor(private val groupRepository: GroupRep
                     dialog = current.dialog,
                     isWorking = current.isWorking,
                     failure = current.failure,
-                    notice = current.notice,
+                    isCodeCopied = current.isCodeCopied,
                 )
             }
         }
@@ -73,11 +73,11 @@ class MyGroupViewModel @Inject constructor(private val groupRepository: GroupRep
     fun onLeaveConfirm() = perform { groupRepository.leaveGroup() }
 
     fun onCodeCopied() {
-        interaction.update { current -> current.copy(notice = MyGroupNotice.CodeCopied) }
+        interaction.update { current -> current.copy(isCodeCopied = true) }
     }
 
-    fun onNoticeShown() {
-        interaction.update { current -> current.copy(notice = null) }
+    fun onCodeCopiedShown() {
+        interaction.update { current -> current.copy(isCodeCopied = false) }
     }
 
     fun onFailureShown() {
@@ -109,7 +109,7 @@ class MyGroupViewModel @Inject constructor(private val groupRepository: GroupRep
         val dialog: MyGroupDialog? = null,
         val isWorking: Boolean = false,
         val failure: MyGroupFailure? = null,
-        val notice: MyGroupNotice? = null,
+        val isCodeCopied: Boolean = false,
     )
 
     private sealed interface GroupLoad {

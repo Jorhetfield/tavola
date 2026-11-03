@@ -10,7 +10,7 @@ data class MyGroupActions(
     val onRenewConfirm: () -> Unit = {},
     val onLeaveConfirm: () -> Unit = {},
     val onCodeCopied: () -> Unit = {},
-    val onNoticeShown: () -> Unit = {},
+    val onCodeCopiedShown: () -> Unit = {},
     val onFailureShown: () -> Unit = {},
     val onRetryClick: () -> Unit = {},
 )
@@ -28,7 +28,7 @@ internal fun MyGroupViewModel.toActions(): MyGroupActions = MyGroupActions(
     onRenewConfirm = ::onRenewConfirm,
     onLeaveConfirm = ::onLeaveConfirm,
     onCodeCopied = ::onCodeCopied,
-    onNoticeShown = ::onNoticeShown,
+    onCodeCopiedShown = ::onCodeCopiedShown,
     onFailureShown = ::onFailureShown,
     onRetryClick = ::onRetryClick,
 )

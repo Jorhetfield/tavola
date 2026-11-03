@@ -14,9 +14,6 @@ enum class MyGroupDialog { Rename, RenewCode, Leave }
 /** Why the last action did not work, shown as a message. */
 enum class MyGroupFailure { Network, Other }
 
-/** Something that went well and is worth a message. */
-enum class MyGroupNotice { CodeCopied, }
-
 sealed interface MyGroupUiState {
     data object Loading : MyGroupUiState
 
@@ -26,7 +23,7 @@ sealed interface MyGroupUiState {
      * @property dialog the dialog that is open, or `null`.
      * @property isWorking an action is being saved: the buttons wait.
      * @property failure why the last action failed, until the message is shown.
-     * @property notice what went well, until the message is shown.
+     * @property isCodeCopied the code was copied and the message that says so has not been shown yet.
      */
     @Immutable
     data class Success(
@@ -35,6 +32,6 @@ sealed interface MyGroupUiState {
         val dialog: MyGroupDialog? = null,
         val isWorking: Boolean = false,
         val failure: MyGroupFailure? = null,
-        val notice: MyGroupNotice? = null,
+        val isCodeCopied: Boolean = false,
     ) : MyGroupUiState
 }

@@ -28,13 +28,13 @@ import com.tavola.core.designsystem.theme.TavolaTheme
 private const val MAX_VISIBLE_LINES = 4
 
 /**
- * Dialog with a text field to write a task. The texts come as parameters (the screen provides them). [onConfirm] is only
- * called with non-blank text; the text survives a rotation. To edit a task, [initialText] brings its current text and the
+ * Dialog with a text field to write a line of text (a task, the name of a group). The texts come as parameters (the screen provides them). [onConfirm] is only
+ * called with non-blank text; the text survives a rotation. To edit something, [initialText] brings its current text and the
  * cursor starts at the end, to keep typing. The field grows up to [MAX_VISIBLE_LINES] lines so a long text can be read in
  * full; the keyboard still offers "Done", not a line break.
  */
 @Composable
-fun TavolaAddTaskDialog(
+fun TavolaTextInputDialog(
     title: String,
     label: String,
     confirmText: String,
@@ -83,9 +83,9 @@ fun TavolaAddTaskDialog(
 
 @TavolaPreviews
 @Composable
-private fun TavolaAddTaskDialogPreview() {
+private fun TavolaTextInputDialogPreview() {
     TavolaTheme {
-        TavolaAddTaskDialog(
+        TavolaTextInputDialog(
             title = "Nueva tarea",
             label = "¿Qué hay que hacer?",
             confirmText = "Añadir",

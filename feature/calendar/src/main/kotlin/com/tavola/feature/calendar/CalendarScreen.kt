@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
+import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -38,6 +39,7 @@ import com.tavola.core.designsystem.topbar.TavolaTopBarAction
  * @param onOpenDebugMenu if not `null` (debug builds only) adds a button to the top bar.
  * @param mealPicker content of the meal picker, which `:app` provides (see [MealPickerSlot]).
  * @param onOpenRecipe asks `:app` to show a recipe; a meal of a day that is over opens its recipe this way.
+ * @param onOpenGroup if not `null` adds a button to the top bar that asks `:app` to show the group of the person.
  */
 @Composable
 fun CalendarScreen(
@@ -45,11 +47,12 @@ fun CalendarScreen(
     onOpenDebugMenu: (() -> Unit)? = null,
     mealPicker: MealPickerSlot? = null,
     onOpenRecipe: (recipeId: String) -> Unit = {},
+    onOpenGroup: (() -> Unit)? = null,
     viewModel: CalendarViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val actions = remember(viewModel) { viewModel.toActions() }
-    CalendarContent(state, actions, modifier, onOpenDebugMenu, mealPicker, onOpenRecipe)
+    CalendarContent(state, actions, modifier, onOpenDebugMenu, mealPicker, onOpenRecipe, onOpenGroup)
 }
 
 /** Stateless part of the screen: it receives the state and the actions, so it can be previewed and tested. */
@@ -62,6 +65,7 @@ fun CalendarContent(
     onOpenDebugMenu: (() -> Unit)? = null,
     mealPicker: MealPickerSlot? = null,
     onOpenRecipe: (recipeId: String) -> Unit = {},
+    onOpenGroup: (() -> Unit)? = null,
 ) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -75,7 +79,7 @@ fun CalendarContent(
     )
     TavolaScaffold(
         modifier = modifier.nestedScroll(topBarScroll.nestedScrollConnection),
-        topBar = { CalendarTopBar(state, actions, onOpenDebugMenu, topBarScroll) },
+        topBar = { CalendarTopBar(state, actions, onOpenGroup, onOpenDebugMenu, topBarScroll) },
         reservesFloatingBarSpace = true,
         snackbarHost = { TavolaSnackbarHost(snackbarHostState) },
     ) { contentPadding ->
@@ -96,11 +100,15 @@ fun CalendarContent(
 private fun CalendarTopBar(
     state: CalendarUiState,
     actions: CalendarActions,
+    onOpenGroup: (() -> Unit)?,
     onOpenDebugMenu: (() -> Unit)?,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val locale = rememberLocale()
     val success = state as? CalendarUiState.Success
+    val groupAction = onOpenGroup?.let { openGroup ->
+        TavolaTopBarAction(Icons.Rounded.Groups, R.string.calendar_group, openGroup)
+    }
     val debugAction = onOpenDebugMenu?.let { openDebugMenu ->
         TavolaTopBarAction(Icons.Rounded.BugReport, R.string.calendar_debug_menu, openDebugMenu)
     }
@@ -109,7 +117,7 @@ private fun CalendarTopBar(
         TavolaTopBar(
             title = success?.let { loaded -> monthYearTitle(loaded.weekStart, locale) } ?: stringResource(R.string.calendar_title),
             subtitle = success?.let { loaded -> stringResource(R.string.calendar_week_number, isoWeekNumber(loaded.weekStart)) },
-            actions = listOfNotNull(debugAction),
+            actions = listOfNotNull(groupAction, debugAction),
             scrollBehavior = scrollBehavior,
         )
         if (success != null) {

@@ -23,4 +23,29 @@
     <string name="group_error_network">No hay conexión. Comprueba tu red e inténtalo de nuevo.</string>
     <string name="group_error_invalid_code">Ese código no es válido. Compruébalo o pide uno nuevo.</string>
     <string name="group_error_other">No hemos podido hacerlo. Inténtalo de nuevo.</string>
+
+    <string name="group_my_title">Mi grupo</string>
+    <string name="group_rename_description">Cambiar el nombre del grupo</string>
+    <string name="group_invite_title">Código de invitación</string>
+    <string name="group_invite_hint">Compártelo con quien quieras que se una. Cualquier miembro puede renovarlo.</string>
+    <string name="group_copy_code">Copiar</string>
+    <string name="group_share_code">Compartir</string>
+    <string name="group_renew_code">Renovar código</string>
+    <string name="group_members_title">Miembros · %1$d</string>
+    <string name="group_member_you">Tú</string>
+    <string name="group_member_unnamed">Sin nombre</string>
+    <string name="group_leave">Salir del grupo</string>
+    <string name="group_cancel">Cancelar</string>
+    <string name="group_rename_title">Cambiar el nombre</string>
+    <string name="group_rename_confirm">Guardar</string>
+    <string name="group_renew_title">¿Renovar el código?</string>
+    <string name="group_renew_message">El código actual dejará de funcionar. Quienes ya están en el grupo no se ven afectados.</string>
+    <string name="group_renew_confirm">Renovar</string>
+    <string name="group_leave_title">¿Salir del grupo?</string>
+    <string name="group_leave_message">Dejarás de ver el calendario y las recetas de «%1$s». Los demás siguen en el grupo; si eres la última persona, el grupo queda sin miembros y no se borra nada.</string>
+    <string name="group_leave_confirm">Salir</string>
+    <string name="group_share_text">Únete a mi grupo «%1$s» en Tavola con este código: %2$s</string>
+    <string name="group_share_chooser">Compartir el código</string>
+    <string name="group_clipboard_label">Código de invitación</string>
+    <string name="group_code_copied">Código copiado</string>
 </resources>

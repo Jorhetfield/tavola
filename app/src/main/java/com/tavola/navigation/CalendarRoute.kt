@@ -16,3 +16,7 @@ data class RecipeDetailRoute(val recipeId: String) : NavKey
 /** Create or edit a recipe; a blank [recipeId] creates a new one. */
 @Serializable
 data class RecipeEditorRoute(val recipeId: String = "") : NavKey
+
+/** The group of the person: its code, its members and what a member can do. Opened from the top bar of the calendar. */
+@Serializable
+data object GroupRoute : NavKey

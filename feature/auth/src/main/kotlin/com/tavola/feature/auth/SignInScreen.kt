@@ -89,7 +89,7 @@ fun SignInScreen(webClientId: String, modifier: Modifier = Modifier, viewModel: 
 @Composable
 fun SignInContent(state: SignInUiState, isRequestingCredential: Boolean, onContinueWithGoogle: () -> Unit, modifier: Modifier = Modifier) {
     TavolaScaffold(modifier = modifier) { _ ->
-        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             SignInColumn(state.isSigningIn || isRequestingCredential, state.error, onContinueWithGoogle)
         }
     }

@@ -1,8 +1,10 @@
 package com.tavola.data.di
 
+import com.tavola.data.auth.FirebaseAuthRepository
 import com.tavola.data.calendar.RoomCalendarRepository
 import com.tavola.data.recipe.RoomRecipeRepository
 import com.tavola.data.time.SystemTodayProvider
+import com.tavola.domain.repository.AuthRepository
 import com.tavola.domain.repository.CalendarRepository
 import com.tavola.domain.repository.RecipeRepository
 import com.tavola.domain.time.TodayProvider
@@ -15,6 +17,10 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 internal abstract class RepositoryModule {
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(impl: FirebaseAuthRepository): AuthRepository
+
     @Binds
     @Singleton
     abstract fun bindCalendarRepository(impl: RoomCalendarRepository): CalendarRepository

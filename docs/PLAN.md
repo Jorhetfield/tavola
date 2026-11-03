@@ -34,13 +34,13 @@ Planned PRs, each one building, tested and reviewed on its own:
 Still to decide, each before the PR that needs it (these came out of the review of the decisions above):
 - **Joining by code with member-only rules** (PR 2 and 5). A person who is not a member yet has to find a group by its code, so the rules of decision 7 cannot hide the groups from them, and Spark has no Cloud Functions. Proposal, to confirm: a separate `invites/{code}` document that anyone signed in can read by its exact id (no listing) and that only holds the group id; the code is long and random enough to be hard to guess; the group itself stays members-only.
 - **Debug menu on shared data** (PR 3). Decision 3 keeps "Load sample data" and "Clear everything", but there is one Firebase project, so a debug build in the real group could wipe or fill the real calendar. Proposal, to confirm: the debug menu only works on a separate test group, or "Clear everything" is limited to what the loader added.
-- **First launch.** The app needs a signed-in user, so decide what shows when someone opens it with no network, cancels the Google prompt or fails to sign in (PR 1).
+- **First launch** (decided in PR 1, to confirm): the app opens on the sign-in screen when nobody is signed in; a stored session is kept offline. Cancelling the Google sheet shows nothing; no connection, no Google account on the phone and any other failure show their own message with the button still there. There is no way to use the app without an account.
 - **Leaving a group** (PR 2). With one group per person, leaving is the only way to join another one. Decide what happens to the data when the last member leaves, and whether an invite code can be renewed.
 
 To check before or while doing it:
 - **Recipe photos and the Spark plan.** Firebase Storage may need the paid Blaze plan, even on a new project. Verify before planning the photos (Phase 4); it may change decision 7 or postpone them.
 - **Google sign-in in the CI APK.** It needs the SHA-1 of the signing key registered in Firebase, and CI signs the debug APK with its own key, so that APK may not be able to sign in. Decide how to sign it (a fixed key) before publishing.
-- **`google-services.json` in CI.** Decide whether it is committed (it holds no secrets) or provided as a GitHub secret.
+- **`google-services.json` in CI.** Decided: it is committed (it holds no secrets), in PR #14. Follow-up for the owner of the project: restrict its API key in Google Cloud (APIs and services, Credentials) to the package `com.tavola` and the SHA-1 of the debug and CI keys, because the key identifies the project and is only safe to commit if it is restricted.
 - **The widget.** It must learn the group and the signed-in state, and decide how it refreshes (listener or periodic work) and what it shows with no session or no network.
 
 ## Phase 0 — Project base
@@ -73,7 +73,7 @@ To check before or while doing it:
 The items are grouped by topic, not in work order: follow "Next up" above.
 
 - [ ] Firebase + Auth + groups with an invite code (see "Firebase decisions" above)
-  - [ ] Firebase and Auth with Google sign-in
+  - [x] Firebase and Auth with Google sign-in: `:feature:auth` has the sign-in screen and the session gate (`AuthGate`); `AuthRepository` in `:domain`, Firebase Auth in `:data`. Still to do: register the SHA-1 of the CI signing key in Firebase so the CI APK can sign in.
   - [ ] Groups with an invite code
 - [ ] Shared calendar in real time (Firestore)
   - [ ] The calendar in Firestore, Room out

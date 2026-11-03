@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.tavola.core.designsystem.theme.TavolaTheme
+import com.tavola.feature.auth.AuthGate
 import com.tavola.navigation.TavolaNavigation
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,7 +16,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TavolaTheme {
-                TavolaNavigation()
+                AuthGate(webClientId = getString(R.string.default_web_client_id)) {
+                    TavolaNavigation()
+                }
             }
         }
     }

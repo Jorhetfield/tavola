@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_title">Tavola</string>
+    <string name="auth_tagline">Planifica la semana con quienes comparten tu mesa</string>
+    <string name="auth_continue_with_google">Continuar con Google</string>
+    <string name="auth_google_note">Solo usamos tu cuenta de Google para saber quién eres: tu nombre y tu foto.</string>
+    <string name="auth_loading">Abriendo tu sesión…</string>
+    <string name="auth_signing_in">Entrando…</string>
+    <string name="auth_error_network">No hay conexión. Comprueba tu red e inténtalo de nuevo.</string>
+    <string name="auth_error_no_account">No hay ninguna cuenta de Google en este móvil. Añade una en los ajustes e inténtalo de nuevo.</string>
+    <string name="auth_error_other">No hemos podido iniciar sesión. Inténtalo de nuevo.</string>
+</resources>

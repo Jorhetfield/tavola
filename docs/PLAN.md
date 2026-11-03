@@ -6,7 +6,7 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 1. ~~Clear the small pending checks~~ Done: the recipe CRUD is merged (PR #5), the `strings.xml` prefixes are in and both emulator checkpoints are passed.
 2. ~~Past days collapsed~~ Done (PR #8).
 3. ~~Tasks per day~~ Done: add, tick, remove with Undo and edit the text were already in; this closed it with the "Add task" chip, read-only past days and editing by long press (PRs #10 and #11).
-4. **Close 0.0.3 and open 0.1.0**: merge `release/0.0.3` into `main` for a stable APK with everything local, then cut `release/0.1.0` for Firebase.
+4. ~~Close 0.0.3 and open 0.1.0~~ Done: `release/0.0.3` is in `main` (PR #13, pre-release `v0.0.3`) and `release/0.1.0` is open for Firebase.
 5. **Firebase + Auth + groups, then the shared calendar in real time** (decisions below): the biggest change to the data layer, in 4 or 5 small PRs. It goes before the widget because the widget reads through the repositories and would have to be reworked after the move.
 6. **Interactive widget** (Phase 3): it can be defined on paper any time (open questions below), but it is built after Firebase.
 7. Shopping list, recipe photos and carousel, import by URL, push notifications (Phase 4).
@@ -24,23 +24,43 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 | 7 | **Spark plan** (free) and security rules that only let the members of a group read and write it. **One Firebase project** for debug and release. |
 | 8 | Close 0.0.3 and open **0.1.0**; Firebase goes in **4 or 5 small PRs**. |
 
+Groups decisions (agreed for PR 2, which is split in 2a data and rules, and 2b screens):
+| # | Decision |
+|---|---|
+| 1 | Joining by code uses a separate `invites/{code}` document that only holds the group id. It can be read by its exact id (`get`), never listed. The group itself stays members-only. No Cloud Functions (Spark plan). |
+| 2 | The code has **8 characters** (letters and digits without look-alikes), **never expires**, and **any member can renew it** (the old one stops working). |
+| 3 | After the first sign-in the person chooses: **create a group** (asks for a name) or **join with a code**. |
+| 4 | When the last member leaves, **nothing is deleted** (the group stays without members). Leaving is done from a "My group" screen (name, code, members, leave with a confirmation). |
+| 5 | The creator chooses the **name**, and any member can rename it. **Nobody can remove another member.** |
+
+Data decisions (agreed for PRs 3 and 4):
+| # | Decision |
+|---|---|
+| 1 | **Recipes go first, the calendar second.** A planned meal refers to a recipe by id, so the calendar can only be shared once the recipes are. |
+| 2 | The **debug menu goes away completely**: "Load sample data", "Clear everything", the calendar button and the design showcase screen (`:feature:showcase`, which was only reachable from that menu; it stays in the git history). |
+| 3 | When a group is **created**, it gets **three example recipes** (Gazpacho, Tortilla de patatas and Pasta al pomodoro, complete, with ingredients and steps) that the creator can delete like any other. A use case in `:domain` does it, since it combines the group and the recipe repositories. Joining a group adds nothing. |
+| 4 | Recipes live at `groups/{groupId}/recipes/{recipeId}` with the ingredients and the steps inside the document; any member reads and writes them (rules in `firestore.rules`). The author (`createdBy`) is stored, not shown. |
+| 5 | Real-time updates need nothing more than the Firestore listeners, so they arrive with each repository; PR 5 is only the rules and the checks. |
+
 Planned PRs, each one building, tested and reviewed on its own:
 1. Firebase and Auth with Google sign-in.
-2. Groups with an invite code.
-3. The calendar in Firestore behind the same `CalendarRepository` (Room out).
-4. The recipes in Firestore behind `RecipeRepository`. Once both are in, remove the Room code and dependency, and update `CLAUDE.md` (`:data` is described as Firestore/Room) and the README, which still mention Room.
-5. Security rules and real-time updates between members.
+2. Groups with an invite code, in two PRs: 2a the group model, the Firestore repository and `firestore.rules` (the group, the members and the invites); 2b the screens (create or join, "My group") and the session gate with a group.
+3. The recipes in Firestore behind `RecipeRepository`, the example recipes of a new group, and the debug menu out (see "Data decisions").
+4. The calendar in Firestore behind the same `CalendarRepository`. Once it is in, remove the Room code and dependency, and update `CLAUDE.md` (`:data` is described as Firestore/Room) and the README, which still mention Room.
+5. The security rules for the calendar and a check of the whole flow between two accounts (the real-time updates come with the Firestore listeners of PRs 3 and 4).
 
 Still to decide, each before the PR that needs it (these came out of the review of the decisions above):
-- **Joining by code with member-only rules** (PR 2 and 5). A person who is not a member yet has to find a group by its code, so the rules of decision 7 cannot hide the groups from them, and Spark has no Cloud Functions. Proposal, to confirm: a separate `invites/{code}` document that anyone signed in can read by its exact id (no listing) and that only holds the group id; the code is long and random enough to be hard to guess; the group itself stays members-only.
-- **Debug menu on shared data** (PR 3). Decision 3 keeps "Load sample data" and "Clear everything", but there is one Firebase project, so a debug build in the real group could wipe or fill the real calendar. Proposal, to confirm: the debug menu only works on a separate test group, or "Clear everything" is limited to what the loader added.
-- **First launch.** The app needs a signed-in user, so decide what shows when someone opens it with no network, cancels the Google prompt or fails to sign in (PR 1).
-- **Leaving a group** (PR 2). With one group per person, leaving is the only way to join another one. Decide what happens to the data when the last member leaves, and whether an invite code can be renewed.
+- ~~Joining by code with member-only rules~~ Decided in PR 2: an `invites/{code}` document read by its exact id (see "Groups decisions").
+- ~~Debug menu on shared data~~ Decided: the debug menu is removed (see "Data decisions").
+- **First launch** (decided in PR 1, to confirm): the app opens on the sign-in screen when nobody is signed in; a stored session is kept offline. Cancelling the Google sheet shows nothing; no connection, no Google account on the phone and any other failure show their own message with the button still there. There is no way to use the app without an account.
+- ~~Leaving a group~~ Decided in PR 2: nothing is deleted when the last member leaves; the code can be renewed (see "Groups decisions").
 
 To check before or while doing it:
+- **First launch of a person who already has a group, with no network.** The group gate waits for the server's answer about their group (so a person on a new phone does not see the first step for a moment). With no connection on a phone where the app was never used, it keeps the loading screen. Decide what to show after a while (a message and a retry) when there is time.
+- **Firestore rules are published by hand and not tested with the emulator.** `firestore.rules` (PR 2a) is pasted in the Firebase console (Firestore Database, Rules, Publish) or deployed with `firebase deploy --only firestore:rules`; the repository only works against the rules that are live. There is no Node here, so the rules were not run in the Firebase emulator; they are checked by the console when published and by trying the flows in the app (PR 2b). Add emulator tests (`@firebase/rules-unit-testing`) when Node is available, before the rules grow with the calendar and the recipes.
 - **Recipe photos and the Spark plan.** Firebase Storage may need the paid Blaze plan, even on a new project. Verify before planning the photos (Phase 4); it may change decision 7 or postpone them.
 - **Google sign-in in the CI APK.** It needs the SHA-1 of the signing key registered in Firebase, and CI signs the debug APK with its own key, so that APK may not be able to sign in. Decide how to sign it (a fixed key) before publishing.
-- **`google-services.json` in CI.** Decide whether it is committed (it holds no secrets) or provided as a GitHub secret.
+- **`google-services.json` in CI.** Decided: it is committed (it holds no secrets), in PR #14. Follow-up for the owner of the project: restrict its API key in Google Cloud (APIs and services, Credentials) to the package `com.tavola` and the SHA-1 of the debug and CI keys, because the key identifies the project and is only safe to commit if it is restricted.
 - **The widget.** It must learn the group and the signed-in state, and decide how it refreshes (listener or periodic work) and what it shows with no session or no network.
 
 ## Phase 0 — Project base
@@ -73,12 +93,12 @@ To check before or while doing it:
 The items are grouped by topic, not in work order: follow "Next up" above.
 
 - [ ] Firebase + Auth + groups with an invite code (see "Firebase decisions" above)
-  - [ ] Firebase and Auth with Google sign-in
-  - [ ] Groups with an invite code
-- [ ] Shared calendar in real time (Firestore)
-  - [ ] The calendar in Firestore, Room out
-  - [ ] The recipes in Firestore
-  - [ ] Security rules and real-time updates between members
+  - [x] Firebase and Auth with Google sign-in: `:feature:auth` has the sign-in screen and the session gate (`AuthGate`); `AuthRepository` in `:domain`, Firebase Auth in `:data`. Still to do: register the SHA-1 of the CI signing key in Firebase so the CI APK can sign in.
+  - [x] Groups with an invite code: 2a data and rules (done), 2b the gate and the first step, create or join (done), 2c the "My group" screen with the button in the calendar bar: code, copy, share, renew, rename, members, leave (done)
+- [x] Shared calendar in real time (Firestore): the recipes, the calendar and the group are in Firestore, and every change shows up on the other phones through the listeners
+  - [x] The calendar in Firestore, Room out: `groups/{groupId}/meals` and `groups/{groupId}/tasks`, ordered by creation time; Room, its schema and its dependencies are gone from the project (PR 4)
+  - [x] The recipes in Firestore (PR 3)
+  - [ ] A check of the whole flow between two accounts, and emulator tests of the rules (needs Node)
 - [x] Recipe CRUD: list, detail and editor (the model already has structured ingredients and steps)
   - [x] Persistence: Room for recipes and the calendar (`RoomRecipeRepository`, `RoomCalendarRepository`); no fake data in the app, sample data only through the debug menu ("Load sample data")
   - [x] List tab + detail (read-only), search and empty state

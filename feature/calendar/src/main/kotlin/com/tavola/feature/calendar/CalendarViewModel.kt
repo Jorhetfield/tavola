@@ -93,18 +93,17 @@ class CalendarViewModel @Inject constructor(private val calendarRepository: Cale
     /** Removes the task and keeps it in [removedTask] so it can be undone. */
     fun onTaskRemove(date: LocalDate, taskId: String) {
         val success = uiState.value as? CalendarUiState.Success ?: return
-        val tasks = success.days.firstOrNull { item -> item.date == date }?.plan?.tasks ?: return
-        val index = tasks.indexOfFirst { task -> task.id == taskId }
-        if (index < 0) return
+        val task =
+            success.days.firstOrNull { item -> item.date == date }?.plan?.tasks?.firstOrNull { dayTask -> dayTask.id == taskId } ?: return
 
-        removedTask.value = RemovedTask(date, tasks[index], index)
+        removedTask.value = RemovedTask(date, task)
         viewModelScope.launch { calendarRepository.removeTask(date, taskId) }
     }
 
     fun onTaskRemoveUndo() {
         val removed = removedTask.value ?: return
         removedTask.value = null
-        viewModelScope.launch { calendarRepository.restoreTask(removed.date, removed.task, removed.index) }
+        viewModelScope.launch { calendarRepository.restoreTask(removed.date, removed.task) }
     }
 
     /** The "task removed" notice ended without undo: there is nothing left to restore. */

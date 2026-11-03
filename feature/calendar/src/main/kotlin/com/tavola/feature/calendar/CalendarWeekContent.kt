@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.LayoutDirection
 import com.tavola.core.designsystem.calendar.TavolaDayCard
-import com.tavola.core.designsystem.dialog.TavolaAddTaskDialog
+import com.tavola.core.designsystem.dialog.TavolaTextInputDialog
 import com.tavola.core.designsystem.theme.TavolaTheme
 import kotlinx.datetime.LocalDate
 
@@ -52,7 +52,7 @@ internal fun WeekContent(
 
     if (state.addTaskDate != null || state.editTask != null) {
         val editing = state.editTask
-        TavolaAddTaskDialog(
+        TavolaTextInputDialog(
             title = stringResource(if (editing == null) R.string.calendar_add_task_title else R.string.calendar_edit_task_title),
             label = stringResource(R.string.calendar_add_task_label),
             confirmText = stringResource(if (editing == null) R.string.calendar_add_task_confirm else R.string.calendar_edit_task_confirm),

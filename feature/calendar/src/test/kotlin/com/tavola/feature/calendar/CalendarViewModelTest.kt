@@ -119,7 +119,7 @@ class CalendarViewModelTest {
 
             viewModel.onTaskRemove(LocalDate(2026, 10, 20), "t-pollo")
             val afterRemove = awaitSuccess { success -> success.removedTask != null && success.days[1].plan.tasks.size < original.size }
-            assertEquals(RemovedTask(LocalDate(2026, 10, 20), removed, original.indexOf(removed)), afterRemove.removedTask)
+            assertEquals(RemovedTask(LocalDate(2026, 10, 20), removed), afterRemove.removedTask)
 
             viewModel.onTaskRemoveUndo()
             val afterUndo = awaitSuccess { success -> success.removedTask == null && success.days[1].plan.tasks.size == original.size }

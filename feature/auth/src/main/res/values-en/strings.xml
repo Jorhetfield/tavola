@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_title">Tavola</string>
+    <string name="auth_tagline">Plan the week with the people who share your table</string>
+    <string name="auth_continue_with_google">Continue with Google</string>
+    <string name="auth_google_note">We only use your Google account to know who you are: your name and your photo.</string>
+    <string name="auth_loading">Opening your session…</string>
+    <string name="auth_signing_in">Signing in…</string>
+    <string name="auth_error_network">There is no connection. Check your network and try again.</string>
+    <string name="auth_error_no_account">There is no Google account on this phone. Add one in the settings and try again.</string>
+    <string name="auth_error_other">We could not sign you in. Try again.</string>
+</resources>

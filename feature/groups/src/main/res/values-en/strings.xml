@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="group_loading">Finding your group…</string>
+    <string name="group_gate_error">We could not load your group. Check your connection and try again.</string>
+    <string name="group_gate_retry">Retry</string>
+    <string name="group_welcome_title">Your group</string>
+    <string name="group_welcome_subtitle">A group shares the calendar and the recipes. Create yours, or join someone\'s with their code.</string>
+    <string name="group_option_create_title">Create a group</string>
+    <string name="group_option_create_subtitle">Start a new one and invite the others</string>
+    <string name="group_option_join_title">I have a code</string>
+    <string name="group_option_join_subtitle">Join someone else\'s group</string>
+    <string name="group_back">Back</string>
+    <string name="group_create_title">Create your group</string>
+    <string name="group_create_hint">Give it a name you will recognize, for example Home or Madrid flat.</string>
+    <string name="group_name_label">Group name</string>
+    <string name="group_create_confirm">Create group</string>
+    <string name="group_creating">Creating…</string>
+    <string name="group_join_title">Join with a code</string>
+    <string name="group_join_hint">Ask for the 8-character code from someone who is already in the group.</string>
+    <string name="group_code_label">Invite code</string>
+    <string name="group_join_confirm">Join</string>
+    <string name="group_joining">Joining…</string>
+    <string name="group_error_network">There is no connection. Check your network and try again.</string>
+    <string name="group_error_invalid_code">That code is not valid. Check it or ask for a new one.</string>
+    <string name="group_error_other">We could not do it. Try again.</string>
+
+    <string name="group_my_title">My group</string>
+    <string name="group_rename_description">Change the name of the group</string>
+    <string name="group_invite_title">Invite code</string>
+    <string name="group_invite_hint">Share it with whoever you want to join. Any member can renew it.</string>
+    <string name="group_copy_code">Copy</string>
+    <string name="group_share_code">Share</string>
+    <string name="group_renew_code">Renew code</string>
+    <string name="group_members_title">Members · %1$d</string>
+    <string name="group_member_you">You</string>
+    <string name="group_member_unnamed">No name</string>
+    <string name="group_leave">Leave the group</string>
+    <string name="group_cancel">Cancel</string>
+    <string name="group_rename_title">Change the name</string>
+    <string name="group_rename_confirm">Save</string>
+    <string name="group_renew_title">Renew the code?</string>
+    <string name="group_renew_message">The current code will stop working. People who are already in the group are not affected.</string>
+    <string name="group_renew_confirm">Renew</string>
+    <string name="group_leave_title">Leave the group?</string>
+    <string name="group_leave_message">You will stop seeing the calendar and the recipes of “%1$s”. The others stay in the group; if you are the last one, the group is left without members and nothing is deleted.</string>
+    <string name="group_leave_confirm">Leave</string>
+    <string name="group_share_text">Join my group “%1$s” in Tavola with this code: %2$s</string>
+    <string name="group_share_chooser">Share the code</string>
+    <string name="group_clipboard_label">Invite code</string>
+    <string name="group_code_copied">Code copied</string>
+</resources>

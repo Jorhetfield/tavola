@@ -22,6 +22,7 @@ class FakeCalendarRepository(initialDays: List<DayPlan> = MediterraneanSampleDat
     CalendarRepository {
     private val days = MutableStateFlow(initialDays.associateBy { day -> day.date })
     private var nextTaskId = 0
+    private var clock = FAKE_CLOCK_START
 
     override fun observeWeek(weekStart: LocalDate): Flow<WeekPlan> = days.map { stored ->
         WeekPlan(
@@ -38,7 +39,9 @@ class FakeCalendarRepository(initialDays: List<DayPlan> = MediterraneanSampleDat
     }
 
     override suspend fun addTask(date: LocalDate, text: String) {
-        updateDay(date) { day -> day.copy(tasks = day.tasks + DayTask(id = "fake-task-${nextTaskId++}", text = text)) }
+        updateDay(date) { day ->
+            day.copy(tasks = day.tasks + DayTask(id = "fake-task-${nextTaskId++}", text = text, createdAt = ++clock))
+        }
     }
 
     override suspend fun updateTaskText(date: LocalDate, taskId: String, text: String) {
@@ -51,10 +54,16 @@ class FakeCalendarRepository(initialDays: List<DayPlan> = MediterraneanSampleDat
         updateDay(date) { day -> day.copy(tasks = day.tasks.filterNot { task -> task.id == taskId }) }
     }
 
-    override suspend fun restoreTask(date: LocalDate, task: DayTask, index: Int) {
+    override suspend fun restoreTask(date: LocalDate, task: DayTask) {
+        // Back in its place: tasks are ordered by creation time, and a task that is already there is replaced.
         updateDay(date) { day ->
-            val restored = day.tasks.toMutableList().apply { add(index.coerceIn(0, size), task) }
-            day.copy(tasks = restored)
+            day.copy(
+                tasks = (
+                    day.tasks.filterNot { existing ->
+                        existing.id == task.id
+                    } + task
+                    ).sortedWith(compareBy({ task -> task.createdAt }, { task -> task.id })),
+            )
         }
     }
 
@@ -73,5 +82,8 @@ class FakeCalendarRepository(initialDays: List<DayPlan> = MediterraneanSampleDat
 
     companion object {
         const val FAKE_GROUP_ID = "fake-group"
+
+        /** Where the creation times of the tasks added through the fake start, above those of the sample data. */
+        private const val FAKE_CLOCK_START = 1_000L
     }
 }

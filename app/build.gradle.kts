@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.android.junit5)
-    // google-services: activar al añadir app/google-services.json (Firebase)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -68,10 +68,10 @@ dependencies {
     implementation(projects.domain)
     implementation(projects.data)
     implementation(projects.core.designsystem)
+    implementation(projects.feature.auth)
     implementation(projects.feature.calendar)
+    implementation(projects.feature.groups)
     implementation(projects.feature.recipes)
-    // La pantalla de muestra solo existe en debug (ver src/debug/.../DebugNavigation.kt).
-    debugImplementation(projects.feature.showcase)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)

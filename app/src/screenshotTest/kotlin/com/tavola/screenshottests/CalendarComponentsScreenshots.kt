@@ -17,7 +17,7 @@ import com.tavola.core.designsystem.calendar.TavolaMealSlot
 import com.tavola.core.designsystem.calendar.TavolaTaskChip
 import com.tavola.core.designsystem.calendar.TavolaWeekSelector
 import com.tavola.core.designsystem.calendar.WeekSelectorModel
-import com.tavola.core.designsystem.dialog.TavolaAddTaskDialog
+import com.tavola.core.designsystem.dialog.TavolaTextInputDialog
 import com.tavola.core.designsystem.preview.TavolaFontScalePreviews
 import com.tavola.core.designsystem.preview.TavolaPreviews
 import com.tavola.core.designsystem.theme.TavolaTheme
@@ -102,7 +102,7 @@ fun AddTaskChipScreenshot() {
 @Composable
 fun EditTaskDialogScreenshot() {
     TavolaTheme {
-        TavolaAddTaskDialog(
+        TavolaTextInputDialog(
             title = "Editar tarea",
             label = "¿Qué hay que hacer?",
             confirmText = "Guardar",

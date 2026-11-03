@@ -26,6 +26,7 @@ import com.tavola.core.designsystem.scaffold.LocalFloatingBarState
 import com.tavola.core.designsystem.scaffold.TavolaFloatingBarLayer
 import com.tavola.core.designsystem.scaffold.rememberFloatingBarState
 import com.tavola.feature.calendar.CalendarScreen
+import com.tavola.feature.groups.MyGroupScreen
 import com.tavola.feature.recipes.MealPickerSheetContent
 import com.tavola.feature.recipes.RecipeDetailScreen
 import com.tavola.feature.recipes.RecipeEditorScreen
@@ -70,8 +71,8 @@ fun TavolaNavigation() {
                 entryProvider = entryProvider<NavKey> {
                     entry<CalendarRoute>(clazzContentKey = { CALENDAR_KEY }, metadata = motion.tabMetadata) {
                         CalendarScreen(
-                            onOpenDebugMenu = debugMenuAction(backStack),
                             onOpenRecipe = { recipeId -> backStack.add(RecipeDetailRoute(recipeId)) },
+                            onOpenGroup = { backStack.add(GroupRoute) },
                             mealPicker = { target, onClose ->
                                 MealPickerSheetContent(date = target.date, type = target.type, current = target.current, onClose = onClose)
                             },
@@ -91,12 +92,16 @@ fun TavolaNavigation() {
                             )
                         }
                     }
+                    entry<GroupRoute>(metadata = motion.sheetMetadata) {
+                        SheetEntrySurface {
+                            MyGroupScreen(onBack = { backStack.removeLastOrNull() })
+                        }
+                    }
                     entry<RecipeEditorRoute>(metadata = motion.sheetMetadata) { route ->
                         SheetEntrySurface {
                             RecipeEditorScreen(recipeId = route.recipeId, onBack = { backStack.removeLastOrNull() })
                         }
                     }
-                    debugEntries(backStack)
                 },
             )
         }

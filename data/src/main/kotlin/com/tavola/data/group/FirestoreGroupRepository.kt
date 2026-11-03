@@ -5,6 +5,7 @@ import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Transaction
 import com.google.firebase.firestore.snapshots
 import com.tavola.domain.model.AuthUser
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -52,7 +54,10 @@ internal class FirestoreGroupRepository @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun observeGroupOf(userId: String): Flow<MyGroupState> = userRef(userId).snapshots()
+    private fun observeGroupOf(userId: String): Flow<MyGroupState> = userRef(userId).snapshots(MetadataChanges.INCLUDE)
+        // A document that is not in the local cache first shows up as "missing, from the cache". Waiting for the server's answer
+        // keeps someone who already has a group (on a new phone, say) from seeing the first step for a moment.
+        .filter { snapshot -> snapshot.exists() || !snapshot.metadata.isFromCache }
         .map { snapshot -> snapshot.getString(GroupFields.GROUP_ID) }
         .distinctUntilChanged()
         .flatMapLatest { groupId -> if (groupId == null) flowOf(MyGroupState.None) else observeGroup(groupId) }

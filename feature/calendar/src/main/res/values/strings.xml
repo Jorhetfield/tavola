@@ -5,7 +5,6 @@
     <string name="calendar_loading">Preparando tu semana…</string>
     <string name="calendar_error">No se ha podido cargar la semana</string>
     <string name="calendar_retry">Reintentar</string>
-    <string name="calendar_debug_menu">Menú de depuración</string>
     <string name="calendar_group">Mi grupo</string>
 
     <string name="calendar_add_task_title">Nueva tarea</string>

@@ -33,6 +33,8 @@ class FakeGroupRepository(private val user: AuthUser? = FakeAuthRepository.Sampl
     /** When set, every action fails with this reason instead of doing anything. */
     var failWith: GroupFailure? = null
 
+    override val groupId: Flow<String?> = state.map { current -> user?.let { signedIn -> current.groupOfUser[signedIn.id] } }
+
     override val myGroup: Flow<MyGroupState> = state.map { current ->
         val stored = user?.let { signedIn -> current.groupOfUser[signedIn.id] }?.let { groupId -> current.groups[groupId] }
         if (stored == null) MyGroupState.None else MyGroupState.Joined(stored.group, stored.members)

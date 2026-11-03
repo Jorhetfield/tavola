@@ -23,7 +23,6 @@ class StringResourcesConventionTest {
         "feature/calendar" to setOf("calendar"),
         "feature/groups" to setOf("group"),
         "feature/recipes" to setOf("recipe", "meal_picker", "ingredient_unit"),
-        "feature/showcase" to setOf("showcase"),
     )
 
     private val root: File = generateSequence(File("").absoluteFile) { directory -> directory.parentFile }

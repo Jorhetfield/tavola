@@ -8,6 +8,7 @@ import com.tavola.domain.model.GroupRules
 import com.tavola.domain.model.InviteCode
 import com.tavola.domain.model.JoinGroupResult
 import com.tavola.domain.repository.GroupRepository
+import com.tavola.domain.usecase.CreateGroupWithStarterRecipesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,12 +18,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * The first step for someone with no group: create one or join one with a code. When it works the group of the person changes
+ * The first step for someone with no group: create one (which starts with the example recipes) or join one with a code. When it works the group of the person changes
  * and the gate swaps this screen for the app, so there is nothing to report back; the state goes back to the start for the next
  * time someone has no group (for example after leaving one).
  */
 @HiltViewModel
-class SetupGroupViewModel @Inject constructor(private val groupRepository: GroupRepository) : ViewModel() {
+class SetupGroupViewModel @Inject constructor(
+    private val groupRepository: GroupRepository,
+    private val createGroupWithStarterRecipes: CreateGroupWithStarterRecipesUseCase,
+) : ViewModel() {
     private val state = MutableStateFlow(SetupGroupUiState())
     val uiState: StateFlow<SetupGroupUiState> = state.asStateFlow()
 
@@ -49,7 +53,7 @@ class SetupGroupViewModel @Inject constructor(private val groupRepository: Group
         if (!current.canCreate) return
         state.value = current.copy(isWorking = true, error = null)
         viewModelScope.launch {
-            val result = groupRepository.createGroup(current.name)
+            val result = createGroupWithStarterRecipes(current.name)
             finish(if (result is GroupActionResult.Failed) result.reason.toError() else null)
         }
     }

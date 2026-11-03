@@ -82,7 +82,6 @@ graph TD
     app[":app<br/>entrada, DI raíz, navegación"]
     cal[":feature:calendar<br/>landing: calendario semanal"]
     rec[":feature:recipes<br/>selector de comida"]
-    show[":feature:showcase<br/>(solo debug)"]
     ds[":core:designsystem<br/>tema y componentes"]
     domain[":domain<br/>Kotlin puro"]
     data[":data<br/>repositorios"]
@@ -91,7 +90,6 @@ graph TD
     app --> cal
     app --> rec
     app --> data
-    app -.->|debug| show
     app --> ds
     cal --> domain
     cal --> ds
@@ -111,7 +109,6 @@ graph TD
 | `:core:testing` | Fakes (`FakeCalendarRepository`…), datos de ejemplo mediterráneos y `MainDispatcherExtension` para JUnit 5. |
 | `:feature:calendar` | Una funcionalidad completa: `CalendarScreen`, `CalendarViewModel` y `CalendarUiState`. Aloja la hoja del selector, pero su contenido se lo cede `:app` por un *slot*. |
 | `:feature:recipes` | El selector de comida (`MealPickerSheetContent`, `MealPickerViewModel`): busca recetas, anota comidas rápidas y escribe en el calendario a través del dominio. Crecerá con la lista y el editor de recetas. |
-| `:feature:showcase` | Pantalla de muestra del tema y los componentes. Solo existe en builds de debug. |
 
 ### Reglas de dependencia
 
@@ -142,7 +139,7 @@ graph TD
 
 ### Navegación
 
-Navigation 3 con una sola `Activity`. Las rutas son `@Serializable` e implementan `NavKey`, y llevan solo identificadores simples. El menú de depuración (que abre el showcase) existe únicamente en el *source set* `debug`.
+Navigation 3 con una sola `Activity`. Las rutas son `@Serializable` e implementan `NavKey`, y llevan solo identificadores simples. No hay menú de depuración ni pantalla de muestra: los datos de una persona son los de su grupo.
 
 ### Build
 
@@ -232,7 +229,7 @@ Para instalar una versión, abre la pre-release en la app de GitHub (o en el nav
 git clone https://github.com/Jorhetfield/tavola.git
 ```
 
-Abre la carpeta en Android Studio, haz *Sync* y ejecuta la configuración `app`. En el calendario, en builds de debug, el icono de depuración de la barra superior abre el showcase de componentes.
+Abre la carpeta en Android Studio, haz *Sync* y ejecuta la configuración `app`. Entra con tu cuenta de Google y crea un grupo (o únete con un código): empieza con tres recetas de ejemplo.
 
 Por línea de comandos (con `JAVA_HOME` apuntando a un JDK 17+):
 
@@ -257,7 +254,6 @@ tavola/
 ├── feature/
 │   ├── calendar/         landing: calendario semanal
 │   ├── recipes/          selector de comida (y, más adelante, recetario)
-│   └── showcase/         muestra de componentes (solo debug)
 ├── build-logic/          plugins de convención de Gradle
 ├── docs/                 plan, lecciones aprendidas e imágenes
 └── CLAUDE.md             contexto y reglas del proyecto

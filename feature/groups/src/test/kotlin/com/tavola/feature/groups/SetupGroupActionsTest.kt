@@ -1,7 +1,9 @@
 package com.tavola.feature.groups
 
 import com.tavola.core.testing.fake.FakeGroupRepository
+import com.tavola.core.testing.fake.FakeRecipeRepository
 import com.tavola.core.testing.rule.MainDispatcherExtension
+import com.tavola.domain.usecase.CreateGroupWithStarterRecipesUseCase
 import org.junit.jupiter.api.Assertions.assertNotSame
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -15,7 +17,8 @@ class SetupGroupActionsTest {
     @Test
     fun `every action of the screen is wired to the ViewModel, none is left doing nothing`() {
         val defaults = SetupGroupActions()
-        val wired = SetupGroupViewModel(FakeGroupRepository()).toActions()
+        val groups = FakeGroupRepository()
+        val wired = SetupGroupViewModel(groups, CreateGroupWithStarterRecipesUseCase(groups, FakeRecipeRepository())).toActions()
         val actionGetters = SetupGroupActions::class.java.methods.filter { method ->
             method.name.startsWith("get") && method.parameterCount == 0 && Function::class.java.isAssignableFrom(method.returnType)
         }

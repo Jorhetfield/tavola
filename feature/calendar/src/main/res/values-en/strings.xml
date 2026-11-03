@@ -5,7 +5,6 @@
     <string name="calendar_loading">Preparing your week…</string>
     <string name="calendar_error">The week could not be loaded</string>
     <string name="calendar_retry">Retry</string>
-    <string name="calendar_debug_menu">Debug menu</string>
     <string name="calendar_group">My group</string>
 
     <string name="calendar_add_task_title">New task</string>

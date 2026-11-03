@@ -30,6 +30,7 @@ internal fun WeekContent(
     actions: CalendarActions,
     contentPadding: PaddingValues,
     mealPicker: MealPickerSlot? = null,
+    onOpenRecipe: (recipeId: String) -> Unit = {},
 ) {
     AnimatedContent(
         targetState = state,
@@ -42,7 +43,7 @@ internal fun WeekContent(
         },
         label = "week",
     ) { week ->
-        DayList(week, actions, contentPadding)
+        DayList(week, actions, contentPadding, onOpenRecipe)
     }
 
     state.mealPicker?.let { target ->
@@ -62,7 +63,12 @@ internal fun WeekContent(
 }
 
 @Composable
-private fun DayList(week: CalendarUiState.Success, actions: CalendarActions, contentPadding: PaddingValues) {
+private fun DayList(
+    week: CalendarUiState.Success,
+    actions: CalendarActions,
+    contentPadding: PaddingValues,
+    onOpenRecipe: (recipeId: String) -> Unit,
+) {
     val spacing = TavolaTheme.spacing
     val cards = rememberDayCardModels(week.days)
 
@@ -80,7 +86,14 @@ private fun DayList(week: CalendarUiState.Success, actions: CalendarActions, con
             val date = LocalDate.parse(card.id)
             TavolaDayCard(
                 model = card,
-                onMealClick = { type -> actions.onMealClick(date, type.toDomain()) },
+                // A day that is over is a record: its meals open the recipe instead of the picker.
+                onMealClick = { type ->
+                    if (card.isEditable) {
+                        actions.onMealClick(date, type.toDomain())
+                    } else {
+                        week.days.firstOrNull { day -> day.date == date }?.recipeIdOf(type)?.let(onOpenRecipe)
+                    }
+                },
                 onTaskCheckedChange = { taskId, checked -> actions.onTaskCheckedChange(date, taskId, checked) },
                 onTaskRemoveClick = { taskId -> actions.onTaskRemove(date, taskId) },
                 onAddTaskClick = { actions.onAddTaskClick(date) },

@@ -47,7 +47,7 @@ private val ChipMinHeight = 40.dp
 /**
  * Quick task of the day ("take the chicken out to thaw", "buy peppers"). It is checked by tapping the text and
  * removed with the X on the right, a separate touch target so it is not removed by mistake. Done tasks do not
- * show the X.
+ * show the X. With [removable] off (a day that is over) there is no X for any task.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -56,6 +56,7 @@ fun TavolaTaskChip(
     onCheckedChange: (checked: Boolean) -> Unit,
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier,
+    removable: Boolean = true,
 ) {
     val colors = TavolaTheme.colors
     val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Color>()
@@ -72,7 +73,7 @@ fun TavolaTaskChip(
     ) {
         TaskChipLabel(model, content, onCheckedChange, modifier = Modifier.weight(1f, fill = false))
         // A done task is not removed from here: uncheck it first.
-        if (model.done) {
+        if (model.done || !removable) {
             Spacer(Modifier.width(TavolaTheme.spacing.lg))
         } else {
             TaskChipRemoveButton(model.text, content, onRemoveClick)

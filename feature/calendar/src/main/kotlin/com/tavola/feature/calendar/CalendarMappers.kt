@@ -44,10 +44,16 @@ private fun PlannedMeal?.toSlotModel(type: UiMealType, resources: Resources): Me
             recipe.prepTimeMinutes?.let { minutes -> resources.getString(R.string.calendar_prep_time, minutes) },
             recipe.tags.firstOrNull(),
         )
-        MealSlotModel(type = type, title = title, subtitle = details.joinToString(" · ").ifEmpty { null })
+        MealSlotModel(type = type, title = title, subtitle = details.joinToString(" · ").ifEmpty { null }, hasRecipe = true)
     }
 
     is PlannedMeal.Quick -> MealSlotModel(type = type, title = title, subtitle = note)
+}
+
+/** The recipe planned in the [type] slot of this day, or `null` if it is empty or a quick meal. */
+internal fun DayItem.recipeIdOf(type: UiMealType): String? {
+    val meal = if (type == UiMealType.Lunch) plan.lunch else plan.dinner
+    return (meal as? PlannedMeal.FromRecipe)?.recipe?.recipeId
 }
 
 internal fun UiMealType.toDomain(): DomainMealType = when (this) {

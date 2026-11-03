@@ -121,7 +121,7 @@ Clean Architecture multi-módulo por capas:
 ```
 :app                   entry point, DI raíz, navegación
 :domain                Kotlin puro (sin android.*): modelos, UseCases, interfaces de repositorio
-:data                  Firestore/Room, implementaciones de repositorio
+:data                  Firestore, implementaciones de repositorio
 :core:designsystem     tema, tokens, TavolaScaffold, componentes base (paquete com.tavola.core.designsystem)
 :feature:<nombre>      una funcionalidad: pantallas + ViewModels (paquete com.tavola.feature.<nombre>)
                        hoy: auth, groups, calendar (landing) y recipes
@@ -160,7 +160,8 @@ Convenciones de estado (guía de arquitectura de Google):
 ## Modelo de datos (Firestore)
 ```
 Group        { id, name, memberIds[], inviteCode, createdBy }
-WeekPlan     { groupId, weekStart, days[{ date, lunch: PlannedMeal?, dinner: PlannedMeal?, tasks[] }] }
+Meal         { date, type, title, recipeId?, prepTimeMinutes?, tags[], note?, createdBy? }   (groups/{groupId}/meals/{date}_{type}: una por hueco; el calendario no guarda la semana entera)
+Task         { date, text, done, createdAt, createdBy? }                                      (groups/{groupId}/tasks/{taskId}: una por documento; el orden del día es createdAt)
 PlannedMeal  FromRecipe(RecipeRef: recipeId + título copiado) | Quick(title, note?)
 ShoppingList { groupId, items[{ name, category, checked, addedBy }] }
 GroupMember  { userId, displayName, photoUrl, colorIndex, joinCode? }   (groups/{groupId}/members/{userId}; joinCode solo lo lleva quien entra con un código)

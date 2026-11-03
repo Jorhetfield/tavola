@@ -67,7 +67,7 @@ La app está en la **Fase 2 de 5** (ver [hoja de ruta](#-hoja-de-ruta)). Hoy fun
 | Build | Gradle 9.6 · AGP 9.5 · catálogo de versiones · plugins de convención (`build-logic`) |
 | Calidad | Spotless + ktlint · Android Lint |
 | Tests | JUnit 5 · Turbine · fakes (sin mocks) · Compose Preview Screenshot Testing |
-| Previsto (Fases 3–5) | Firebase (Auth, Firestore, Storage, Messaging) · Room · Coil · Claude API |
+| Previsto (Fases 3–5) | Firebase (Auth, Firestore, Storage, Messaging) · Coil · Claude API |
 
 `minSdk` 26 · `compileSdk` y `targetSdk` 37.
 
@@ -104,7 +104,7 @@ graph TD
 |---|---|
 | `:app` | Punto de entrada (`@HiltAndroidApp`), navegación y barra flotante. **Único que conoce las rutas** y ensambla todo. |
 | `:domain` | Kotlin puro (JVM, sin `android.*`): modelos (`PlannedMeal` —receta o comida rápida—, `Recipe` con ingredientes estructurados), interfaces de repositorio (`CalendarRepository`, `RecipeRepository`), `TodayProvider`, calificadores de dispatchers y utilidades de fechas. |
-| `:data` | Implementaciones de los repositorios. Hoy en memoria con datos generados; mañana Firestore y Room. Los módulos de Hilt son `internal`. |
+| `:data` | Implementaciones de los repositorios. Firestore: autenticación, grupos, recetas y calendario. Los módulos de Hilt son `internal`. |
 | `:core:designsystem` | Tema, tokens y componentes base. Depende solo de Compose y Material 3, **nunca del dominio**. |
 | `:core:testing` | Fakes (`FakeCalendarRepository`…), datos de ejemplo mediterráneos y `MainDispatcherExtension` para JUnit 5. |
 | `:feature:calendar` | Una funcionalidad completa: `CalendarScreen`, `CalendarViewModel` y `CalendarUiState`. Aloja la hoja del selector, pero su contenido se lo cede `:app` por un *slot*. |
@@ -280,7 +280,7 @@ El detalle vive en [`docs/PLAN.md`](docs/PLAN.md).
 
 - **Versiones preliminares a propósito**: AGP 9.5 RC, Material 3 1.5 beta, Navigation 3 alpha, Lifecycle 2.12 alpha y el motor de capturas en alpha. Se eligieron para tener Material 3 Expressive y los *test suites* de AGP; algunas APIs pueden cambiar.
 - **`minSdk` 26**: `kotlinx-datetime` y `java.time` lo necesitan sin *desugaring*, y Android 8 cubre prácticamente todos los dispositivos.
-- **Dependencias declaradas pero aún sin usar**: Firebase, Room, DataStore y Coil están en el catálogo para las próximas fases; el *plugin* de `google-services` se activará al añadir `google-services.json`.
+- **Dependencias declaradas pero aún sin usar**: Firebase, DataStore y Coil están en el catálogo para las próximas fases; el *plugin* de `google-services` se activará al añadir `google-services.json`.
 - **Tablet**: la pantalla funciona, pero las tarjetas de día se estiran a todo el ancho. El diseño adaptativo está pendiente hasta que la pantalla del calendario se estabilice.
 
 ---

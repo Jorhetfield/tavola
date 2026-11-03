@@ -27,9 +27,9 @@ data class MealPickerTarget(val date: LocalDate, val type: MealType, val current
 @Immutable
 data class EditingTask(val date: LocalDate, val taskId: String, val text: String)
 
-/** Task removed from [date] that was at position [index]; keeps what is needed to undo it. */
+/** Task removed from [date]; keeps what is needed to undo it (the task carries its creation time, which is its place). */
 @Immutable
-data class RemovedTask(val date: LocalDate, val task: DayTask, val index: Int)
+data class RemovedTask(val date: LocalDate, val task: DayTask)
 
 sealed interface CalendarUiState {
     data object Loading : CalendarUiState

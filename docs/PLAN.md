@@ -95,10 +95,10 @@ The items are grouped by topic, not in work order: follow "Next up" above.
 - [ ] Firebase + Auth + groups with an invite code (see "Firebase decisions" above)
   - [x] Firebase and Auth with Google sign-in: `:feature:auth` has the sign-in screen and the session gate (`AuthGate`); `AuthRepository` in `:domain`, Firebase Auth in `:data`. Still to do: register the SHA-1 of the CI signing key in Firebase so the CI APK can sign in.
   - [x] Groups with an invite code: 2a data and rules (done), 2b the gate and the first step, create or join (done), 2c the "My group" screen with the button in the calendar bar: code, copy, share, renew, rename, members, leave (done)
-- [ ] Shared calendar in real time (Firestore)
-  - [ ] The calendar in Firestore, Room out
-  - [ ] The recipes in Firestore
-  - [ ] Security rules and real-time updates between members
+- [x] Shared calendar in real time (Firestore): the recipes, the calendar and the group are in Firestore, and every change shows up on the other phones through the listeners
+  - [x] The calendar in Firestore, Room out: `groups/{groupId}/meals` and `groups/{groupId}/tasks`, ordered by creation time; Room, its schema and its dependencies are gone from the project (PR 4)
+  - [x] The recipes in Firestore (PR 3)
+  - [ ] A check of the whole flow between two accounts, and emulator tests of the rules (needs Node)
 - [x] Recipe CRUD: list, detail and editor (the model already has structured ingredients and steps)
   - [x] Persistence: Room for recipes and the calendar (`RoomRecipeRepository`, `RoomCalendarRepository`); no fake data in the app, sample data only through the debug menu ("Load sample data")
   - [x] List tab + detail (read-only), search and empty state

@@ -7,7 +7,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Transaction
-import com.google.firebase.firestore.snapshots
+import com.tavola.data.firestore.snapshotFlow
 import com.tavola.domain.model.AuthUser
 import com.tavola.domain.model.GroupActionResult
 import com.tavola.domain.model.GroupFailure
@@ -58,7 +58,7 @@ internal class FirestoreGroupRepository @Inject constructor(
         if (id == null) flowOf(MyGroupState.None) else observeGroup(id)
     }
 
-    private fun observeGroupIdOf(userId: String): Flow<String?> = userRef(userId).snapshots(MetadataChanges.INCLUDE)
+    private fun observeGroupIdOf(userId: String): Flow<String?> = userRef(userId).snapshotFlow(MetadataChanges.INCLUDE)
         // A document that is not in the local cache first shows up as "missing, from the cache". Waiting for the server's answer
         // keeps someone who already has a group (on a new phone, say) from seeing the first step for a moment.
         .filter { snapshot -> snapshot.exists() || !snapshot.metadata.isFromCache }
@@ -67,7 +67,7 @@ internal class FirestoreGroupRepository @Inject constructor(
 
     private fun observeGroup(groupId: String): Flow<MyGroupState> {
         val groupRef = groupRef(groupId)
-        return combine(groupRef.snapshots(), groupRef.collection(GroupPaths.MEMBERS).snapshots()) { groupSnapshot, membersSnapshot ->
+        return combine(groupRef.snapshotFlow(), groupRef.collection(GroupPaths.MEMBERS).snapshotFlow()) { groupSnapshot, membersSnapshot ->
             val group = groupSnapshot.data?.toGroup(groupSnapshot.id)
             if (group == null) {
                 MyGroupState.None

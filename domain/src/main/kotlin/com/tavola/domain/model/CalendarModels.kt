@@ -20,8 +20,12 @@ sealed interface PlannedMeal {
     data class Quick(override val title: String, val note: String? = null) : PlannedMeal
 }
 
-/** Tarea rápida de un día ("sacar a descongelar", "comprar pimientos"). */
-data class DayTask(val id: String, val text: String, val done: Boolean = false)
+/**
+ * A quick task of a day ("take the chicken out to thaw", "buy peppers"). The tasks of a day are ordered by [createdAt] (milliseconds
+ * since the epoch), which is also what puts a task back in its place when a delete is undone. [createdBy] is who created it (stored,
+ * not shown yet).
+ */
+data class DayTask(val id: String, val text: String, val done: Boolean = false, val createdAt: Long = 0, val createdBy: String? = null)
 
 data class DayPlan(
     val date: LocalDate,

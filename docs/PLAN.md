@@ -59,7 +59,7 @@ To check before or while doing it:
 - **First launch of a person who already has a group, with no network.** The group gate waits for the server's answer about their group (so a person on a new phone does not see the first step for a moment). With no connection on a phone where the app was never used, it keeps the loading screen. Decide what to show after a while (a message and a retry) when there is time.
 - **Firestore rules are published by hand and not tested with the emulator.** `firestore.rules` (PR 2a) is pasted in the Firebase console (Firestore Database, Rules, Publish) or deployed with `firebase deploy --only firestore:rules`; the repository only works against the rules that are live. There is no Node here, so the rules were not run in the Firebase emulator; they are checked by the console when published and by trying the flows in the app (PR 2b). Add emulator tests (`@firebase/rules-unit-testing`) when Node is available, before the rules grow with the calendar and the recipes.
 - **Recipe photos and the Spark plan.** Firebase Storage may need the paid Blaze plan, even on a new project. Verify before planning the photos (Phase 4); it may change decision 7 or postpone them.
-- **Google sign-in in the CI APK.** It needs the SHA-1 of the signing key registered in Firebase, and CI signs the debug APK with its own key, so that APK may not be able to sign in. Decide how to sign it (a fixed key) before publishing.
+- ~~Google sign-in in the CI APK~~ Verified: the CI APK signs in and syncs on a second device.
 - **`google-services.json` in CI.** Decided: it is committed (it holds no secrets), in PR #14. Follow-up for the owner of the project: restrict its API key in Google Cloud (APIs and services, Credentials) to the package `com.tavola` and the SHA-1 of the debug and CI keys, because the key identifies the project and is only safe to commit if it is restricted.
 - **The widget.** It must learn the group and the signed-in state, and decide how it refreshes (listener or periodic work) and what it shows with no session or no network.
 
@@ -93,12 +93,13 @@ To check before or while doing it:
 The items are grouped by topic, not in work order: follow "Next up" above.
 
 - [ ] Firebase + Auth + groups with an invite code (see "Firebase decisions" above)
-  - [x] Firebase and Auth with Google sign-in: `:feature:auth` has the sign-in screen and the session gate (`AuthGate`); `AuthRepository` in `:domain`, Firebase Auth in `:data`. Still to do: register the SHA-1 of the CI signing key in Firebase so the CI APK can sign in.
+  - [x] Firebase and Auth with Google sign-in: `:feature:auth` has the sign-in screen and the session gate (`AuthGate`); `AuthRepository` in `:domain`, Firebase Auth in `:data`. The CI APK was installed on another device and signs in fine.
   - [x] Groups with an invite code: 2a data and rules (done), 2b the gate and the first step, create or join (done), 2c the "My group" screen with the button in the calendar bar: code, copy, share, renew, rename, members, leave (done)
 - [x] Shared calendar in real time (Firestore): the recipes, the calendar and the group are in Firestore, and every change shows up on the other phones through the listeners
   - [x] The calendar in Firestore, Room out: `groups/{groupId}/meals` and `groups/{groupId}/tasks`, ordered by creation time; Room, its schema and its dependencies are gone from the project (PR 4)
   - [x] The recipes in Firestore (PR 3)
-  - [ ] A check of the whole flow between two accounts, and emulator tests of the rules (needs Node)
+  - [x] A check of the whole flow between two accounts: done with the CI APK on a second device (groups, calendar and meals sync)
+  - [ ] Emulator tests of the rules (needs Node)
 - [x] Recipe CRUD: list, detail and editor (the model already has structured ingredients and steps)
   - [x] Persistence: Room for recipes and the calendar (`RoomRecipeRepository`, `RoomCalendarRepository`); no fake data in the app, sample data only through the debug menu ("Load sample data")
   - [x] List tab + detail (read-only), search and empty state

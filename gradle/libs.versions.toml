@@ -74,7 +74,6 @@ androidx-navigation3-ui = { group = "androidx.navigation3", name = "navigation3-
 
 # Widgets (Jetpack Glance)
 androidx-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
-androidx-glance-material3 = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 
 
 # Compose

@@ -99,4 +99,5 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.hilt.android.testing)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation(libs.kotlinx.coroutines.android)
 }

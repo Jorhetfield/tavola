@@ -7,6 +7,14 @@ import com.tavola.core.testing.fake.FixedTodayProvider
 import com.tavola.domain.model.DayPlan
 import com.tavola.domain.model.DayTask
 import com.tavola.domain.model.PlannedMeal
+import com.tavola.domain.model.WeekPlan
+import com.tavola.domain.repository.CalendarRepository
+import com.tavola.domain.time.startOfWeek
+import com.tavola.domain.time.weekDays
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDate
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,7 +34,7 @@ class TodayWidgetLoaderTest {
     private fun loader(
         auth: FakeAuthRepository = FakeAuthRepository(initialUser = user),
         groups: FakeGroupRepository = FakeGroupRepository().also { repository -> repository.seedGroup("Casa", listOf(user.id)) },
-        calendar: FakeCalendarRepository =
+        calendar: CalendarRepository =
             FakeCalendarRepository(listOf(todayPlan, DayPlan(today.plusDays(1), lunch = PlannedMeal.Quick("Mañana")))),
     ) = TodayWidgetLoader(auth, groups, calendar, FixedTodayProvider(today))
 
@@ -72,6 +80,33 @@ class TodayWidgetLoaderTest {
         val state = TodayWidgetLoader(FakeAuthRepository(initialUser = user), groups, calendar, provider).load() as TodayWidgetState.Content
 
         assertEquals(PlannedMeal.Quick("Paella"), state.lunch)
+    }
+
+    @Test
+    fun `an answer that arrives right after the first one wins, as the first can come from a cache that is behind`() = runTest {
+        val weekStart = today.startOfWeek()
+        val empty = WeekPlan("g", weekStart, weekStart.weekDays().map { date -> DayPlan(date) })
+        val fresh = WeekPlan("g", weekStart, weekStart.weekDays().map { date -> if (date == today) todayPlan else DayPlan(date) })
+        val calendar = object : CalendarRepository by FakeCalendarRepository(emptyList()) {
+            override fun observeWeek(weekStart: LocalDate): Flow<WeekPlan> = flow {
+                emit(empty)
+                delay(300)
+                emit(fresh)
+            }
+        }
+
+        val state = loader(calendar = calendar).load() as TodayWidgetState.Content
+
+        assertEquals(listOf("Sacar el pollo", "Comprar pan"), state.tasks.map { task -> task.text })
+    }
+
+    @Test
+    fun `when nothing arrives the day is unavailable`() = runTest {
+        val calendar = object : CalendarRepository by FakeCalendarRepository(emptyList()) {
+            override fun observeWeek(weekStart: LocalDate): Flow<WeekPlan> = emptyFlow()
+        }
+
+        assertEquals(TodayWidgetState.Unavailable, loader(calendar = calendar).load())
     }
 
     private fun LocalDate.plusDays(days: Int): LocalDate = LocalDate.fromEpochDays(toEpochDays() + days)

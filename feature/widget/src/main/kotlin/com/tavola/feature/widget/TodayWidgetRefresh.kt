@@ -1,7 +1,6 @@
 package com.tavola.feature.widget
 
 import android.content.Context
-import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -71,7 +70,7 @@ internal fun millisUntilAfterMidnight(now: LocalDateTime): Long {
 /** Draws every "Today" widget again, and lines up the next midnight refresh. */
 internal class TodayWidgetWorker(context: Context, parameters: WorkerParameters) : CoroutineWorker(context, parameters) {
     override suspend fun doWork(): Result {
-        TodayWidget().updateAll(applicationContext)
+        TodayWidget.refresh(applicationContext)
         TodayWidgetRefresh.scheduleMidnight(applicationContext)
         return Result.success()
     }

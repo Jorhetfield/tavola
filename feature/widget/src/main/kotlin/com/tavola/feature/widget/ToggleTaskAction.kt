@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.updateAll
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.datetime.LocalDate
 
@@ -23,6 +22,6 @@ internal class ToggleTaskAction : ActionCallback {
         val done = parameters[TaskDoneKey] ?: return
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
         entryPoint.calendarRepository().setTaskDone(date, taskId, done)
-        TodayWidget().updateAll(context)
+        TodayWidget.refresh(context)
     }
 }

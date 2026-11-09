@@ -1,12 +1,18 @@
 package com.tavola.feature.widget
 
+import com.tavola.domain.model.WeekPlan
 import com.tavola.domain.repository.AuthRepository
 import com.tavola.domain.repository.CalendarRepository
 import com.tavola.domain.repository.GroupRepository
 import com.tavola.domain.time.TodayProvider
 import com.tavola.domain.time.startOfWeek
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
@@ -25,14 +31,38 @@ internal class TodayWidgetLoader(
         withTimeoutOrNull(GROUP_WAIT_MILLIS) { groupRepository.groupId.filterNotNull().first() } ?: return TodayWidgetState.NoGroup
 
         val today = todayProvider.today()
-        val week = withTimeoutOrNull(WEEK_WAIT_MILLIS) { calendarRepository.observeWeek(today.startOfWeek()).first() }
-            ?: return TodayWidgetState.Unavailable
+        val week = latestWeek(calendarRepository.observeWeek(today.startOfWeek())) ?: return TodayWidgetState.Unavailable
         val day = week.days.firstOrNull { plan -> plan.date == today } ?: return TodayWidgetState.Unavailable
         return TodayWidgetState.Content(date = today, lunch = day.lunch, dinner = day.dinner, tasks = day.tasks)
+    }
+
+    /**
+     * The week as it is after the first answer has had a moment to be followed by a newer one. The first answer of a cold start can
+     * come from a cache that has not caught up (with no tasks, say), and the server's one arrives right after it, so the last
+     * answer within [SETTLE_MILLIS] wins. With no connection there is nothing newer and the cached one is used.
+     */
+    private suspend fun latestWeek(weeks: Flow<WeekPlan>): WeekPlan? {
+        var latest: WeekPlan? = null
+        val firstArrived = CompletableDeferred<Unit>()
+        coroutineScope {
+            val collecting = launch {
+                weeks.collect { week ->
+                    latest = week
+                    firstArrived.complete(Unit)
+                }
+            }
+            withTimeoutOrNull(WEEK_WAIT_MILLIS) {
+                firstArrived.await()
+                delay(SETTLE_MILLIS)
+            }
+            collecting.cancel()
+        }
+        return latest
     }
 
     private companion object {
         const val GROUP_WAIT_MILLIS = 3_000L
         const val WEEK_WAIT_MILLIS = 6_000L
+        const val SETTLE_MILLIS = 1_500L
     }
 }

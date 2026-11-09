@@ -2,7 +2,8 @@
 <resources>
     <string name="widget_today_label">Tavola · Hoy</string>
     <string name="widget_today_description">La comida, la cena y las tareas de hoy, con las tareas marcables desde la pantalla de inicio.</string>
-    <string name="widget_today_header">Hoy · %1$s</string>
+    <string name="widget_today_badge">HOY</string>
+    <string name="widget_prep_time">%1$d min</string>
     <string name="widget_lunch">Comida</string>
     <string name="widget_dinner">Cena</string>
     <string name="widget_nothing_planned">Sin planificar</string>

@@ -24,7 +24,7 @@ data class TavolaColors(
     val memberColors: List<TavolaMemberColor>,
 )
 
-internal val TavolaLightExtraColors = TavolaColors(
+val TavolaLightExtraColors = TavolaColors(
     dayCard = MediterraneoSuave,
     onDayCard = NocheEgeo,
     dayCardActive = Azafran,
@@ -42,7 +42,7 @@ internal val TavolaLightExtraColors = TavolaColors(
     memberColors = TavolaLightMemberColors,
 )
 
-internal val TavolaDarkExtraColors = TavolaColors(
+val TavolaDarkExtraColors = TavolaColors(
     dayCard = NocheCard,
     onDayCard = Color(0xFFE6EEF6),
     dayCardActive = AzafranNoche,

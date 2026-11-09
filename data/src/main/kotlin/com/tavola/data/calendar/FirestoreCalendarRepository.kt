@@ -2,9 +2,9 @@ package com.tavola.data.calendar
 
 import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
+import com.tavola.data.firestore.GroupWrites
 import com.tavola.data.firestore.snapshotFlow
 import com.tavola.data.group.GroupPaths
 import com.tavola.domain.model.DayPlan
@@ -18,16 +18,13 @@ import com.tavola.domain.repository.GroupRepository
 import com.tavola.domain.time.weekDays
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.datetime.LocalDate
 
 /**
@@ -43,6 +40,7 @@ internal class FirestoreCalendarRepository @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val groupRepository: GroupRepository,
     private val authRepository: AuthRepository,
+    private val groupWrites: GroupWrites,
 ) : CalendarRepository {
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun observeWeek(weekStart: LocalDate): Flow<WeekPlan> = groupRepository.groupId.flatMapLatest { groupId ->
@@ -109,20 +107,7 @@ internal class FirestoreCalendarRepository @Inject constructor(
         }
     }
 
-    /**
-     * Runs a change in the group of the person, waiting a little for the server. With no group there is nothing to change, and a
-     * refusal of the server (a task that was deleted meanwhile, say) is not an error for the caller: the listeners show the result.
-     */
-    private suspend fun write(change: suspend (groupId: String) -> Unit) {
-        val groupId = withTimeoutOrNull(GROUP_WAIT_MILLIS) { groupRepository.groupId.filterNotNull().first() } ?: return
-        try {
-            withTimeoutOrNull(ACKNOWLEDGEMENT_WAIT_MILLIS) { change(groupId) }
-        } catch (cancellation: CancellationException) {
-            throw cancellation
-        } catch (refused: FirebaseFirestoreException) {
-            // The calendar goes back to what the server has.
-        }
-    }
+    private suspend fun write(change: suspend (groupId: String) -> Unit) = groupWrites.write(change)
 
     private fun List<StoredMeal>.mealOf(date: LocalDate, type: MealType): PlannedMeal? =
         firstOrNull { stored -> stored.date == date && stored.type == type }?.meal
@@ -135,9 +120,4 @@ internal class FirestoreCalendarRepository @Inject constructor(
     private fun tasks(groupId: String): CollectionReference = group(groupId).collection(TASKS_COLLECTION)
 
     private fun group(groupId: String) = firestore.collection(GroupPaths.GROUPS).document(groupId)
-
-    private companion object {
-        const val ACKNOWLEDGEMENT_WAIT_MILLIS = 4_000L
-        const val GROUP_WAIT_MILLIS = 10_000L
-    }
 }

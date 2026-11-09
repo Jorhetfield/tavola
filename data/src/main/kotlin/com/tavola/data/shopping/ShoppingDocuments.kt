@@ -1,12 +1,14 @@
 package com.tavola.data.shopping
 
+import com.google.firebase.Timestamp
 import com.tavola.domain.model.ShoppingCategory
 import com.tavola.domain.model.ShoppingItem
+import java.util.Date
 
 // How the shopping list of a group is stored in Firestore: groups/{groupId}/shopping/{itemId}, one document per item so two people
 // adding at once never overwrite each other. The security rules in `firestore.rules` depend on these names and shapes.
 //
-//   { name, category, quantity?, checked, createdAt, addedBy? }
+//   { name, category, quantity?, checked, createdAt (a Firestore timestamp), addedBy? }
 
 internal object ShoppingFields {
     const val NAME = "name"
@@ -24,13 +26,17 @@ internal const val SHOPPING_COLLECTION = "shopping"
 /**
  * The document of this item. [addedBy] is only included when it is known, so a write that merges it into an existing document
  * leaves whoever added the item as they were. The category is stored by name so reordering the enum never corrupts data.
+ *
+ * [createdAtValue] is what goes in `createdAt`: the server's timestamp for a new item (so the order does not depend on the clock of
+ * the phone that added it), or the item's own time for one that is saved again. The quantity is written even when there is none,
+ * so saving an item without a quantity clears the one it had.
  */
-internal fun ShoppingItem.toDocument(addedBy: String?): Map<String, Any?> = buildMap {
+internal fun ShoppingItem.toDocument(addedBy: String?, createdAtValue: Any = Timestamp(Date(createdAt))): Map<String, Any?> = buildMap {
     put(ShoppingFields.NAME, name)
     put(ShoppingFields.CATEGORY, category.name)
     put(ShoppingFields.QUANTITY, quantity)
     put(ShoppingFields.CHECKED, checked)
-    put(ShoppingFields.CREATED_AT, createdAt)
+    put(ShoppingFields.CREATED_AT, createdAtValue)
     if (addedBy != null) put(ShoppingFields.ADDED_BY, addedBy)
 }
 
@@ -47,7 +53,7 @@ internal fun Map<String, Any?>.toShoppingItem(id: String): ShoppingItem? {
         category = ShoppingCategory.entries.firstOrNull { category -> category.name == categoryName } ?: ShoppingCategory.Other,
         quantity = this[ShoppingFields.QUANTITY] as? String,
         checked = this[ShoppingFields.CHECKED] as? Boolean ?: false,
-        createdAt = (this[ShoppingFields.CREATED_AT] as? Number)?.toLong() ?: 0,
+        createdAt = (this[ShoppingFields.CREATED_AT] as? Timestamp)?.toDate()?.time ?: 0,
         addedBy = this[ShoppingFields.ADDED_BY] as? String,
     )
 }

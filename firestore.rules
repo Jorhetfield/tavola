@@ -100,14 +100,14 @@ service cloud.firestore {
     }
 
     // An item of the shopping list: a name, one of the fixed categories, an optional free-text quantity, whether it is ticked, and
-    // when it was added (which orders the list). `addedBy` is who added it; it is only written when the item is created.
+    // when it was added by the server's clock (which orders the list). `addedBy` is who added it; it is only written when the item is created.
     function validShoppingItem(item) {
       return item.keys().hasOnly(['name', 'category', 'quantity', 'checked', 'createdAt', 'addedBy'])
         && item.name is string && item.name.size() >= 1 && item.name.size() <= 120
         && item.category in ['FruitAndVegetables', 'MeatAndFish', 'DairyAndEggs', 'Pantry', 'Bakery', 'Frozen', 'Drinks', 'Household', 'Other']
         && (!('quantity' in item.keys()) || item.quantity == null || (item.quantity is string && item.quantity.size() <= 60))
         && item.checked is bool
-        && item.createdAt is int
+        && item.createdAt is timestamp
         && (!('addedBy' in item.keys()) || item.addedBy is string);
     }
 

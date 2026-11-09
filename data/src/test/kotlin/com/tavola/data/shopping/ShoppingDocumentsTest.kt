@@ -1,7 +1,9 @@
 package com.tavola.data.shopping
 
+import com.google.firebase.Timestamp
 import com.tavola.domain.model.ShoppingCategory
 import com.tavola.domain.model.ShoppingItem
+import java.util.Date
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
@@ -26,11 +28,26 @@ class ShoppingDocumentsTest {
     }
 
     @Test
+    fun `the time is stored as a timestamp, so the rules and the server clock can handle it`() {
+        val document = tomatoes.toDocument(addedBy = null)
+
+        assertEquals(Timestamp(Date(1_700_000_000_000)), document["createdAt"])
+    }
+
+    @Test
     fun `without an author the document leaves the field out, so a merge keeps who added the item`() {
         val document = tomatoes.toDocument(addedBy = null)
 
         assertFalse(document.containsKey("addedBy"))
         assertNull(document.toShoppingItem("tomatoes")?.addedBy)
+    }
+
+    @Test
+    fun `an item without a quantity writes it as null, so saving it clears the quantity it had`() {
+        val document = tomatoes.copy(quantity = null).toDocument(addedBy = null)
+
+        assertEquals(true, document.containsKey("quantity"))
+        assertNull(document["quantity"])
     }
 
     @Test

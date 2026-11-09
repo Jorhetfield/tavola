@@ -83,6 +83,27 @@ PRs (all merged into 0.1.1): 1 domain, Firestore repository, rules, fake and tes
 
 To check: the add sheets were never tried on a device (keyboard and focus), and the Firestore rules for `shopping` must be published by hand in the console.
 
+Shopping list redesign decisions (agreed, Bring-style; they replace decisions 4, 5, 6 and 8 above, and the rest stay):
+| # | Decision |
+|---|---|
+| 1 | Product icons come from **Noto Emoji** (free: Apache 2.0 for the images, OFL for the font), bundled as **~128 px WebP**, not as vectors (the SVGs use gradients that Android converts badly). The license notice goes in the app. Check the exact license of the files before bundling them. |
+| 2 | An unknown product is stored anyway. It shows the icon of its guessed category on a tile tinted with the category color, or a generic basket when no category is guessed. |
+| 3 | The list is a **grid like Bring**: tiles with a big icon and the name below, grouped by collapsible category sections in supermarket order. 4 columns on a phone, more on a foldable or tablet. The quantity is a small label on the tile. |
+| 4 | **Tap a tile = bought**: it leaves the list and goes to the history. No strike-through, no "Remove ticked", no swipe to remove. |
+| 5 | **Long press = edit**: a small sheet with quantity or note, category and "Remove without buying" (which does not go to the recent strip). |
+| 6 | A strip "Bought recently" at the end of the list: what was bought in the last **24 h**, at most **12 tiles**, shared with the group. Tapping a tile adds it back. It is the safety net for an accidental tap. |
+| 7 | The "+" docked to the floating bar opens a **big sheet**: a search field on top, then "Recent" and the **built-in catalog** by category as a grid. Tapping a tile adds it and the sheet stays open. A tile already on the list shows a mark, and a second tap removes it. |
+| 8 | Typing filters and autocompletes from the history and the catalog. When nothing matches, the first option is `Add "x"`. |
+| 9 | The quantity is parsed from the text **only when a new product is created** ("Chicken 1 kg", "2 milk"). Catalog tiles are added without quantity; it is set by long press. |
+| 10 | The **history belongs to the group** and is ordered by use. Long press on an own tile offers "Forget"; catalog entries cannot be deleted, only hidden from "Recent". |
+| 11 | The built-in catalog has about 150-200 common products in Spanish and English with synonyms. Matching ignores case, accents and plurals, like `ShoppingNames`. |
+| 12 | Adding a whole week from the calendar is back in: it merges the ingredients of the planned recipes, joins duplicates and lets the user untick what is already at home. |
+| 13 | Data: new collection `groups/{groupId}/history/{key}` with `name`, `category`, `useCount`, `lastUsedAt`, `lastBoughtAt?` and `hidden`. Buying deletes the list document and updates the history; "Bought recently" is derived from the history, so no ticked documents remain. `checked` is retired. Existing items keep working: their icon is resolved at runtime by name against the catalog, so nothing new is stored on the item. |
+| 14 | Where things live: the catalog and the icon resolution in `:domain` (no Android), the images in a resources module, the tile and the grid in `:core:designsystem`, the screens in `:feature:shopping`. The Firestore rules for `history` are published by hand again. |
+| 15 | Design as the rest of the app: `motionScheme`, touch feedback, light and dark, and screenshots (light, dark, large text) for each new component. |
+
+PRs of the redesign, one at a time: 1 domain (catalog, history, Firestore repository, rules, fakes and tests); 2 the grid of the tab (tiles with icon, collapsible categories, buy with a tap, edit with a long press, "Bought recently"); 3 the big add sheet with search, recent and catalog; 4 add from the week of the calendar.
+
 ## Phase 0 — Project base
 - [x] `libs.versions.toml` with the stack (recent Compose BOM, M3 Expressive, Hilt+KSP, Navigation 3, Kotlinx Serialization, Coil 3, Firebase BOM, JUnit5/Turbine, fakes instead of mocks)
 - [x] Modules: `:domain`, `:data`, `:ui`, `:ui:components` + `settings.gradle.kts` + a `build.gradle.kts` for each (reorganized into `:core:designsystem` and `:feature:*`)
@@ -154,6 +175,11 @@ The items are grouped by topic, not in work order: follow "Next up" above.
 
 ## Phase 4 — Shopping list and premium design
 - [x] Manual shopping list by category (release 0.1.1: tab, add sheet with a guessed category, tick, swipe to remove with Undo, "Remove ticked", add the ingredients of a recipe)
+- [ ] Shopping list redesign, Bring-style (decisions above), in 4 PRs:
+  - [ ] 1. Domain: catalog, history, Firestore repository and rules, fakes and tests
+  - [ ] 2. The grid of the tab: tiles with icon, collapsible categories, buy with a tap, edit with a long press, "Bought recently"
+  - [ ] 3. The big add sheet: search, recent and catalog
+  - [ ] 4. Add the ingredients of a week from the calendar
 - [ ] Recipe photos, recipe book carousel
 - [ ] Import a recipe by URL
 - [ ] Push notifications
@@ -161,6 +187,7 @@ The items are grouped by topic, not in work order: follow "Next up" above.
   - long press on a task chip edits its text
   - drag a recipe row halfway to delete it (with Undo)
   - tap the header of a past day to open or close it
+  - on the shopping list, a long press on a tile edits it (a tap means "bought")
   - tap a recipe meal of a past day to see the recipe
 
 ## Phase 5 — AI (at the end)

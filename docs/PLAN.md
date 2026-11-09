@@ -176,7 +176,7 @@ The items are grouped by topic, not in work order: follow "Next up" above.
 ## Phase 4 — Shopping list and premium design
 - [x] Manual shopping list by category (release 0.1.1: tab, add sheet with a guessed category, tick, swipe to remove with Undo, "Remove ticked", add the ingredients of a recipe)
 - [ ] Shopping list redesign, Bring-style (decisions above), in 4 PRs:
-  - [ ] 1. Domain: catalog, history, Firestore repository and rules, fakes and tests
+  - [x] 1. Domain: catalog, history, Firestore repository and rules, fakes and tests (`checked` and `setChecked` stay until PR 2 replaces the screen; the `history` rules must be published by hand)
   - [ ] 2. The grid of the tab: tiles with icon, collapsible categories, buy with a tap, edit with a long press, "Bought recently"
   - [ ] 3. The big add sheet: search, recent and catalog
   - [ ] 4. Add the ingredients of a week from the calendar

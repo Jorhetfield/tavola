@@ -164,6 +164,7 @@ Meal         { date, type, title, recipeId?, prepTimeMinutes?, tags[], note?, cr
 Task         { date, text, done, createdAt, createdBy? }                                      (groups/{groupId}/tasks/{taskId}: una por documento; el orden del día es createdAt)
 PlannedMeal  FromRecipe(RecipeRef: recipeId + título copiado) | Quick(title, note?)
 ShoppingItem { name, category, quantity?, checked, createdAt, addedBy? }   (groups/{groupId}/shopping/{itemId}: una por documento; createdAt es la hora del servidor y ordena la lista)
+ShoppingHistoryEntry { name, category, useCount?, lastUsedAt?, lastBoughtAt?, hidden? }   (groups/{groupId}/history/{key}; the key is the catalog product id or the words of the name; `ShoppingCatalog` is built in)
 GroupMember  { userId, displayName, photoUrl, colorIndex, joinCode? }   (groups/{groupId}/members/{userId}; joinCode solo lo lleva quien entra con un código)
 Recipe       { title, prepTimeMinutes?, tags[], ingredients[{ name, quantity?, unit }], steps[], createdBy? }   (groups/{groupId}/recipes/{recipeId}; la receta no lleva id dentro, el id es el del documento)
 User         { groupId? }                                              (users/{userId}: el grupo de la persona, uno como máximo)

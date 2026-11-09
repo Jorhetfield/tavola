@@ -2,7 +2,8 @@ package com.tavola.domain.model
 
 /**
  * Guesses the category of a shopping item from what is typed, so the person almost never has to pick one. It knows the common
- * Spanish and English names of food and household things; anything else has no suggestion and the caller falls back to
+ * Spanish and English names of food and household things, and a product of [ShoppingCatalog] always has the category the catalog
+ * gives it; anything else has no suggestion and the caller falls back to
  * [ShoppingCategory.Other]. Words are compared without accents, case or a plural ending, so "Tomates" and "tómate" both find "tomate".
  */
 object ShoppingCategorySuggester {
@@ -60,10 +61,11 @@ object ShoppingCategorySuggester {
     )
 
     /**
-     * The category [name] most likely belongs to: a known phrase if the name has one, otherwise the first word that is known.
-     * `null` if nothing is known.
+     * The category [name] most likely belongs to: the one of its catalog product if it is one, else a known phrase if the name has
+     * one, otherwise the first word that is known. `null` if nothing is known.
      */
     fun suggest(name: String): ShoppingCategory? {
+        ShoppingCatalog.find(name)?.let { product -> return product.category }
         val words = ShoppingNames.words(name)
         val text = words.joinToString(separator = " ", prefix = " ", postfix = " ")
         return phrases.entries.firstOrNull { (phrase, _) -> text.contains(" $phrase ") }?.value

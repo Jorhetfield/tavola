@@ -26,6 +26,18 @@ class ShoppingNamesTest {
     }
 
     @Test
+    fun `digits count, so names that differ by a number are different things`() {
+        assertFalse(ShoppingNames.same("Pack 6", "Pack 12"))
+        assertTrue(ShoppingNames.same("Pack 6", "pack  6"))
+        assertEquals(listOf("vitamina", "b12"), ShoppingNames.words("Vitamina B12"))
+    }
+
+    @Test
+    fun `names in other scripts are compared by their letters`() {
+        assertTrue(ShoppingNames.same("Φέτα", "φετα"))
+    }
+
+    @Test
     fun `an empty or symbol-only name is the same as nothing`() {
         assertFalse(ShoppingNames.same("", ""))
         assertFalse(ShoppingNames.same("  ", "!!!"))

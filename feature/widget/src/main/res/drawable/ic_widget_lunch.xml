@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The badge of the lunch slot: a yellow circle with a sun, as in the day card of the app. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="28"
+    android:viewportHeight="28">
+    <path
+        android:fillColor="#F0B840"
+        android:pathData="M14,14m-14,0a14,14 0,1 1,28 0a14,14 0,1 1,-28 0" />
+    <path
+        android:fillColor="#3D2200"
+        android:pathData="M14,14m-3.4,0a3.4,3.4 0,1 1,6.8 0a3.4,3.4 0,1 1,-6.8 0" />
+    <path
+        android:pathData="M14,6.6L14,8.6M14,19.4L14,21.4M6.6,14L8.6,14M19.4,14L21.4,14M8.8,8.8L10.2,10.2M17.8,17.8L19.2,19.2M19.2,8.8L17.8,10.2M8.8,19.2L10.2,17.8"
+        android:strokeColor="#3D2200"
+        android:strokeLineCap="round"
+        android:strokeWidth="1.8" />
+</vector>

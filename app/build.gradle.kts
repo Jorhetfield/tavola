@@ -73,6 +73,7 @@ dependencies {
     implementation(projects.feature.groups)
     implementation(projects.feature.recipes)
     implementation(projects.feature.shopping)
+    implementation(projects.feature.widget)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
@@ -98,4 +99,5 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.hilt.android.testing)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    debugImplementation(libs.kotlinx.coroutines.android)
 }

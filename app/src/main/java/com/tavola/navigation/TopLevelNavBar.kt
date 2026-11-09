@@ -86,3 +86,18 @@ internal fun Any?.topLevelKey(): String? = when (this) {
 
 /** Position of a tab in the bar (so which way the tabs slide), or `null` if this is not a tab. */
 internal fun Any?.topLevelIndex(): Int? = TopLevelOrder.indexOf(topLevelKey()).takeIf { index -> index >= 0 }
+
+/** The routes the app starts with: the calendar, and the detail of [recipeToOpen] on top of it when a widget asked for one. */
+internal fun initialBackStack(recipeToOpen: String?): List<NavKey> =
+    if (recipeToOpen == null) listOf(CalendarRoute) else listOf(CalendarRoute, RecipeDetailRoute(recipeToOpen))
+
+/**
+ * Opens the detail of the recipe [recipeId] on top of the calendar, whatever was open before. If that detail is already the one on
+ * top it stays as it is, so the screen is not opened twice (the app was just started on it).
+ */
+internal fun MutableList<NavKey>.openRecipe(recipeId: String) {
+    val detail = RecipeDetailRoute(recipeId)
+    if (lastOrNull() == detail) return
+    navigateToTopLevel(CALENDAR_KEY)
+    add(detail)
+}

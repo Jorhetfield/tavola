@@ -115,4 +115,37 @@ class TopLevelNavigationTest {
 
         assertEquals(listOf(CalendarRoute, ShoppingRoute), backStack)
     }
+
+    @Test
+    fun `the app starts on the calendar, or already on the recipe a widget asked for, with the calendar under it`() {
+        assertEquals(listOf<NavKey>(CalendarRoute), initialBackStack(null))
+        assertEquals(listOf(CalendarRoute, RecipeDetailRoute("paella")), initialBackStack("paella"))
+    }
+
+    @Test
+    fun `opening a recipe puts its detail on top of the calendar, whatever was open`() {
+        val backStack = stack(ShoppingRoute)
+
+        backStack.openRecipe("paella")
+
+        assertEquals(listOf(CalendarRoute, RecipeDetailRoute("paella")), backStack)
+    }
+
+    @Test
+    fun `opening a recipe that is already on top changes nothing`() {
+        val backStack = stack(RecipeDetailRoute("paella"))
+
+        backStack.openRecipe("paella")
+
+        assertEquals(listOf(CalendarRoute, RecipeDetailRoute("paella")), backStack)
+    }
+
+    @Test
+    fun `opening another recipe replaces the one that was open instead of piling up`() {
+        val backStack = stack(RecipesRoute, RecipeDetailRoute("gazpacho"))
+
+        backStack.openRecipe("paella")
+
+        assertEquals(listOf(CalendarRoute, RecipeDetailRoute("paella")), backStack)
+    }
 }

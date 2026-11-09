@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_today_label">Tavola · Hoy</string>
+    <string name="widget_today_description">La comida, la cena y las tareas de hoy, con las tareas marcables desde la pantalla de inicio.</string>
+    <string name="widget_today_badge">HOY</string>
+    <string name="widget_prep_time">%1$d min</string>
+    <string name="widget_lunch">Comida</string>
+    <string name="widget_dinner">Cena</string>
+    <string name="widget_nothing_planned">Sin planificar</string>
+    <string name="widget_no_tasks">Sin tareas pendientes</string>
+    <string name="widget_open_app">Abre Tavola para empezar</string>
+    <string name="widget_unavailable">No se ha podido cargar. Toca para abrir Tavola.</string>
+</resources>

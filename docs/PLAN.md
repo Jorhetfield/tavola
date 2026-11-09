@@ -63,6 +63,24 @@ To check before or while doing it:
 - **`google-services.json` in CI.** Decided: it is committed (it holds no secrets), in PR #14. Follow-up for the owner of the project: restrict its API key in Google Cloud (APIs and services, Credentials) to the package `com.tavola` and the SHA-1 of the debug and CI keys, because the key identifies the project and is only safe to commit if it is restricted.
 - **The widget.** It must learn the group and the signed-in state, and decide how it refreshes (listener or periodic work) and what it shows with no session or no network.
 
+Shopping list decisions (agreed):
+| # | Decision |
+|---|---|
+| 1 | One list per group, shared in real time. One document per item at `groups/{groupId}/shopping/{itemId}` (no array in a single document, so concurrent adds do not overwrite each other). |
+| 2 | Item: `name`, `category`, `checked`, `quantity?` (free text), `createdAt`, `addedBy` (stored, not shown). |
+| 3 | Fixed Mediterranean categories: fruit and vegetables, meat and fish, dairy and eggs, pantry, bakery, frozen, drinks, household, other (default). Not editable. |
+| 4 | New "Shopping" tab in the floating bar, items grouped by category; ticking strikes the item and sends it to the bottom of its category. |
+| 5 | Quick add field on top (type and press enter, a chip changes the category). **Autocomplete from the group history is a second iteration.** |
+| 6 | Swipe to remove with a 5 s Undo, and "Remove ticked" after shopping, also with Undo. |
+| 7 | From a recipe: "Add to shopping list" opens a sheet where the user **picks ingredients by hand** (some may already be at home). Items already on the list are not duplicated; "to taste" ingredients go without quantity. |
+| 8 | Adding a whole week from the calendar is out for now. |
+| 9 | New `:feature:shopping`. `:app` hands the recipe button to `:feature:recipes` through a slot; communication goes through the domain repository. |
+| 10 | Quantities are free text: no summing or unit conversion. |
+| 11 | Same rule as recipes and the calendar: only group members read and write. |
+| 12 | Design: Material 3 Expressive like the rest of the app, with `motionScheme` for every animation, touch feedback on everything pressable, light and dark, and screenshots (light, dark, large text). |
+
+PRs: 1 domain, Firestore repository, rules, fake and tests; 2 the screen and the tab; 3 add from a recipe.
+
 ## Phase 0 — Project base
 - [x] `libs.versions.toml` with the stack (recent Compose BOM, M3 Expressive, Hilt+KSP, Navigation 3, Kotlinx Serialization, Coil 3, Firebase BOM, JUnit5/Turbine, fakes instead of mocks)
 - [x] Modules: `:domain`, `:data`, `:ui`, `:ui:components` + `settings.gradle.kts` + a `build.gradle.kts` for each (reorganized into `:core:designsystem` and `:feature:*`)

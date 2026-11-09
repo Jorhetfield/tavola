@@ -80,3 +80,30 @@ internal fun visibleTasks(layout: DayLayout, tasks: List<DayTask>, size: DpSize,
     val fits = header + slots + needed + BOTTOM_PADDING + SAFETY_MARGIN <= size.height.value
     return if (fits) pending else null
 }
+
+/** The room a short widget's slot needs to also show the detail of its meal ("50 min · Español"), in dp. */
+private const val DETAIL_ROOM = 100f
+
+private const val GAP_UNDER_HEADER = 6f
+
+/**
+ * Whether the header and the slots do not fit in [size], which is when the widget has to be a list that scrolls. Tasks are never part
+ * of that: they only appear where there is room for two, so a widget that has to scroll has none, and what scrolls is only the day's
+ * header and its meals. The slots of a short widget can be as small as [SHORT_SLOTS] says, since they grow to fill what is left.
+ */
+internal fun needsScroll(layout: DayLayout, size: DpSize, fontScale: Float): Boolean {
+    val scale = fontScale.coerceAtLeast(1f)
+    val header = (if (layout == DayLayout.Full) FULL_HEADER else COMPACT_HEADER) * scale
+    val slots = when (layout) {
+        DayLayout.Full -> FULL_SLOTS
+        DayLayout.Short -> SHORT_SLOTS
+        DayLayout.Narrow -> NARROW_SLOTS
+    } * scale
+    return header + slots + BOTTOM_PADDING + SAFETY_MARGIN > size.height.value
+}
+
+/** Whether a short widget's slots, grown to fill the room under the header, are tall enough to show the detail of their meals. */
+internal fun slotsHaveRoomForDetail(size: DpSize, fontScale: Float): Boolean {
+    val scale = fontScale.coerceAtLeast(1f)
+    return size.height.value - COMPACT_HEADER * scale - GAP_UNDER_HEADER - BOTTOM_PADDING >= DETAIL_ROOM * scale
+}

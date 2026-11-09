@@ -19,12 +19,15 @@ import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.ColumnScope
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -46,6 +49,9 @@ private val TagCorner = 10.dp
 private val CardPadding = 14.dp
 private val SlotPadding = 10.dp
 private val SlotHeight = 118.dp
+
+/** The height of the slots of a short widget that has to scroll, where they cannot grow to fill the room. */
+private val ShortSlotHeight = 84.dp
 private val BadgeSize = 26.dp
 private val TaskIconSize = 20.dp
 private val Gap = 8.dp
@@ -77,7 +83,7 @@ internal fun TodayWidgetContent(state: TodayWidgetState, launcher: WidgetLaunche
     }
 }
 
-/** A meal as a compact slot: its badge beside its title. It is the slot of the widgets that have no room for the full one. */
+/** A meal as a compact slot: its badge beside its title (up to three lines: the widget that uses it scrolls, so it has room to grow). */
 @Composable
 private fun CompactMeal(
     type: MealType,
@@ -108,31 +114,57 @@ private fun CompactMeal(
         Text(
             text = meal?.title ?: context.getString(R.string.widget_nothing_planned),
             style = TextStyle(color = ink, fontSize = 13.sp, fontWeight = FontWeight.Bold),
-            maxLines = 2,
+            maxLines = 3,
         )
     }
 }
 
 /**
- * The day as in the card of the app: header, the two slots and, when there is room for two, the first two tasks still to do. It is
- * always a plain column, never a list: the launcher runs a tap on the item of a Glance list through an activity and plays its
- * app-launch animation for it, while a tap on a plain column is a direct broadcast with no animation. Nothing scrolls.
+ * The day as in the card of the app: header, the two slots and, when there is room for two, the first two tasks still to do.
+ *
+ * It is a plain column, which the launcher taps as direct broadcasts without animation. Only when the header and the slots do not
+ * fit ([needsScroll], a 2x2) it is a list that scrolls, which has no tasks: the launcher plays its app-launch animation for the
+ * taps on the items of a Glance list, and there the taps only open the app or a recipe, where an animation belongs.
  */
 @Composable
 private fun DayCard(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action) {
     val size = LocalSize.current
     val layout = dayLayoutFor(size)
     val fontScale = LocalContext.current.resources.configuration.fontScale
+    if (needsScroll(layout, size, fontScale)) {
+        LazyColumn(modifier = GlanceModifier.fillMaxSize().padding(horizontal = CardPadding)) {
+            item { TopBlock(state, layout) }
+            if (layout == DayLayout.Narrow) {
+                item { NarrowMeal(MealType.Lunch, state.lunch, launcher, openApp) }
+                item { NarrowMeal(MealType.Dinner, state.dinner, launcher, openApp) }
+            } else {
+                item { SlotsBlock(state, launcher, openApp, layout, showDetail = false) }
+            }
+            item { Spacer(GlanceModifier.height(CardPadding)) }
+        }
+        return
+    }
     val tasks = visibleTasks(layout, state.tasks, size, fontScale)
     Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = CardPadding)) {
         TopBlock(state, layout)
-        SlotsBlock(state, launcher, openApp, layout)
+        if (layout == DayLayout.Short) {
+            StretchedSlots(state, launcher, openApp, showDetail = slotsHaveRoomForDetail(size, fontScale))
+        } else {
+            SlotsBlock(state, launcher, openApp, layout)
+        }
         when {
             tasks == null -> Unit
             tasks.isEmpty() -> NoTasks()
             else -> tasks.forEach { task -> TaskChip(state, task) }
         }
+        if (layout == DayLayout.Short) Spacer(GlanceModifier.height(CardPadding))
     }
+}
+
+/** A compact slot of a narrow widget, with the gap above it, as its own item of the list. */
+@Composable
+private fun NarrowMeal(type: MealType, meal: PlannedMeal?, launcher: WidgetLauncher, openApp: Action) {
+    Column(modifier = GlanceModifier.fillMaxWidth().padding(top = CompactGap)) { CompactMeal(type, meal, launcher, openApp) }
 }
 
 @Composable
@@ -143,8 +175,18 @@ private fun TopBlock(state: TodayWidgetState.Content, layout: DayLayout) {
     }
 }
 
+/**
+ * The lunch and dinner slots, in the way [layout] asks: full and side by side, side by side at the height of a short widget that has
+ * to scroll (without the detail of the meal, [showDetail] off), or compact and one under the other.
+ */
 @Composable
-private fun SlotsBlock(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action, layout: DayLayout) {
+private fun SlotsBlock(
+    state: TodayWidgetState.Content,
+    launcher: WidgetLauncher,
+    openApp: Action,
+    layout: DayLayout,
+    showDetail: Boolean = true,
+) {
     val top = if (layout == DayLayout.Full) SlotPadding else CompactGap
     when (layout) {
         DayLayout.Full -> Row(modifier = GlanceModifier.fillMaxWidth().padding(top = top)) {
@@ -154,9 +196,9 @@ private fun SlotsBlock(state: TodayWidgetState.Content, launcher: WidgetLauncher
         }
 
         DayLayout.Short -> Row(modifier = GlanceModifier.fillMaxWidth().padding(top = top)) {
-            CompactMeal(MealType.Lunch, state.lunch, launcher, openApp, GlanceModifier.defaultWeight())
+            MealSlot(MealType.Lunch, state.lunch, launcher, openApp, GlanceModifier.defaultWeight().height(ShortSlotHeight), showDetail)
             Spacer(GlanceModifier.width(Gap))
-            CompactMeal(MealType.Dinner, state.dinner, launcher, openApp, GlanceModifier.defaultWeight())
+            MealSlot(MealType.Dinner, state.dinner, launcher, openApp, GlanceModifier.defaultWeight().height(ShortSlotHeight), showDetail)
         }
 
         DayLayout.Narrow -> Column(modifier = GlanceModifier.fillMaxWidth().padding(top = top)) {
@@ -164,6 +206,19 @@ private fun SlotsBlock(state: TodayWidgetState.Content, launcher: WidgetLauncher
             Spacer(GlanceModifier.height(CompactGap))
             CompactMeal(MealType.Dinner, state.dinner, launcher, openApp)
         }
+    }
+}
+
+/**
+ * The slots of a short widget that does not scroll: they grow to fill the room under the header, instead of leaving it empty, and
+ * show the detail of the meal only if they came out tall enough for it ([showDetail]).
+ */
+@Composable
+private fun ColumnScope.StretchedSlots(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action, showDetail: Boolean) {
+    Row(modifier = GlanceModifier.fillMaxWidth().padding(top = CompactGap).defaultWeight()) {
+        MealSlot(MealType.Lunch, state.lunch, launcher, openApp, GlanceModifier.defaultWeight().fillMaxHeight(), showDetail)
+        Spacer(GlanceModifier.width(Gap))
+        MealSlot(MealType.Dinner, state.dinner, launcher, openApp, GlanceModifier.defaultWeight().fillMaxHeight(), showDetail)
     }
 }
 
@@ -209,7 +264,14 @@ private fun Header(state: TodayWidgetState.Content, numberSize: Int, compact: Bo
  * recipe opens when tapped; anything else opens the app. A slot with nothing planned is a faint hollow that says so.
  */
 @Composable
-private fun MealSlot(type: MealType, meal: PlannedMeal?, launcher: WidgetLauncher, openApp: Action, modifier: GlanceModifier) {
+private fun MealSlot(
+    type: MealType,
+    meal: PlannedMeal?,
+    launcher: WidgetLauncher,
+    openApp: Action,
+    modifier: GlanceModifier,
+    showDetail: Boolean = true,
+) {
     val context = LocalContext.current
     val onClick = (meal as? PlannedMeal.FromRecipe)?.let { fromRecipe ->
         actionStartActivity(launcher.openRecipeIntent(fromRecipe.recipe.recipeId))
@@ -241,7 +303,7 @@ private fun MealSlot(type: MealType, meal: PlannedMeal?, launcher: WidgetLaunche
             style = TextStyle(color = ink, fontSize = 14.sp, fontWeight = FontWeight.Bold),
             maxLines = 2,
         )
-        mealDetail(meal) { minutes -> context.getString(R.string.widget_prep_time, minutes) }?.let { detail ->
+        mealDetail(meal) { minutes -> context.getString(R.string.widget_prep_time, minutes) }?.takeIf { showDetail }?.let { detail ->
             Text(text = detail, style = TextStyle(color = ink, fontSize = 11.sp), maxLines = 1)
         }
     }

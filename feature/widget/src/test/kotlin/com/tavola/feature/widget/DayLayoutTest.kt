@@ -4,8 +4,10 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.tavola.domain.model.DayTask
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class DayLayoutTest {
@@ -80,5 +82,29 @@ class DayLayoutTest {
 
         assertNotNull(visibleTasks(DayLayout.Full, tasks, size, fontScale = 1f))
         assertNull(visibleTasks(DayLayout.Full, tasks, size, fontScale = 1.5f))
+    }
+
+    @Test
+    fun `a 2x2 cannot show the header and both meals, so it scrolls`() {
+        assertTrue(needsScroll(DayLayout.Narrow, DpSize(154.dp, 154.dp), fontScale = 1f))
+    }
+
+    @Test
+    fun `a widget two rows high and wide has room for the header and the meals, so it does not scroll`() {
+        assertFalse(needsScroll(DayLayout.Short, DpSize(290.dp, 154.dp), fontScale = 1f))
+        assertFalse(needsScroll(DayLayout.Short, DpSize(310.dp, 130.dp), fontScale = 1f))
+        assertFalse(needsScroll(DayLayout.Full, DpSize(310.dp, 300.dp), fontScale = 1f))
+    }
+
+    @Test
+    fun `a very short widget scrolls, and so does one whose text is large`() {
+        assertTrue(needsScroll(DayLayout.Short, DpSize(310.dp, 110.dp), fontScale = 1f))
+        assertTrue(needsScroll(DayLayout.Short, DpSize(290.dp, 154.dp), fontScale = 2f))
+    }
+
+    @Test
+    fun `the slots of a short widget show the detail of the meal only when they grew tall enough`() {
+        assertFalse(slotsHaveRoomForDetail(DpSize(290.dp, 154.dp), fontScale = 1f))
+        assertTrue(slotsHaveRoomForDetail(DpSize(290.dp, 190.dp), fontScale = 1f))
     }
 }

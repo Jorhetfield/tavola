@@ -9,7 +9,7 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 4. ~~Close 0.0.3 and open 0.1.0~~ Done: `release/0.0.3` is in `main` (PR #13, pre-release `v0.0.3`) and `release/0.1.0` is open for Firebase.
 5. ~~Firebase + Auth + groups, then the shared calendar in real time~~ Done in release 0.1.0 (decisions below): the biggest change to the data layer, in 4 or 5 small PRs. It goes before the widget because the widget reads through the repositories and would have to be reworked after the move.
 6. **Interactive widget** (Phase 3): it can be defined on paper any time (open questions below), but it is built after Firebase.
-7. Shopping list, recipe photos and carousel, import by URL, push notifications (Phase 4).
+7. ~~Shopping list~~ Done in release 0.1.1 (PRs #21, #22 and #23, decisions below). Still to do: recipe photos and carousel, import by URL, push notifications (Phase 4).
 8. AI (Phase 5), last.
 
 ## Firebase decisions (agreed)
@@ -59,9 +59,29 @@ To check before or while doing it:
 - **First launch of a person who already has a group, with no network.** The group gate waits for the server's answer about their group (so a person on a new phone does not see the first step for a moment). With no connection on a phone where the app was never used, it keeps the loading screen. Decide what to show after a while (a message and a retry) when there is time.
 - **Firestore rules are published by hand and not tested with the emulator.** `firestore.rules` (PR 2a) is pasted in the Firebase console (Firestore Database, Rules, Publish) or deployed with `firebase deploy --only firestore:rules`; the repository only works against the rules that are live. There is no Node here, so the rules were not run in the Firebase emulator; they are checked by the console when published and by trying the flows in the app (PR 2b). Add emulator tests (`@firebase/rules-unit-testing`) when Node is available, before the rules grow with the calendar and the recipes.
 - **Recipe photos and the Spark plan.** Firebase Storage may need the paid Blaze plan, even on a new project. Verify before planning the photos (Phase 4); it may change decision 7 or postpone them.
-- **Google sign-in in the CI APK.** It needs the SHA-1 of the signing key registered in Firebase, and CI signs the debug APK with its own key, so that APK may not be able to sign in. Decide how to sign it (a fixed key) before publishing.
+- ~~Google sign-in in the CI APK~~ Verified: the CI APK signs in and syncs on a second device.
 - **`google-services.json` in CI.** Decided: it is committed (it holds no secrets), in PR #14. Follow-up for the owner of the project: restrict its API key in Google Cloud (APIs and services, Credentials) to the package `com.tavola` and the SHA-1 of the debug and CI keys, because the key identifies the project and is only safe to commit if it is restricted.
 - **The widget.** It must learn the group and the signed-in state, and decide how it refreshes (listener or periodic work) and what it shows with no session or no network.
+
+Shopping list decisions (agreed):
+| # | Decision |
+|---|---|
+| 1 | One list per group, shared in real time. One document per item at `groups/{groupId}/shopping/{itemId}` (no array in a single document, so concurrent adds do not overwrite each other). |
+| 2 | Item: `name`, `category`, `checked`, `quantity?` (free text), `createdAt`, `addedBy` (stored, not shown). |
+| 3 | Fixed Mediterranean categories: fruit and vegetables, meat and fish, dairy and eggs, pantry, bakery, frozen, drinks, household, other (default). Not editable. |
+| 4 | New "Shopping" tab in the floating bar, items grouped by category; ticking strikes the item and sends it to the bottom of its category. |
+| 5 | **Changed while building it:** adding is done from a bottom sheet opened by the "+" docked to the floating bar (like "New recipe"), not from an inline field with chips. The sheet has the name, an optional quantity and the category, which is **guessed from the name** (`ShoppingCategorySuggester`, Spanish and English); tapping it opens a grid of tiles to pick another. It stays open after adding. **Autocomplete from the group history is a second iteration.** |
+| 6 | Swipe to remove with a 5 s Undo, and "Remove ticked" after shopping, also with Undo. |
+| 7 | From a recipe: "Add to shopping list" opens a sheet where the user **picks ingredients by hand** (some may already be at home). Items already on the list are not duplicated; "to taste" ingredients go without quantity. | Done: the sheet is provided by `:app` from `:feature:shopping`; ingredients already on the list (same name ignoring case, accents and plural) cannot be picked, and everything is added in one batched write.
+| 8 | Adding a whole week from the calendar is out for now. |
+| 9 | New `:feature:shopping`. `:app` hands the recipe button to `:feature:recipes` through a slot; communication goes through the domain repository. |
+| 10 | Quantities are free text: no summing or unit conversion. |
+| 11 | Same rule as recipes and the calendar: only group members read and write. |
+| 12 | Design: Material 3 Expressive like the rest of the app, with `motionScheme` for every animation, touch feedback on everything pressable, light and dark, and screenshots (light, dark, large text). |
+
+PRs (all merged into 0.1.1): 1 domain, Firestore repository, rules, fake and tests (#21); 2 the screen, the tab and the add sheet (#22); 3 add from a recipe (#23). The swipe-to-remove gesture and the entrance motion moved to `:core:designsystem` so recipes and shopping share them.
+
+To check: the add sheets were never tried on a device (keyboard and focus), and the Firestore rules for `shopping` must be published by hand in the console.
 
 ## Phase 0 — Project base
 - [x] `libs.versions.toml` with the stack (recent Compose BOM, M3 Expressive, Hilt+KSP, Navigation 3, Kotlinx Serialization, Coil 3, Firebase BOM, JUnit5/Turbine, fakes instead of mocks)
@@ -93,12 +113,13 @@ To check before or while doing it:
 The items are grouped by topic, not in work order: follow "Next up" above.
 
 - [ ] Firebase + Auth + groups with an invite code (see "Firebase decisions" above)
-  - [x] Firebase and Auth with Google sign-in: `:feature:auth` has the sign-in screen and the session gate (`AuthGate`); `AuthRepository` in `:domain`, Firebase Auth in `:data`. Still to do: register the SHA-1 of the CI signing key in Firebase so the CI APK can sign in.
+  - [x] Firebase and Auth with Google sign-in: `:feature:auth` has the sign-in screen and the session gate (`AuthGate`); `AuthRepository` in `:domain`, Firebase Auth in `:data`. The CI APK was installed on another device and signs in fine.
   - [x] Groups with an invite code: 2a data and rules (done), 2b the gate and the first step, create or join (done), 2c the "My group" screen with the button in the calendar bar: code, copy, share, renew, rename, members, leave (done)
 - [x] Shared calendar in real time (Firestore): the recipes, the calendar and the group are in Firestore, and every change shows up on the other phones through the listeners
   - [x] The calendar in Firestore, Room out: `groups/{groupId}/meals` and `groups/{groupId}/tasks`, ordered by creation time; Room, its schema and its dependencies are gone from the project (PR 4)
   - [x] The recipes in Firestore (PR 3)
-  - [ ] A check of the whole flow between two accounts, and emulator tests of the rules (needs Node)
+  - [x] A check of the whole flow between two accounts: done with the CI APK on a second device (groups, calendar and meals sync)
+  - [ ] Emulator tests of the rules (needs Node)
 - [x] Recipe CRUD: list, detail and editor (the model already has structured ingredients and steps)
   - [x] Persistence: Room for recipes and the calendar (`RoomRecipeRepository`, `RoomCalendarRepository`); no fake data in the app, sample data only through the debug menu ("Load sample data")
   - [x] List tab + detail (read-only), search and empty state
@@ -132,7 +153,7 @@ The items are grouped by topic, not in work order: follow "Next up" above.
   - Depends on: tasks per day (done) and, to be built, on Firebase (see "Firebase decisions"). Define it with the user before building.
 
 ## Phase 4 — Shopping list and premium design
-- [ ] Manual shopping list by category
+- [x] Manual shopping list by category (release 0.1.1: tab, add sheet with a guessed category, tick, swipe to remove with Undo, "Remove ticked", add the ingredients of a recipe)
 - [ ] Recipe photos, recipe book carousel
 - [ ] Import a recipe by URL
 - [ ] Push notifications

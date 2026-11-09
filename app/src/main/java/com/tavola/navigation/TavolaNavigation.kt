@@ -65,6 +65,8 @@ fun TavolaNavigation() {
         TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_new_recipe) { backStack.add(RecipeEditorRoute()) }
     }
     var shoppingAddSheetOpen by rememberSaveable { mutableStateOf(false) }
+    // Remembered, so the shopping screen does not rebuild its actions each time this one recomposes.
+    val closeShoppingAddSheet = remember { { shoppingAddSheetOpen = false } }
     val addShoppingItemAction = remember {
         TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_add_item) { shoppingAddSheetOpen = true }
     }
@@ -94,7 +96,7 @@ fun TavolaNavigation() {
                         )
                     }
                     entry<ShoppingRoute>(clazzContentKey = { SHOPPING_KEY }, metadata = motion.tabMetadata) {
-                        ShoppingScreen(addSheetOpen = shoppingAddSheetOpen, onAddSheetDismiss = { shoppingAddSheetOpen = false })
+                        ShoppingScreen(addSheetOpen = shoppingAddSheetOpen, onAddSheetDismiss = closeShoppingAddSheet)
                     }
                     entry<RecipeDetailRoute>(metadata = motion.sheetMetadata) { route ->
                         SheetEntrySurface {

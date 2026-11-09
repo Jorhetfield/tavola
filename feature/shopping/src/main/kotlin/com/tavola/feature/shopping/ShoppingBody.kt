@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material3.ButtonDefaults
@@ -68,8 +68,8 @@ internal fun ShoppingBody(state: ShoppingUiState.Success, actions: ShoppingActio
                         .then(itemMotion()),
                 )
             }
-            items(section.items, key = { item -> item.id }) { item ->
-                val index = rowsBefore[sectionIndex] + section.items.indexOf(item)
+            itemsIndexed(section.items, key = { _, item -> item.id }) { indexInSection, item ->
+                val index = rowsBefore[sectionIndex] + indexInSection
                 TavolaSwipeToRemove(
                     removeLabel = removeLabel,
                     onRemove = { actions.onItemRemove(item.id) },

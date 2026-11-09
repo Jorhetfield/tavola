@@ -53,13 +53,31 @@ object ShoppingCategorySuggester {
         )
     }
 
-    /** The category [name] most likely belongs to, going by the first word that is known, or `null` if none is. */
-    fun suggest(name: String): ShoppingCategory? = name.words().firstNotNullOfOrNull { word -> word.known() }
+    /** Names whose first word would point to the wrong category ("pasta de dientes" is not pantry). They are checked before the words. */
+    private val phrases: Map<String, ShoppingCategory> = mapOf(
+        "pasta de dientes" to ShoppingCategory.Household,
+        "pasta dental" to ShoppingCategory.Household,
+        "agua oxigenada" to ShoppingCategory.Household,
+        "agua de colonia" to ShoppingCategory.Household,
+    )
+
+    private val nonLetters = Regex("[^a-z]+")
+
+    /**
+     * The category [name] most likely belongs to: a known phrase if the name has one, otherwise the first word that is known.
+     * `null` if nothing is known.
+     */
+    fun suggest(name: String): ShoppingCategory? {
+        val words = name.words()
+        val text = words.joinToString(separator = " ", prefix = " ", postfix = " ")
+        return phrases.entries.firstOrNull { (phrase, _) -> text.contains(" $phrase ") }?.value
+            ?: words.firstNotNullOfOrNull { word -> word.known() }
+    }
 
     private fun String.known(): ShoppingCategory? = knownWords[this] ?: knownWords[removeSuffix("s")] ?: knownWords[removeSuffix("es")]
 
     private fun String.words(): List<String> = Normalizer.normalize(lowercase(), Normalizer.Form.NFD)
         .filter { character -> Character.getType(character) != Character.NON_SPACING_MARK.toInt() }
-        .split(Regex("[^a-z]+"))
+        .split(nonLetters)
         .filter { word -> word.isNotEmpty() }
 }

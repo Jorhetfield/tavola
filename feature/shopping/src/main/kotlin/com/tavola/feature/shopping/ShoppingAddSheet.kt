@@ -51,7 +51,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.tavola.core.designsystem.field.TavolaTextField
@@ -238,7 +241,11 @@ private fun AddedNotice(addedName: String?) {
         label = "shoppingAddedNotice",
     ) { name ->
         if (name != null) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm)) {
+            Row(
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
+            ) {
                 Icon(Icons.Rounded.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
                 Text(
                     text = stringResource(R.string.shopping_add_added, name),

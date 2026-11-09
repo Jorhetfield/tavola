@@ -47,30 +47,27 @@ internal fun TopLevelNavBar(selectedKey: String, onItemClick: (key: String) -> U
 
 /**
  * Switches to the top-level destination [key]. The back stack always starts at the calendar, so going back from
- * another tab returns to the calendar, and tapping a tab again drops whatever was opened above it.
+ * another tab returns to the calendar; tabs replace each other and never pile up. Tapping a tab again drops whatever was
+ * opened above it.
  */
 internal fun MutableList<NavKey>.navigateToTopLevel(key: String) {
-    when (key) {
-        CALENDAR_KEY -> while (size > 1) removeAt(lastIndex)
-
-        RECIPES_KEY -> {
-            val recipesIndex = indexOf(RecipesRoute)
-            if (recipesIndex < 0) {
-                add(RecipesRoute)
-            } else {
-                while (size > recipesIndex + 1) removeAt(lastIndex)
-            }
-        }
-
-        SHOPPING_KEY -> {
-            val shoppingIndex = indexOf(ShoppingRoute)
-            if (shoppingIndex < 0) {
-                add(ShoppingRoute)
-            } else {
-                while (size > shoppingIndex + 1) removeAt(lastIndex)
-            }
-        }
+    val route = key.topLevelRoute() ?: return
+    val index = indexOf(route)
+    if (index >= 0) {
+        while (size > index + 1) removeAt(lastIndex)
+    } else {
+        // Another tab (and anything opened from it) goes away; the calendar stays at the bottom.
+        while (size > 1) removeAt(lastIndex)
+        add(route)
     }
+}
+
+/** The route of the tab with this bar [this] key, or `null` if it is not a tab. */
+private fun String.topLevelRoute(): NavKey? = when (this) {
+    CALENDAR_KEY -> CalendarRoute
+    RECIPES_KEY -> RecipesRoute
+    SHOPPING_KEY -> ShoppingRoute
+    else -> null
 }
 
 /** The tabs, in the order they sit in the bar (which is also the way they slide). */

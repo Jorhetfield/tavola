@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.android.tools.screenshot.PreviewTest
 import com.tavola.core.designsystem.choice.TavolaChoiceTile
@@ -90,12 +91,12 @@ fun ShoppingFontScaleScreenshot() = Shopping(ShoppingUiState.Success(shoppingSec
 
 /** The sheet content on a surface with the shape of the sheet (the real sheet is a window and is not captured). */
 @Composable
-private fun SheetSurface(content: @Composable () -> Unit) {
+private fun SheetSurface(sheetHeight: Dp = 720.dp, content: @Composable () -> Unit) {
     TavolaTheme {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(720.dp),
+                .height(sheetHeight),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0f), bottomEnd = CornerSize(0f)),
         ) {
@@ -105,8 +106,10 @@ private fun SheetSurface(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun AddSheet(draft: AddItemDraft, categoriesOpen: Boolean = false) {
-    SheetSurface { ShoppingAddSheetContent(draft, ShoppingActions(), onDone = {}, startWithCategoriesOpen = categoriesOpen) }
+private fun AddSheet(draft: AddItemDraft, categoriesOpen: Boolean = false, sheetHeight: Dp = 720.dp) {
+    SheetSurface(sheetHeight) {
+        ShoppingAddSheetContent(draft, ShoppingActions(), onDone = {}, startWithCategoriesOpen = categoriesOpen)
+    }
 }
 
 /** The sheet with a name whose category is guessed. */
@@ -163,3 +166,10 @@ fun ShoppingComponentsScreenshot() {
         }
     }
 }
+
+/** The grid of categories at large text, where it goes down to two columns so that no name is cut. */
+@PreviewTest
+@TavolaFontScalePreviews
+@Composable
+fun ShoppingAddSheetCategoriesFontScaleScreenshot() =
+    AddSheet(AddItemDraft(name = "Detergente", pickedCategory = ShoppingCategory.Household), categoriesOpen = true, sheetHeight = 1600.dp)

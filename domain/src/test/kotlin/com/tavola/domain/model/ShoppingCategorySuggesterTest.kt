@@ -41,6 +41,14 @@ class ShoppingCategorySuggesterTest {
     }
 
     @Test
+    fun `a known phrase wins over the first word`() {
+        assertEquals(ShoppingCategory.Household, ShoppingCategorySuggester.suggest("Pasta de dientes"))
+        assertEquals(ShoppingCategory.Household, ShoppingCategorySuggester.suggest("  pasta  DENTAL  "))
+        assertEquals(ShoppingCategory.Household, ShoppingCategorySuggester.suggest("Agua oxigenada"))
+        assertEquals(ShoppingCategory.Pantry, ShoppingCategorySuggester.suggest("Pasta de sémola"))
+    }
+
+    @Test
     fun `a name it does not know has no suggestion`() {
         assertNull(ShoppingCategorySuggester.suggest("Cosa rara"))
         assertNull(ShoppingCategorySuggester.suggest(""))

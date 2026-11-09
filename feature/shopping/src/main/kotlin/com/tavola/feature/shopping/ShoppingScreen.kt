@@ -4,8 +4,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalResources
@@ -97,6 +99,10 @@ fun ShoppingContent(state: ShoppingUiState, actions: ShoppingActions, addSheetOp
         }
     }
     if (addSheetOpen && success != null) ShoppingAddSheet(success.draft, actions)
+    // The sheet only makes sense on a loaded list: if the list goes back to loading or fails, close it for good instead of leaving
+    // it hidden and open, which would bring it back on its own when the list returns.
+    val onAddSheetDismiss by rememberUpdatedState(actions.onAddSheetDismiss)
+    LaunchedEffect(success == null, addSheetOpen) { if (success == null && addSheetOpen) onAddSheetDismiss() }
 }
 
 /** What the title bar says under the title: how many items are left, "all done" once everything is ticked, nothing for an empty list. */

@@ -127,7 +127,8 @@ class ShoppingViewModel @Inject constructor(private val shoppingRepository: Shop
         viewModelScope.launch {
             try {
                 shoppingRepository.removeItems(items.map { item -> item.id })
-                removedItems.value = items
+                // Added to what is already waiting to be undone, so removing a second item does not lose the first one's Undo.
+                removedItems.update { pending -> pending + items }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {

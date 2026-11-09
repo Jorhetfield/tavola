@@ -90,6 +90,24 @@ class TopLevelNavigationTest {
     }
 
     @Test
+    fun `going to recipes from shopping replaces shopping instead of piling up`() {
+        val backStack = stack(ShoppingRoute)
+
+        backStack.navigateToTopLevel(RECIPES_KEY)
+
+        assertEquals(listOf(CalendarRoute, RecipesRoute), backStack)
+    }
+
+    @Test
+    fun `going to shopping from a recipe detail drops the recipes tab and the detail`() {
+        val backStack = stack(RecipesRoute, RecipeDetailRoute("paella"))
+
+        backStack.navigateToTopLevel(SHOPPING_KEY)
+
+        assertEquals(listOf(CalendarRoute, ShoppingRoute), backStack)
+    }
+
+    @Test
     fun `tapping shopping twice changes nothing`() {
         val backStack = stack(ShoppingRoute)
 

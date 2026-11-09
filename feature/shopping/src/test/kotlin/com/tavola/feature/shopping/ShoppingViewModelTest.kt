@@ -286,6 +286,24 @@ class ShoppingViewModelTest {
     }
 
     @Test
+    fun `removing a second item keeps the first one's undo`() = runTest {
+        val viewModel = viewModel(milk, tomatoes)
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onItemRemove("milk")
+            awaitSuccess { state -> state.removedItems.size == 1 }
+            viewModel.onItemRemove("tomatoes")
+            val state = awaitSuccess { loaded -> loaded.removedItems.size == 2 }
+            assertEquals(setOf("milk", "tomatoes"), state.removedItems.map { item -> item.id }.toSet())
+
+            viewModel.onRemoveUndo()
+            assertEquals(2, awaitSuccess { loaded -> loaded.removedItems.isEmpty() && loaded.totalCount == 2 }.totalCount)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `removing the ticked items removes only those and undo brings them all back`() = runTest {
         val extra = ShoppingItem("salt", "Sal", checked = true, createdAt = 4)
         val viewModel = viewModel(milk, peppers, extra)

@@ -1,4 +1,4 @@
-package com.tavola.feature.recipes
+package com.tavola.core.designsystem.swipe
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
@@ -30,30 +30,27 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
-import com.tavola.core.designsystem.recipe.RecipeRowModel
-import com.tavola.core.designsystem.recipe.TavolaRecipeRow
 import com.tavola.core.designsystem.theme.TavolaTheme
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/** How long a swiped row may stay out of view waiting for its recipe to leave the list before it slides back. */
+/** How long a swiped row may stay out of view waiting for its item to leave the list before it slides back. */
 private const val REMOVAL_GRACE_MILLIS = 1_500L
 
-/** How far along its width a row has to be when it is let go for the recipe to be deleted; less and it slides back. */
+/** How far along its width a row has to be when it is let go for the item to be removed; less and it slides back. */
 private const val DELETE_THRESHOLD_FRACTION = 0.5f
 
 private const val ARMED_ICON_SCALE = 1.3f
 
 /**
- * A recipe row that is deleted by dragging it to the start at least halfway. The same action is offered to
- * accessibility services, which cannot swipe.
+ * Wraps a row of a list so that it is removed by dragging it to the start at least halfway. The same action, named
+ * [removeLabel], is offered to accessibility services, which cannot swipe. [onRemove] is called once, as soon as the row is let go.
  *
  * It is a gesture of its own instead of Material's `SwipeToDismissBox` on purpose:
  * - The decision is made only by where the row is when it is let go ([DELETE_THRESHOLD_FRACTION] of its width), never by
@@ -63,16 +60,15 @@ private const val ARMED_ICON_SCALE = 1.3f
  *   scrolling away and back) was restored as already swiped, which also blocked any new swipe.
  *
  * The row gives a tick and the bin grows as soon as it is far enough that letting go would delete it. Letting go there
- * deletes the recipe at once: the row keeps sliding away while it fades out, so it is already gone when the list closes the
- * gap. If the row is still in the list [REMOVAL_GRACE_MILLIS] after it was swept away (the delete failed) it slides back.
+ * removes the item at once: the row keeps sliding away while it fades out, so it is already gone when the list closes the
+ * gap. If the row is still in the list [REMOVAL_GRACE_MILLIS] after it was swept away (the removal failed) it slides back.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun SwipeToRemoveRecipeRow(row: RecipeRowModel, onClick: () -> Unit, onRemove: () -> Unit, modifier: Modifier = Modifier) {
+fun TavolaSwipeToRemove(removeLabel: String, onRemove: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val motion = MaterialTheme.motionScheme
     val haptics = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
-    val removeLabel = stringResource(R.string.recipe_list_remove)
     val currentOnRemove by rememberUpdatedState(onRemove)
 
     /** Horizontal position of the row, from 0 (in place) to minus its width (swept away). */
@@ -160,10 +156,10 @@ internal fun SwipeToRemoveRecipeRow(row: RecipeRowModel, onClick: () -> Unit, on
             }
         }
         Box(modifier = Modifier.offset { IntOffset(x = offsetX.value.coerceAtMost(0f).roundToInt(), y = 0) }) {
-            TavolaRecipeRow(model = row, onClick = onClick)
+            content()
         }
     }
 }
 
-/** Whether a row dragged to [offsetPx] (negative towards the start) is far enough, out of a [widthPx] wide row, to be deleted. */
+/** Whether a row dragged to [offsetPx] (negative towards the start) is far enough, out of a [widthPx] wide row, to be removed. */
 internal fun isPastDeleteThreshold(offsetPx: Float, widthPx: Int): Boolean = widthPx > 0 && offsetPx <= -widthPx * DELETE_THRESHOLD_FRACTION

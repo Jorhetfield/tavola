@@ -11,6 +11,7 @@
     <string name="nav_recipes">Recipes</string>
     <string name="nav_shopping">Shopping</string>
     <string name="nav_action_new_recipe">New recipe</string>
+    <string name="nav_action_add_item">Add to the shopping list</string>
 
     <string name="meal_slot_lunch">Lunch</string>
     <string name="meal_slot_dinner">Dinner</string>

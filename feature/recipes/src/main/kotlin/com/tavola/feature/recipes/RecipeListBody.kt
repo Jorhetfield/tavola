@@ -27,6 +27,10 @@ import androidx.compose.ui.text.style.TextAlign
 import com.tavola.core.designsystem.field.TavolaSearchField
 import com.tavola.core.designsystem.motion.LocalPlayedEntrances
 import com.tavola.core.designsystem.motion.PlayedEntrances
+import com.tavola.core.designsystem.motion.staggeredEntrance
+import com.tavola.core.designsystem.motion.wiggleOnAppear
+import com.tavola.core.designsystem.recipe.TavolaRecipeRow
+import com.tavola.core.designsystem.swipe.TavolaSwipeToRemove
 import com.tavola.core.designsystem.theme.TavolaTheme
 
 /** Search field above the list; the list, or the empty state, below it. */
@@ -36,6 +40,7 @@ internal fun RecipeListBody(state: RecipeListUiState.Success, actions: RecipeLis
     val spacing = TavolaTheme.spacing
     val motion = MaterialTheme.motionScheme
     val focusManager = LocalFocusManager.current
+    val removeLabel = stringResource(R.string.recipe_list_remove)
     val rows = rememberRecipeRows(state.recipes, selectedRecipeId = null)
     // The cascade plays once per row (the shell keeps the set), so changing tab or coming back from a detail does not replay it.
     val played = LocalPlayedEntrances.current ?: remember { PlayedEntrances() }
@@ -66,9 +71,8 @@ internal fun RecipeListBody(state: RecipeListUiState.Success, actions: RecipeLis
             item(key = EMPTY_KEY) { RecipeListEmpty(state) }
         } else {
             itemsIndexed(rows, key = { _, rowModel -> rowModel.id }) { index, row ->
-                SwipeToRemoveRecipeRow(
-                    row = row,
-                    onClick = { actions.onRecipeClick(row.id) },
+                TavolaSwipeToRemove(
+                    removeLabel = removeLabel,
                     onRemove = { actions.onRecipeRemove(row.id) },
                     modifier = Modifier
                         .staggeredEntrance(key = "recipe:${row.id}", index = index, played = played)
@@ -77,7 +81,9 @@ internal fun RecipeListBody(state: RecipeListUiState.Success, actions: RecipeLis
                             placementSpec = motion.defaultSpatialSpec(),
                             fadeOutSpec = motion.fastEffectsSpec(),
                         ),
-                )
+                ) {
+                    TavolaRecipeRow(model = row, onClick = { actions.onRecipeClick(row.id) })
+                }
             }
         }
     }

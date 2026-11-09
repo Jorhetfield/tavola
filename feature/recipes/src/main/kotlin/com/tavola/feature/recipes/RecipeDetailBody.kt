@@ -27,6 +27,9 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.tavola.core.designsystem.motion.PlayedEntrances
+import com.tavola.core.designsystem.motion.entranceDelayMillis
+import com.tavola.core.designsystem.motion.popOnAppear
+import com.tavola.core.designsystem.motion.staggeredEntrance
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.domain.model.Ingredient
 import com.tavola.domain.model.Recipe

@@ -1,10 +1,10 @@
-package com.tavola.feature.recipes
+package com.tavola.core.designsystem.swipe
 
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class RecipeSwipeRowTest {
+class TavolaSwipeToRemoveTest {
     @Test
     fun `a row is not deleted by a short drag`() {
         assertFalse(isPastDeleteThreshold(offsetPx = 0f, widthPx = 1000))

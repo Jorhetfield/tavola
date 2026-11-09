@@ -1,10 +1,10 @@
-package com.tavola.feature.recipes
+package com.tavola.core.designsystem.motion
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
-class RecipeMotionTest {
+class EntranceMotionTest {
     @Test
     fun `the first item enters at once and each next one a little later`() {
         assertEquals(0L, entranceDelayMillis(0))

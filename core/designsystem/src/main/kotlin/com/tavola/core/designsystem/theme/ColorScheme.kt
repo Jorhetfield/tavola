@@ -5,10 +5,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
+// Public so that surfaces outside Compose (the home-screen widget) paint with the same palette.
+
 // Todos los roles de superficie/outline/container se definen explícitamente en ambos esquemas;
 // si no, Material 3 los rellena con grises y azules fríos.
 
-internal val TavolaLightColorScheme: ColorScheme = lightColorScheme(
+val TavolaLightColorScheme: ColorScheme = lightColorScheme(
     primary = Azafran,
     onPrimary = AzafranOscuro,
     primaryContainer = AzafranSuave,
@@ -47,7 +49,7 @@ internal val TavolaLightColorScheme: ColorScheme = lightColorScheme(
     surfaceContainerHighest = CrudoMaximo,
 )
 
-internal val TavolaDarkColorScheme: ColorScheme = darkColorScheme(
+val TavolaDarkColorScheme: ColorScheme = darkColorScheme(
     primary = AzafranNoche,
     onPrimary = OlivaOscuro,
     primaryContainer = TerracotaNoche,

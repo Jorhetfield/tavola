@@ -125,7 +125,7 @@ class FakeShoppingRepositoryTest {
         val entry = repository.observeHistory().first().single()
         assertEquals(9L, entry.lastBoughtAt)
         assertEquals(1, entry.useCount)
-        assertEquals(5L, entry.lastUsedAt)
+        assertEquals(9L, entry.lastUsedAt, "buying also counts as using, so every entry has a time to be read by")
     }
 
     @Test

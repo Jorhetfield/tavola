@@ -22,7 +22,7 @@ class ShoppingCatalogTest {
         assertEquals(ids.size, ids.toSet().size)
         ShoppingCatalog.products.forEach { product ->
             assertEquals(ShoppingNames.key(product.english).replace(' ', '-'), product.id)
-            assertTrue(product.id.length <= ShoppingHistory.MAX_KEY_LENGTH)
+            assertTrue(product.id.length <= ShoppingHistory.MAX_KEY_BYTES)
             assertTrue(product.id.all { character -> character in 'a'..'z' || character == '-' }, "bad id ${product.id}")
         }
     }
@@ -63,6 +63,14 @@ class ShoppingCatalogTest {
         assertNull(ShoppingCatalog.find("tomate triturado"))
         assertNull(ShoppingCatalog.find("   "))
         assertNull(ShoppingCatalog.find("🍅"))
+    }
+
+    @Test
+    fun `pepper is the spice and the vegetable is a bell pepper`() {
+        assertEquals("black-pepper", ShoppingCatalog.find("pepper")?.id)
+        assertEquals("black-pepper", ShoppingCatalog.find("pimienta")?.id)
+        assertEquals("bell-pepper", ShoppingCatalog.find("pimiento")?.id)
+        assertEquals("bell-pepper", ShoppingCatalog.find("bell peppers")?.id)
     }
 
     @Test

@@ -40,11 +40,50 @@ class ShoppingHistoryTest {
     }
 
     @Test
-    fun `a key is never longer than the rules allow`() {
-        val key = ShoppingHistory.keyFor("pollo ".repeat(100))
+    fun `names that differ only by a number or a symbol are different entries`() {
+        assertNotEquals(ShoppingHistory.keyFor("Vitamina B6"), ShoppingHistory.keyFor("Vitamina B12"))
+        assertNotEquals(ShoppingHistory.keyFor("Coca-Cola 0%"), ShoppingHistory.keyFor("Coca-Cola"))
+        assertEquals("vitamina-b12", ShoppingHistory.keyFor("Vitamina  B12"))
+    }
 
-        assertTrue(key.length <= ShoppingHistory.MAX_KEY_LENGTH)
-        assertTrue(key.isNotEmpty() && !key.endsWith("-"))
+    @Test
+    fun `a name in another script has a key made of its own words`() {
+        assertEquals("φετα", ShoppingHistory.keyFor("Φέτα"))
+        assertNotEquals("φετα", ShoppingHistory.keyFor("ελιές"))
+    }
+
+    @Test
+    fun `a name with only symbols still has a key`() {
+        assertTrue(ShoppingHistory.keyFor("🍅🍅").startsWith("other-"))
+    }
+
+    @Test
+    fun `a key is never longer than the rules allow, counted in bytes`() {
+        listOf("pollo ".repeat(100), "φέτα ".repeat(100)).forEach { name ->
+            val key = ShoppingHistory.keyFor(name)
+
+            assertTrue(key.toByteArray(Charsets.UTF_8).size <= ShoppingHistory.MAX_KEY_BYTES, "$key is too long")
+            assertTrue(key.isNotEmpty() && !key.endsWith("-"))
+        }
+    }
+
+    @Test
+    fun `only the entry of a catalog product comes from the catalog`() {
+        assertTrue(ShoppingHistoryEntry(id = "tomato", name = "tomate").isFromCatalog)
+        assertEquals(false, ShoppingHistoryEntry(id = "pollo-asado", name = "Pollo asado").isFromCatalog)
+        assertEquals(false, ShoppingHistoryEntry(id = "pollo", name = "Tomates").isFromCatalog, "the key decides, not the name")
+    }
+
+    @Test
+    fun `the history is offered most recently used first, then most used, then by name`() {
+        val entries = listOf(
+            ShoppingHistoryEntry("a", "Zumo", lastUsedAt = 1, useCount = 9),
+            ShoppingHistoryEntry("b", "Pan", lastUsedAt = 5, useCount = 1),
+            ShoppingHistoryEntry("c", "Arroz", lastUsedAt = 5, useCount = 1),
+            ShoppingHistoryEntry("d", "Sal", lastUsedAt = 5, useCount = 3),
+        )
+
+        assertEquals(listOf("Sal", "Arroz", "Pan", "Zumo"), entries.sortedWith(ShoppingHistory.mostRecentFirst).map { entry -> entry.name })
     }
 
     @Test

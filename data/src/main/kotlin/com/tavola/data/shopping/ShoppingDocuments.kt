@@ -50,7 +50,7 @@ internal fun Map<String, Any?>.toShoppingItem(id: String): ShoppingItem? {
     return ShoppingItem(
         id = id,
         name = name,
-        category = ShoppingCategory.entries.firstOrNull { category -> category.name == categoryName } ?: ShoppingCategory.Other,
+        category = ShoppingCategory.fromName(categoryName),
         quantity = this[ShoppingFields.QUANTITY] as? String,
         checked = this[ShoppingFields.CHECKED] as? Boolean ?: false,
         createdAt = (this[ShoppingFields.CREATED_AT] as? Timestamp)?.toDate()?.time ?: 0,

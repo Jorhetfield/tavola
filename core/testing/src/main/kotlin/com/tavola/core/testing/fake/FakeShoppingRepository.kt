@@ -1,6 +1,5 @@
 package com.tavola.core.testing.fake
 
-import com.tavola.domain.model.ShoppingCatalog
 import com.tavola.domain.model.ShoppingHistory
 import com.tavola.domain.model.ShoppingHistoryEntry
 import com.tavola.domain.model.ShoppingItem
@@ -39,11 +38,7 @@ class FakeShoppingRepository(initialItems: List<ShoppingItem> = emptyList(), ini
     }
 
     override fun observeHistory(): Flow<List<ShoppingHistoryEntry>> = history.map { entries ->
-        entries.values.sortedWith(
-            compareByDescending<ShoppingHistoryEntry> { entry -> entry.lastUsedAt }
-                .thenByDescending { entry -> entry.useCount }
-                .thenBy { entry -> entry.name.lowercase() },
-        )
+        entries.values.sortedWith(ShoppingHistory.mostRecentFirst)
     }
 
     override suspend fun buyItem(item: ShoppingItem) {
@@ -53,15 +48,14 @@ class FakeShoppingRepository(initialItems: List<ShoppingItem> = emptyList(), ini
         val key = ShoppingHistory.keyFor(clean.name)
         history.update { entries ->
             val entry = entries[key] ?: ShoppingHistoryEntry(id = key, name = clean.name)
-            entries + (key to entry.copy(name = clean.name, category = clean.category, lastBoughtAt = now, hidden = false))
+            entries +
+                (key to entry.copy(name = clean.name, category = clean.category, lastUsedAt = now, lastBoughtAt = now, hidden = false))
         }
     }
 
     override suspend fun forgetHistoryEntry(entry: ShoppingHistoryEntry) {
         history.update { entries ->
-            if (ShoppingCatalog.find(entry.name) !=
-                null
-            ) {
+            if (entry.isFromCatalog) {
                 entries + (entry.id to (entries[entry.id] ?: entry).copy(hidden = true))
             } else {
                 entries - entry.id

@@ -10,12 +10,12 @@ data class ShoppingCandidate(val name: String, val quantity: String? = null)
 
 /** How the names of shopping items are compared, so "Tomates" and "tomate" are the same thing. */
 object ShoppingNames {
-    private val nonLetters = Regex("[^a-z]+")
+    private val separators = Regex("""[^\p{L}\p{N}]+""")
 
-    /** The letters of [text] as lowercase words without accents or anything else between them. */
+    /** The letters and digits of [text] (in any script) as lowercase words without accents or anything else between them. */
     internal fun words(text: String): List<String> = Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD)
         .filter { character -> Character.getType(character) != Character.NON_SPACING_MARK.toInt() }
-        .split(nonLetters)
+        .split(separators)
         .filter { word -> word.isNotEmpty() }
 
     /** [text] as the words [words] finds, joined by single spaces: what two spellings of the same name have in common. */

@@ -1,7 +1,23 @@
 package com.tavola.domain.model
 
 /** The fixed categories a shopping item can belong to, in the order they are shown. [Other] is the default. */
-enum class ShoppingCategory { FruitAndVegetables, MeatAndFish, DairyAndEggs, Pantry, Bakery, Frozen, Drinks, Household, Other }
+enum class ShoppingCategory {
+    FruitAndVegetables,
+    MeatAndFish,
+    DairyAndEggs,
+    Pantry,
+    Bakery,
+    Frozen,
+    Drinks,
+    Household,
+    Other,
+    ;
+
+    companion object {
+        /** The category called [name] (as it is stored, so reordering the enum never corrupts data), or [Other] if there is none. */
+        fun fromName(name: String?): ShoppingCategory = entries.firstOrNull { category -> category.name == name } ?: Other
+    }
+}
 
 /**
  * An item of the group's shopping list. [quantity] is free text ("2 kg", "a dozen"): quantities are never summed or converted.

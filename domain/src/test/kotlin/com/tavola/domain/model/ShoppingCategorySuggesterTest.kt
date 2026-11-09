@@ -60,4 +60,19 @@ class ShoppingCategorySuggesterTest {
         assertNull(ShoppingCategorySuggester.suggest("lec"))
         assertNull(ShoppingCategorySuggester.suggest("toma"))
     }
+
+    @Test
+    fun `a product of the catalog always has the category the catalog gives it`() {
+        ShoppingCatalog.products.forEach { product ->
+            assertEquals(product.category, ShoppingCategorySuggester.suggest(product.spanish), product.spanish)
+            assertEquals(product.category, ShoppingCategorySuggester.suggest(product.english), product.english)
+        }
+    }
+
+    @Test
+    fun `the catalog wins over the first known word`() {
+        assertEquals(ShoppingCategory.Pantry, ShoppingCategorySuggester.suggest("Atún en lata"))
+        assertEquals(ShoppingCategory.Pantry, ShoppingCategorySuggester.suggest("Tomate frito"))
+        assertEquals(ShoppingCategory.FruitAndVegetables, ShoppingCategorySuggester.suggest("Tomate rallado"))
+    }
 }

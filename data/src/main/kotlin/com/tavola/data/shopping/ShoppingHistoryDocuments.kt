@@ -11,6 +11,8 @@ import com.tavola.domain.model.ShoppingItem
 //
 //   { name, category, useCount?, lastUsedAt? (a Firestore timestamp), lastBoughtAt? (a timestamp or null), hidden? }
 //
+// The history is read ordered by `lastUsedAt`, so an entry without it (a forgotten one that was never used) is never read.
+//
 // Every write is a merge that carries only what it changes, so a document may lack any of the optional fields (the history of an item
 // that was added before the history existed has no `useCount`): reading them fills in the defaults.
 
@@ -38,10 +40,14 @@ internal fun ShoppingItem.toUseDocument(): Map<String, Any?> = mapOf(
     HistoryFields.HIDDEN to false,
 )
 
-/** What buying this item changes in its history entry: it was bought now, and it is not hidden. The uses are left as they are. */
+/**
+ * What buying this item changes in its history entry: it was bought and used now (an entry always has a `lastUsedAt`, which is what
+ * the history is read by, also for an item that was added before the history existed), and it is not hidden. The uses stay as they are.
+ */
 internal fun ShoppingItem.toBoughtDocument(): Map<String, Any?> = mapOf(
     HistoryFields.NAME to name,
     HistoryFields.CATEGORY to category.name,
+    HistoryFields.LAST_USED_AT to FieldValue.serverTimestamp(),
     HistoryFields.LAST_BOUGHT_AT to FieldValue.serverTimestamp(),
     HistoryFields.HIDDEN to false,
 )
@@ -60,7 +66,7 @@ internal fun Map<String, Any?>.toHistoryEntry(id: String): ShoppingHistoryEntry?
     return ShoppingHistoryEntry(
         id = id,
         name = name,
-        category = ShoppingCategory.entries.firstOrNull { category -> category.name == categoryName } ?: ShoppingCategory.Other,
+        category = ShoppingCategory.fromName(categoryName),
         useCount = (this[HistoryFields.USE_COUNT] as? Number)?.toInt() ?: 0,
         lastUsedAt = (this[HistoryFields.LAST_USED_AT] as? Timestamp)?.toDate()?.time ?: 0,
         lastBoughtAt = (this[HistoryFields.LAST_BOUGHT_AT] as? Timestamp)?.toDate()?.time,

@@ -32,7 +32,7 @@ class ShoppingHistoryDocumentsTest {
     fun `buying writes only what changes, so the uses are left alone`() {
         val document = milk.toBoughtDocument()
 
-        assertEquals(setOf("name", "category", "lastBoughtAt", "hidden"), document.keys)
+        assertEquals(setOf("name", "category", "lastUsedAt", "lastBoughtAt", "hidden"), document.keys)
         assertEquals(false, document["hidden"])
     }
 
@@ -90,7 +90,7 @@ class ShoppingHistoryDocumentsTest {
 
     @Test
     fun `the rules cap the key of an entry and its name at the limits the app uses`() {
-        assertTrue(rules.contains("entryId.size() <= ${ShoppingHistory.MAX_KEY_LENGTH}"), "key limit differs from the rules")
+        assertTrue(rules.contains("entryId.size() <= ${ShoppingHistory.MAX_KEY_BYTES}"), "key limit differs from the rules")
         assertTrue(rules.contains("entry.name.size() <= ${ShoppingItem.MAX_NAME_LENGTH}"), "name limit differs from the rules")
     }
 }

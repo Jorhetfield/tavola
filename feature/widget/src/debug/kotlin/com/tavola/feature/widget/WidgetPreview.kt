@@ -18,10 +18,15 @@ import kotlinx.datetime.LocalDate
  */
 object WidgetPreview {
     enum class Size(val dp: DpSize) {
-        Small(SmallWidgetSize),
-        Medium(MediumWidgetSize),
-        Large(LargeWidgetSize),
-        Tall(DpSize(250.dp, 360.dp)),
+        /** A 2x2 of a phone: narrow, so the slots go one under the other. */
+        Small(DpSize(154.dp, 154.dp)),
+
+        /** A 4x2: short, so the slots are compact and side by side. */
+        Medium(DpSize(310.dp, 130.dp)),
+
+        /** A 4x4: the full slots. */
+        Large(DpSize(310.dp, 300.dp)),
+        Tall(DpSize(310.dp, 420.dp)),
     }
 
     enum class Scenario { Full, Empty, OnlyTasks, SignedOut }
@@ -54,16 +59,16 @@ object WidgetPreview {
         Scenario.SignedOut -> TodayWidgetState.SignedOut
     }
 
-    /** The widget for [scenario] at [size], at [hourOfDay] (which decides the next meal of the small one). */
+    /** The widget for [scenario] at [size]. */
     @OptIn(ExperimentalGlanceRemoteViewsApi::class)
-    suspend fun remoteViews(context: Context, size: Size, scenario: Scenario, hourOfDay: Int = 12): RemoteViews {
+    suspend fun remoteViews(context: Context, size: Size, scenario: Scenario): RemoteViews {
         val launcher = object : WidgetLauncher {
             override fun openAppIntent(): Intent = Intent()
 
             override fun openRecipeIntent(recipeId: String): Intent = Intent()
         }
         return GlanceRemoteViews().compose(context, size.dp) {
-            TodayWidgetContent(state(scenario), hourOfDay, launcher, scrollable = false)
+            TodayWidgetContent(state(scenario), launcher, scrollable = false)
         }.remoteViews
     }
 }

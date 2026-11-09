@@ -53,18 +53,45 @@ private val SlotHeight = 118.dp
 private val BadgeSize = 26.dp
 private val TaskIconSize = 20.dp
 private val Gap = 8.dp
-private val CompactPadding = 12.dp
 private val ShortTopPadding = 10.dp
 private val CompactGap = 6.dp
 private val CompactSlotPadding = 8.dp
 private val CompactBadgeSize = 22.dp
 
+/** How the day is laid out at the size the widget has now. */
+private enum class DayLayout {
+    /** Tall and wide enough for the full slots, side by side. */
+    Full,
+
+    /** Short (a 4x2): the slots are compact and side by side. */
+    Short,
+
+    /** Narrow (a 2x2): the compact slots go one under the other. */
+    Narrow,
+}
+
+/** Under this width the two slots do not fit side by side. */
+private val NarrowWidth = 200.dp
+
+/** Under this height the full slots do not fit under the header. */
+private val ShortHeight = 200.dp
+
+@Composable
+private fun currentLayout(): DayLayout {
+    val size = LocalSize.current
+    return when {
+        size.width < NarrowWidth -> DayLayout.Narrow
+        size.height < ShortHeight -> DayLayout.Short
+        else -> DayLayout.Full
+    }
+}
+
 /**
- * The widget for [state], drawn like the card of today in the app: the day, the lunch and dinner slots and the task chips. When
- * the widget is small it shows only the next meal; when it is wider it shows the whole day, which scrolls if it does not fit.
+ * The widget for [state], drawn like the card of today in the app: the day, the lunch and dinner slots and the task chips. It is the
+ * same whole day at every size, laid out to fit ([DayLayout]), and it scrolls when it does not fit.
  */
 @Composable
-internal fun TodayWidgetContent(state: TodayWidgetState, hourOfDay: Int, launcher: WidgetLauncher, scrollable: Boolean = true) {
+internal fun TodayWidgetContent(state: TodayWidgetState, launcher: WidgetLauncher, scrollable: Boolean = true) {
     val openApp = actionStartActivity(launcher.openAppIntent())
     Box(
         modifier = GlanceModifier
@@ -76,30 +103,13 @@ internal fun TodayWidgetContent(state: TodayWidgetState, hourOfDay: Int, launche
     ) {
         when (state) {
             TodayWidgetState.SignedOut, TodayWidgetState.NoGroup -> Message(R.string.widget_open_app)
-
             TodayWidgetState.Unavailable -> Message(R.string.widget_unavailable)
-
-            is TodayWidgetState.Content -> if (LocalSize.current.width < MediumWidgetSize.width) {
-                CompactCard(state, hourOfDay, launcher, openApp)
-            } else {
-                DayCard(state, launcher, openApp, scrollable)
-            }
+            is TodayWidgetState.Content -> DayCard(state, launcher, openApp, scrollable)
         }
     }
 }
 
-/** 2x2: the day and the meal that comes next, with its sun or moon and its title. */
-@Composable
-private fun CompactCard(state: TodayWidgetState.Content, hourOfDay: Int, launcher: WidgetLauncher, openApp: Action) {
-    Column(modifier = GlanceModifier.fillMaxSize().padding(CompactPadding)) {
-        Header(state, numberSize = 26, compact = true)
-        Spacer(GlanceModifier.height(CompactGap))
-        val next = state.nextMeal(hourOfDay)
-        CompactMeal(next?.first ?: MealType.Lunch, next?.second, launcher, openApp)
-    }
-}
-
-/** The meal that comes next in the small widget: its badge beside its title, with the details under it when there is room. */
+/** A meal as a compact slot: its badge beside its title. It is the slot of the widgets that have no room for the full one. */
 @Composable
 private fun CompactMeal(
     type: MealType,
@@ -141,12 +151,11 @@ private fun CompactMeal(
  */
 @Composable
 private fun DayCard(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action, scrollable: Boolean) {
-    // A short widget (4x2) has no room for the full slots: its header is lower and its slots are the compact ones, side by side.
-    val short = LocalSize.current.height < LargeWidgetSize.height
+    val layout = currentLayout()
     if (scrollable) {
         LazyColumn(modifier = GlanceModifier.fillMaxSize().padding(horizontal = CardPadding)) {
-            item { TopBlock(state, short) }
-            item { SlotsBlock(state, launcher, openApp, short) }
+            item { TopBlock(state, layout) }
+            item { SlotsBlock(state, launcher, openApp, layout) }
             if (state.tasks.isEmpty()) {
                 item { NoTasks() }
             } else {
@@ -156,32 +165,41 @@ private fun DayCard(state: TodayWidgetState.Content, launcher: WidgetLauncher, o
         }
     } else {
         Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = CardPadding)) {
-            TopBlock(state, short)
-            SlotsBlock(state, launcher, openApp, short)
+            TopBlock(state, layout)
+            SlotsBlock(state, launcher, openApp, layout)
             if (state.tasks.isEmpty()) NoTasks() else state.tasks.forEach { task -> TaskChip(state, task) }
         }
     }
 }
 
 @Composable
-private fun TopBlock(state: TodayWidgetState.Content, short: Boolean) {
+private fun TopBlock(state: TodayWidgetState.Content, layout: DayLayout) {
     Column(modifier = GlanceModifier.fillMaxWidth()) {
-        Spacer(GlanceModifier.height(if (short) ShortTopPadding else CardPadding))
-        Header(state, numberSize = if (short) 30 else 36, compact = false)
+        Spacer(GlanceModifier.height(if (layout == DayLayout.Full) CardPadding else ShortTopPadding))
+        Header(state, numberSize = if (layout == DayLayout.Full) 36 else 30, compact = layout == DayLayout.Narrow)
     }
 }
 
 @Composable
-private fun SlotsBlock(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action, short: Boolean) {
-    Row(modifier = GlanceModifier.fillMaxWidth().padding(top = if (short) CompactGap else SlotPadding)) {
-        if (short) {
-            CompactMeal(MealType.Lunch, state.lunch, launcher, openApp, GlanceModifier.defaultWeight())
-            Spacer(GlanceModifier.width(Gap))
-            CompactMeal(MealType.Dinner, state.dinner, launcher, openApp, GlanceModifier.defaultWeight())
-        } else {
+private fun SlotsBlock(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action, layout: DayLayout) {
+    val top = if (layout == DayLayout.Full) SlotPadding else CompactGap
+    when (layout) {
+        DayLayout.Full -> Row(modifier = GlanceModifier.fillMaxWidth().padding(top = top)) {
             MealSlot(MealType.Lunch, state.lunch, launcher, openApp, GlanceModifier.defaultWeight().height(SlotHeight))
             Spacer(GlanceModifier.width(Gap))
             MealSlot(MealType.Dinner, state.dinner, launcher, openApp, GlanceModifier.defaultWeight().height(SlotHeight))
+        }
+
+        DayLayout.Short -> Row(modifier = GlanceModifier.fillMaxWidth().padding(top = top)) {
+            CompactMeal(MealType.Lunch, state.lunch, launcher, openApp, GlanceModifier.defaultWeight())
+            Spacer(GlanceModifier.width(Gap))
+            CompactMeal(MealType.Dinner, state.dinner, launcher, openApp, GlanceModifier.defaultWeight())
+        }
+
+        DayLayout.Narrow -> Column(modifier = GlanceModifier.fillMaxWidth().padding(top = top)) {
+            CompactMeal(MealType.Lunch, state.lunch, launcher, openApp)
+            Spacer(GlanceModifier.height(CompactGap))
+            CompactMeal(MealType.Dinner, state.dinner, launcher, openApp)
         }
     }
 }

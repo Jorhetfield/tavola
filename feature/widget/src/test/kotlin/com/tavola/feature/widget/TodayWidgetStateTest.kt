@@ -1,6 +1,5 @@
 package com.tavola.feature.widget
 
-import com.tavola.domain.model.MealType
 import com.tavola.domain.model.PlannedMeal
 import com.tavola.domain.model.RecipeRef
 import java.time.LocalDateTime
@@ -10,31 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class TodayWidgetStateTest {
-    private val lunch = PlannedMeal.Quick("Gazpacho")
-    private val dinner = PlannedMeal.Quick("Tortilla")
     private val date = LocalDate(2026, 10, 21)
-
-    private fun content(lunch: PlannedMeal? = this.lunch, dinner: PlannedMeal? = this.dinner) =
-        TodayWidgetState.Content(date, lunch, dinner, tasks = emptyList())
-
-    @Test
-    fun `in the morning the next meal is lunch and from the afternoon it is dinner`() {
-        assertEquals(MealType.Lunch to lunch, content().nextMeal(hourOfDay = 9))
-        assertEquals(MealType.Lunch to lunch, content().nextMeal(hourOfDay = TodayWidgetState.DINNER_HOUR - 1))
-        assertEquals(MealType.Dinner to dinner, content().nextMeal(hourOfDay = TodayWidgetState.DINNER_HOUR))
-        assertEquals(MealType.Dinner to dinner, content().nextMeal(hourOfDay = 21))
-    }
-
-    @Test
-    fun `when the meal that comes next is not planned the other one is shown`() {
-        assertEquals(MealType.Dinner to dinner, content(lunch = null).nextMeal(hourOfDay = 9))
-        assertEquals(MealType.Lunch to lunch, content(dinner = null).nextMeal(hourOfDay = 21))
-    }
-
-    @Test
-    fun `with nothing planned there is no next meal`() {
-        assertEquals(null, content(lunch = null, dinner = null).nextMeal(hourOfDay = 12))
-    }
 
     @Test
     fun `the weekday is written in capitals in the language of the app`() {

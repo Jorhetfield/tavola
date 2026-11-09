@@ -101,6 +101,25 @@ class TodayWidgetLoaderTest {
     }
 
     @Test
+    fun `without waiting to settle the first answer is used at once, so a redraw is fast`() = runTest {
+        val weekStart = today.startOfWeek()
+        val empty = WeekPlan("g", weekStart, weekStart.weekDays().map { date -> DayPlan(date) })
+        val fresh = WeekPlan("g", weekStart, weekStart.weekDays().map { date -> if (date == today) todayPlan else DayPlan(date) })
+        val calendar = object : CalendarRepository by FakeCalendarRepository(emptyList()) {
+            override fun observeWeek(weekStart: LocalDate): Flow<WeekPlan> = flow {
+                emit(empty)
+                delay(300)
+                emit(fresh)
+            }
+        }
+
+        val state = loader(calendar = calendar).load(settle = false) as TodayWidgetState.Content
+
+        assertTrue(state.tasks.isEmpty())
+        assertEquals(0L, testScheduler.currentTime)
+    }
+
+    @Test
     fun `when nothing arrives the day is unavailable`() = runTest {
         val calendar = object : CalendarRepository by FakeCalendarRepository(emptyList()) {
             override fun observeWeek(weekStart: LocalDate): Flow<WeekPlan> = emptyFlow()

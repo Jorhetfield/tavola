@@ -25,13 +25,15 @@ internal class TodayWidgetLoader(
     private val calendarRepository: CalendarRepository,
     private val todayProvider: TodayProvider,
 ) {
-    suspend fun load(): TodayWidgetState {
+    suspend fun load(settle: Boolean = true): TodayWidgetState {
         if (authRepository.currentUser.first() == null) return TodayWidgetState.SignedOut
         // The group arrives a moment after the session; waiting for it tells "still loading" from "has no group".
         withTimeoutOrNull(GROUP_WAIT_MILLIS) { groupRepository.groupId.filterNotNull().first() } ?: return TodayWidgetState.NoGroup
 
         val today = todayProvider.today()
-        val week = latestWeek(calendarRepository.observeWeek(today.startOfWeek())) ?: return TodayWidgetState.Unavailable
+        val week =
+            latestWeek(calendarRepository.observeWeek(today.startOfWeek()), if (settle) SETTLE_MILLIS else 0L)
+                ?: return TodayWidgetState.Unavailable
         val day = week.days.firstOrNull { plan -> plan.date == today } ?: return TodayWidgetState.Unavailable
         return TodayWidgetState.Content(date = today, lunch = day.lunch, dinner = day.dinner, tasks = day.tasks)
     }
@@ -41,7 +43,7 @@ internal class TodayWidgetLoader(
      * come from a cache that has not caught up (with no tasks, say), and the server's one arrives right after it, so the last
      * answer within [SETTLE_MILLIS] wins. With no connection there is nothing newer and the cached one is used.
      */
-    private suspend fun latestWeek(weeks: Flow<WeekPlan>): WeekPlan? {
+    private suspend fun latestWeek(weeks: Flow<WeekPlan>, settleMillis: Long): WeekPlan? {
         var latest: WeekPlan? = null
         val firstArrived = CompletableDeferred<Unit>()
         coroutineScope {
@@ -53,7 +55,7 @@ internal class TodayWidgetLoader(
             }
             withTimeoutOrNull(WEEK_WAIT_MILLIS) {
                 firstArrived.await()
-                delay(SETTLE_MILLIS)
+                if (settleMillis > 0) delay(settleMillis)
             }
             collecting.cancel()
         }

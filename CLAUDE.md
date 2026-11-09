@@ -163,7 +163,7 @@ Group        { id, name, memberIds[], inviteCode, createdBy }
 Meal         { date, type, title, recipeId?, prepTimeMinutes?, tags[], note?, createdBy? }   (groups/{groupId}/meals/{date}_{type}: una por hueco; el calendario no guarda la semana entera)
 Task         { date, text, done, createdAt, createdBy? }                                      (groups/{groupId}/tasks/{taskId}: una por documento; el orden del día es createdAt)
 PlannedMeal  FromRecipe(RecipeRef: recipeId + título copiado) | Quick(title, note?)
-ShoppingList { groupId, items[{ name, category, checked, addedBy }] }
+ShoppingItem { name, category, quantity?, checked, createdAt, addedBy? }   (groups/{groupId}/shopping/{itemId}: una por documento; createdAt es la hora del servidor y ordena la lista)
 GroupMember  { userId, displayName, photoUrl, colorIndex, joinCode? }   (groups/{groupId}/members/{userId}; joinCode solo lo lleva quien entra con un código)
 Recipe       { title, prepTimeMinutes?, tags[], ingredients[{ name, quantity?, unit }], steps[], createdBy? }   (groups/{groupId}/recipes/{recipeId}; la receta no lleva id dentro, el id es el del documento)
 User         { groupId? }                                              (users/{userId}: el grupo de la persona, uno como máximo)

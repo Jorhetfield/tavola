@@ -32,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -72,14 +73,18 @@ private const val EXPANDED_CHEVRON_DEGREES = 180f
 internal fun ShoppingAddSheet(draft: AddItemDraft, actions: ShoppingActions) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val close = rememberSheetCloser(sheetState, onClosed = actions.onAddSheetDismiss)
+    // The keyboard waits for the sheet to be fully open: asking for it while the sheet is still sliding in makes the keyboard come
+    // up first and cover the sheet.
+    val sheetIsOpen = sheetState.currentValue == SheetValue.Expanded
     TavolaModalBottomSheet(onDismissRequest = actions.onAddSheetDismiss, sheetState = sheetState) {
-        ShoppingAddSheetContent(draft, actions, onDone = close)
+        ShoppingAddSheetContent(draft, actions, onDone = close, readyForInput = sheetIsOpen)
     }
 }
 
 /**
- * Stateless content of the sheet: the name (focused, so the keyboard is already up), an optional quantity, the category and the
- * button. The category is already guessed from the name; tapping it opens a grid of tiles to pick another one in one tap.
+ * Stateless content of the sheet: the name, an optional quantity, the category and the button. The category is already guessed
+ * from the name; tapping it opens a grid of tiles to pick another one in one tap. Once it is [readyForInput] (the sheet is open) the
+ * name takes the focus, so the keyboard comes up on it, and again after each item is added.
  */
 @Composable
 fun ShoppingAddSheetContent(
@@ -87,14 +92,14 @@ fun ShoppingAddSheetContent(
     actions: ShoppingActions,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
+    readyForInput: Boolean = false,
     startWithCategoriesOpen: Boolean = false,
 ) {
     val spacing = TavolaTheme.spacing
     val focusRequester = remember { FocusRequester() }
     var categoriesOpen by rememberSaveable { mutableStateOf(startWithCategoriesOpen) }
 
-    // The keyboard opens on the name when the sheet does, and comes back to it after each item is added.
-    LaunchedEffect(draft.addedName) { focusRequester.requestFocus() }
+    LaunchedEffect(readyForInput, draft.addedName) { if (readyForInput) focusRequester.requestFocus() }
 
     Column(
         modifier = modifier

@@ -18,6 +18,18 @@ object ShoppingNames {
         .split(nonLetters)
         .filter { word -> word.isNotEmpty() }
 
+    /** [text] as the words [words] finds, joined by single spaces: what two spellings of the same name have in common. */
+    internal fun key(text: String): String = words(text).joinToString(" ")
+
+    /** The keys that name the same thing as [key] by [same]: itself, then with a plural ending added or taken off. */
+    internal fun spellings(key: String): List<String> = buildList {
+        add(key)
+        PLURAL_ENDINGS.forEach { ending ->
+            add(key + ending)
+            if (key.endsWith(ending)) add(key.removeSuffix(ending))
+        }
+    }
+
     /** Whether [first] and [second] name the same thing, ignoring case, accents, spacing and a plural "s" or "es" on the whole name. */
     fun same(first: String, second: String): Boolean {
         val left = words(first).joinToString(" ")

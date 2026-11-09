@@ -57,8 +57,62 @@ class TopLevelNavigationTest {
     fun `an unknown key changes nothing`() {
         val backStack = stack(RecipesRoute)
 
-        backStack.navigateToTopLevel("shopping")
+        backStack.navigateToTopLevel("settings")
 
         assertEquals(listOf(CalendarRoute, RecipesRoute), backStack)
+    }
+
+    @Test
+    fun `going to shopping from the calendar pushes it on top`() {
+        val backStack = stack()
+
+        backStack.navigateToTopLevel(SHOPPING_KEY)
+
+        assertEquals(listOf(CalendarRoute, ShoppingRoute), backStack)
+    }
+
+    @Test
+    fun `going to the calendar from shopping leaves only the calendar`() {
+        val backStack = stack(RecipesRoute, ShoppingRoute)
+
+        backStack.navigateToTopLevel(CALENDAR_KEY)
+
+        assertEquals(listOf<NavKey>(CalendarRoute), backStack)
+    }
+
+    @Test
+    fun `going to recipes from shopping drops shopping`() {
+        val backStack = stack(RecipesRoute, ShoppingRoute)
+
+        backStack.navigateToTopLevel(RECIPES_KEY)
+
+        assertEquals(listOf(CalendarRoute, RecipesRoute), backStack)
+    }
+
+    @Test
+    fun `going to recipes from shopping replaces shopping instead of piling up`() {
+        val backStack = stack(ShoppingRoute)
+
+        backStack.navigateToTopLevel(RECIPES_KEY)
+
+        assertEquals(listOf(CalendarRoute, RecipesRoute), backStack)
+    }
+
+    @Test
+    fun `going to shopping from a recipe detail drops the recipes tab and the detail`() {
+        val backStack = stack(RecipesRoute, RecipeDetailRoute("paella"))
+
+        backStack.navigateToTopLevel(SHOPPING_KEY)
+
+        assertEquals(listOf(CalendarRoute, ShoppingRoute), backStack)
+    }
+
+    @Test
+    fun `tapping shopping twice changes nothing`() {
+        val backStack = stack(ShoppingRoute)
+
+        backStack.navigateToTopLevel(SHOPPING_KEY)
+
+        assertEquals(listOf(CalendarRoute, ShoppingRoute), backStack)
     }
 }

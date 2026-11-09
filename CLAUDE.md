@@ -122,13 +122,13 @@ Clean Architecture multi-módulo por capas:
 :app                   entry point, DI raíz, navegación
 :domain                Kotlin puro (sin android.*): modelos, UseCases, interfaces de repositorio
 :data                  Firestore, implementaciones de repositorio
-:core:designsystem     tema, tokens, TavolaScaffold, componentes base (paquete com.tavola.core.designsystem)
+:core:designsystem     tema, tokens, TavolaScaffold, componentes base y gestos y movimiento compartidos (TavolaSwipeToRemove, entradas escalonadas) (paquete com.tavola.core.designsystem)
 :feature:<nombre>      una funcionalidad: pantallas + ViewModels (paquete com.tavola.feature.<nombre>)
-                       hoy: auth, groups, calendar (landing) y recipes
+                       hoy: auth, groups, calendar (landing), recipes y shopping
 :core:testing          fakes (FakeCalendarRepository), datos de ejemplo mediterráneos y MainDispatcherExtension (JUnit 5)
 ```
 Dependencias: `:domain` no depende de nadie; `:data` depende de `:domain`; `:core:*` nunca depende de `:feature:*`; `:core:designsystem` solo de Compose/M3 (ni `:domain`); cada `:feature:*` depende de `:domain` y `:core:designsystem`, **nunca de otra feature**. Para que una feature use a otra, `:app` le cede el contenido por un *slot* (p. ej. la hoja del selector en el calendario) y la comunicación va por IDs y repositorios del dominio; `:app` ensambla todo y es el único que conoce las rutas de navegación.
-Hoy existen `:feature:auth` (login con Google y `AuthGate`, que decide entre la pantalla de acceso y la app), `:feature:groups` (`GroupGate`, que pide crear un grupo o unirse con un código a quien no tiene, y la pantalla "Mi grupo"), `:feature:calendar` (landing: calendario semanal) y `:feature:recipes` (el recetario y el selector de comida). No hay menú de depuración ni pantalla de muestra: los datos de una persona son los de su grupo. Una funcionalidad nueva = un módulo `:feature:<nombre>` nuevo.
+Hoy existen `:feature:auth` (login con Google y `AuthGate`, que decide entre la pantalla de acceso y la app), `:feature:groups` (`GroupGate`, que pide crear un grupo o unirse con un código a quien no tiene, y la pantalla "Mi grupo"), `:feature:calendar` (landing: calendario semanal), `:feature:recipes` (el recetario y el selector de comida) y `:feature:shopping` (la lista de la compra: pestaña con categorías y hoja inferior para añadir, que `:app` abre con la acción acoplada a la barra; y la hoja que añade los ingredientes de una receta, que `:app` enchufa al detalle de receta por un *slot*, con `ShoppingCandidate` y `ShoppingNames` en `:domain` como lenguaje común). No hay menú de depuración ni pantalla de muestra: los datos de una persona son los de su grupo. Una funcionalidad nueva = un módulo `:feature:<nombre>` nuevo.
 
 **UI:** MVVM clásico. `ViewModel` + `StateFlow<UiState>` con `UiState` como `sealed class` (Loading / Success / Error).
 Estructura por feature: `XScreen.kt` (solo composables) · `XViewModel.kt` · `XUiState.kt` · `components/`.
@@ -163,7 +163,7 @@ Group        { id, name, memberIds[], inviteCode, createdBy }
 Meal         { date, type, title, recipeId?, prepTimeMinutes?, tags[], note?, createdBy? }   (groups/{groupId}/meals/{date}_{type}: una por hueco; el calendario no guarda la semana entera)
 Task         { date, text, done, createdAt, createdBy? }                                      (groups/{groupId}/tasks/{taskId}: una por documento; el orden del día es createdAt)
 PlannedMeal  FromRecipe(RecipeRef: recipeId + título copiado) | Quick(title, note?)
-ShoppingList { groupId, items[{ name, category, checked, addedBy }] }
+ShoppingItem { name, category, quantity?, checked, createdAt, addedBy? }   (groups/{groupId}/shopping/{itemId}: una por documento; createdAt es la hora del servidor y ordena la lista)
 GroupMember  { userId, displayName, photoUrl, colorIndex, joinCode? }   (groups/{groupId}/members/{userId}; joinCode solo lo lleva quien entra con un código)
 Recipe       { title, prepTimeMinutes?, tags[], ingredients[{ name, quantity?, unit }], steps[], createdBy? }   (groups/{groupId}/recipes/{recipeId}; la receta no lleva id dentro, el id es el del documento)
 User         { groupId? }                                              (users/{userId}: el grupo de la persona, uno como máximo)

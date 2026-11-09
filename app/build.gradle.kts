@@ -72,6 +72,7 @@ dependencies {
     implementation(projects.feature.calendar)
     implementation(projects.feature.groups)
     implementation(projects.feature.recipes)
+    implementation(projects.feature.shopping)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)

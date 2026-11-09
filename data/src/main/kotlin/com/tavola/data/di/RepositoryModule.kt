@@ -4,11 +4,13 @@ import com.tavola.data.auth.FirebaseAuthRepository
 import com.tavola.data.calendar.FirestoreCalendarRepository
 import com.tavola.data.group.FirestoreGroupRepository
 import com.tavola.data.recipe.FirestoreRecipeRepository
+import com.tavola.data.shopping.FirestoreShoppingRepository
 import com.tavola.data.time.SystemTodayProvider
 import com.tavola.domain.repository.AuthRepository
 import com.tavola.domain.repository.CalendarRepository
 import com.tavola.domain.repository.GroupRepository
 import com.tavola.domain.repository.RecipeRepository
+import com.tavola.domain.repository.ShoppingRepository
 import com.tavola.domain.time.TodayProvider
 import dagger.Binds
 import dagger.Module
@@ -33,6 +35,9 @@ internal abstract class RepositoryModule {
 
     @Binds
     abstract fun bindRecipeRepository(impl: FirestoreRecipeRepository): RecipeRepository
+
+    @Binds
+    abstract fun bindShoppingRepository(impl: FirestoreShoppingRepository): ShoppingRepository
 
     @Binds
     abstract fun bindTodayProvider(impl: SystemTodayProvider): TodayProvider

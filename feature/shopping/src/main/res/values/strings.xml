@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shopping_title">Compra</string>
+    <plurals name="shopping_pending">
+        <item quantity="one">%d pendiente</item>
+        <item quantity="other">%d pendientes</item>
+    </plurals>
+    <string name="shopping_all_done">Todo en la cesta</string>
+    <string name="shopping_add">Añadir</string>
+    <string name="shopping_add_done">Listo</string>
+    <string name="shopping_add_sheet_title">Añadir a la lista</string>
+    <string name="shopping_add_name_label">¿Qué falta?</string>
+    <string name="shopping_add_quantity_label">Cantidad (opcional)</string>
+    <string name="shopping_add_category_label">Categoría</string>
+    <string name="shopping_add_category_change">Cambiar categoría</string>
+    <string name="shopping_add_suggested">Sugerida</string>
+    <string name="shopping_add_added">Añadido: %1$s</string>
+    <string name="shopping_category_fruit_and_vegetables">Frutas y verduras</string>
+    <string name="shopping_category_meat_and_fish">Carne y pescado</string>
+    <string name="shopping_category_dairy_and_eggs">Lácteos y huevos</string>
+    <string name="shopping_category_pantry">Despensa</string>
+    <string name="shopping_category_bakery">Panadería</string>
+    <string name="shopping_category_frozen">Congelados</string>
+    <string name="shopping_category_drinks">Bebidas</string>
+    <string name="shopping_category_household">Hogar</string>
+    <string name="shopping_category_other">Otros</string>
+    <string name="shopping_remove">Quitar de la lista</string>
+    <string name="shopping_remove_checked">Quitar los marcados (%1$d)</string>
+    <plurals name="shopping_removed">
+        <item quantity="one">Artículo quitado</item>
+        <item quantity="other">%d artículos quitados</item>
+    </plurals>
+    <string name="shopping_undo">Deshacer</string>
+    <string name="shopping_empty_title">La lista está vacía</string>
+    <string name="shopping_empty_hint">Pulsa + para añadir lo que falta en casa.</string>
+    <string name="shopping_pick_title">Añadir a la compra</string>
+    <string name="shopping_pick_hint">Marca lo que te falta. Lo que ya tienes en casa, déjalo sin marcar.</string>
+    <string name="shopping_pick_on_list">Ya está en la lista</string>
+    <string name="shopping_pick_select_all">Marcar todo</string>
+    <string name="shopping_pick_select_none">Desmarcar todo</string>
+    <plurals name="shopping_pick_add">
+        <item quantity="one">Añadir %d artículo</item>
+        <item quantity="other">Añadir %d artículos</item>
+    </plurals>
+    <string name="shopping_error">No se ha podido cargar la lista</string>
+    <string name="shopping_retry">Reintentar</string>
+</resources>

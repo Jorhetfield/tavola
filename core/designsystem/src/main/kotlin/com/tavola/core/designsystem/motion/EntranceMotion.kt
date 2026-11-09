@@ -1,4 +1,4 @@
-package com.tavola.feature.recipes
+package com.tavola.core.designsystem.motion
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
-import com.tavola.core.designsystem.motion.PlayedEntrances
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -22,14 +21,14 @@ private val EntranceLift = 12.dp
 private val WIGGLE_DEGREES = listOf(-12f, 10f, -6f, 3f, 0f)
 
 /** How long the item at [index] waits before entering, so a list opens as a short cascade and never drags on. */
-internal fun entranceDelayMillis(index: Int): Long = index.coerceIn(0, MAX_STAGGERED_ITEMS) * STAGGER_STEP_MILLIS
+fun entranceDelayMillis(index: Int): Long = index.coerceIn(0, MAX_STAGGERED_ITEMS) * STAGGER_STEP_MILLIS
 
 /**
  * Only the first rows of a list enter in the cascade, the ones on screen when it opens. A row further down is composed
  * later, when the user scrolls to it, and animating it then would leave it invisible for the cascade delay and then
  * lift it into place under the finger.
  */
-internal fun takesPartInCascade(index: Int): Boolean = index in 0..MAX_STAGGERED_ITEMS
+fun takesPartInCascade(index: Int): Boolean = index in 0..MAX_STAGGERED_ITEMS
 
 /**
  * Fades the item in while it rises a little, after the delay for its [index]. It plays only the first time a [key]
@@ -38,7 +37,7 @@ internal fun takesPartInCascade(index: Int): Boolean = index in 0..MAX_STAGGERED
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun Modifier.staggeredEntrance(key: String, index: Int, played: PlayedEntrances): Modifier {
+fun Modifier.staggeredEntrance(key: String, index: Int, played: PlayedEntrances): Modifier {
     val motion = MaterialTheme.motionScheme
     val liftPx = with(LocalDensity.current) { EntranceLift.toPx() }
     val inspecting = LocalInspectionMode.current
@@ -62,7 +61,7 @@ internal fun Modifier.staggeredEntrance(key: String, index: Int, played: PlayedE
 /** Grows from a smaller size to its own with a spatial spring once, after [delayMillis]. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun Modifier.popOnAppear(delayMillis: Long): Modifier {
+fun Modifier.popOnAppear(delayMillis: Long): Modifier {
     val motion = MaterialTheme.motionScheme
     val inspecting = LocalInspectionMode.current
     val scale = remember { Animatable(if (inspecting) 1f else POP_START_SCALE) }
@@ -82,7 +81,7 @@ internal fun Modifier.popOnAppear(delayMillis: Long): Modifier {
 /** A short sway when it shows up, like a "nothing here" shake of the head. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun Modifier.wiggleOnAppear(): Modifier {
+fun Modifier.wiggleOnAppear(): Modifier {
     val motion = MaterialTheme.motionScheme
     val rotation = remember { Animatable(0f) }
     val inspecting = LocalInspectionMode.current

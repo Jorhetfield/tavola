@@ -1,6 +1,7 @@
 // Design system: solo Compose / Material 3. No depende de :domain.
 plugins {
     alias(libs.plugins.tavola.android.compose.library)
+    alias(libs.plugins.android.junit5)
 }
 
 android {
@@ -19,6 +20,9 @@ dependencies {
     implementation(libs.androidx.compose.material3.window.size)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.material.icons.extended)
+
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

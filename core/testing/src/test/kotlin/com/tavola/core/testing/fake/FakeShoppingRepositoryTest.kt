@@ -24,6 +24,20 @@ class FakeShoppingRepositoryTest {
     }
 
     @Test
+    fun `addItems adds every item as a new one, ignoring the ids it was given`() = runTest {
+        val repository = FakeShoppingRepository()
+
+        repository.addItems(listOf(ShoppingItem("same", "Leche"), ShoppingItem("same", "Pan"), ShoppingItem("", "Sal")))
+
+        repository.observeItems().test {
+            val items = awaitItem()
+            assertEquals(listOf("Leche", "Pan", "Sal"), items.map { item -> item.name })
+            assertEquals(3, items.map { item -> item.id }.toSet().size)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `setChecked ticks and unticks an item`() = runTest {
         val repository = FakeShoppingRepository()
         val id = repository.saveItem(ShoppingItem(id = "", name = "Huevos"))

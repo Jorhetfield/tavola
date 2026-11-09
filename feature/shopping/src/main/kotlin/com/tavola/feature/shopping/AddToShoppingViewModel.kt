@@ -45,6 +45,8 @@ class AddToShoppingViewModel @Inject constructor(private val shoppingRepository:
     val uiState: StateFlow<AddToShoppingUiState> = combine(candidates, itemsToBuy, unpicked, saving) { offered, toBuy, skipped, isSaving ->
         if (toBuy == null) {
             AddToShoppingUiState.Error
+        } else if (offered.isEmpty()) {
+            AddToShoppingUiState.Loading
         } else {
             AddToShoppingUiState.Success(
                 rows = offered.mapIndexed { index, candidate ->
@@ -56,9 +58,14 @@ class AddToShoppingViewModel @Inject constructor(private val shoppingRepository:
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), AddToShoppingUiState.Loading)
 
-    /** What is offered now. A new sheet starts with everything picked again. */
+    /**
+     * What is offered now, or nothing to clear it. A name that comes twice (an ingredient used in two steps) is offered once, and a new
+     * sheet starts with everything picked again.
+     */
     fun onCandidates(offered: List<ShoppingCandidate>) {
-        candidates.value = offered
+        candidates.value = offered.fold(emptyList()) { kept, candidate ->
+            if (kept.any { other -> ShoppingNames.same(other.name, candidate.name) }) kept else kept + candidate
+        }
         unpicked.value = emptySet()
     }
 
@@ -83,11 +90,13 @@ class AddToShoppingViewModel @Inject constructor(private val shoppingRepository:
         saving.value = true
         viewModelScope.launch {
             try {
-                picked.forEach { row ->
+                val items = picked.map { row ->
                     val name = row.candidate.name
                     val category = ShoppingCategorySuggester.suggest(name) ?: ShoppingCategory.Other
-                    shoppingRepository.saveItem(ShoppingItem(id = "", name = name, category = category, quantity = row.candidate.quantity))
+                    ShoppingItem(id = "", name = name, category = category, quantity = row.candidate.quantity)
                 }
+                // One write for all of them: the server is waited for once and either everything is added or nothing is.
+                shoppingRepository.addItems(items)
                 onAdded(picked.size)
             } catch (cancelled: CancellationException) {
                 throw cancelled

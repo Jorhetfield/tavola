@@ -76,9 +76,10 @@ fun RecipeDetailScreen(
     LaunchedEffect(addedCount) {
         if (addedCount > 0) {
             val message = resources.getQuantityString(R.plurals.recipe_detail_added_to_shopping, addedCount, addedCount)
-            addedCount = 0
             val visuals = TavolaSnackbarVisuals(message, actionLabel = null, withDismissAction = true, timeoutMillis = NOTICE_MILLIS)
             withTimeoutOrNull(NOTICE_MILLIS) { snackbarHostState.showSnackbar(visuals) }
+            // Cleared only once the notice is over: clearing it first would restart this effect and cancel the notice at once.
+            addedCount = 0
         }
     }
 
@@ -96,7 +97,8 @@ fun RecipeDetailScreen(
             candidates = candidates,
             onDismiss = { added ->
                 sheetOpen = false
-                addedCount = added
+                // Closing twice (the sheet reports 0 when it is swiped away) must not wipe the count of what was just added.
+                if (added > 0) addedCount = added
             },
             content = addToShopping,
         )

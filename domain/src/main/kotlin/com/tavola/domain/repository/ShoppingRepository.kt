@@ -15,6 +15,12 @@ interface ShoppingRepository {
      */
     suspend fun saveItem(item: ShoppingItem): String
 
+    /**
+     * Adds every one of [items] as a new item, in a single write: they show up together, share the time they were added and are
+     * all added or none. Their ids and times are ignored. Waits once for the server, however many there are.
+     */
+    suspend fun addItems(items: List<ShoppingItem>)
+
     /** Ticks or unticks the item [id]; does nothing if it does not exist. */
     suspend fun setChecked(id: String, checked: Boolean)
 

@@ -157,6 +157,36 @@ class AddToShoppingViewModelTest {
     }
 
     @Test
+    fun `a name that comes twice in the offer is offered once`() = runTest {
+        val viewModel =
+            viewModel(
+                offered = listOf(rice, ShoppingCandidate("Aceite de oliva", "2 cdas"), ShoppingCandidate("aceite de OLIVA", "1 l"), salt),
+            )
+        viewModel.uiState.test {
+            val state = awaitSuccess()
+
+            assertEquals(listOf("Arroz bomba", "Aceite de oliva", "Sal"), state.rows.map { row -> row.candidate.name })
+            assertEquals("2 cdas", state.rows[1].candidate.quantity)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `with nothing offered yet it is loading, not an empty picker`() = runTest {
+        val viewModel = viewModel(offered = emptyList())
+        viewModel.uiState.test {
+            assertEquals(AddToShoppingUiState.Loading, awaitItem())
+
+            viewModel.onCandidates(listOf(rice))
+            assertEquals(1, awaitSuccess().rows.size)
+
+            viewModel.onCandidates(emptyList())
+            while (awaitItem() !is AddToShoppingUiState.Loading) Unit
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `a new sheet starts with everything picked again`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {

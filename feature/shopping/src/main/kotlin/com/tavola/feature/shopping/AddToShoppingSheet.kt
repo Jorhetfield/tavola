@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -47,6 +48,9 @@ fun AddToShoppingSheetContent(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(candidates) { viewModel.onCandidates(candidates) }
+    // The ViewModel outlives the sheet, so what was offered is cleared when it closes: the next one starts from "loading" instead of
+    // flashing the previous rows and picks.
+    DisposableEffect(viewModel) { onDispose { viewModel.onCandidates(emptyList()) } }
     val actions = remember(viewModel, onClose) {
         AddToShoppingActions(
             onToggle = viewModel::onToggle,

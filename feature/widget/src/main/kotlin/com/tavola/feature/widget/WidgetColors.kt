@@ -24,8 +24,6 @@ internal object WidgetColors {
     )
     val chip = provider { taskChip }
     val onChip = provider { onTaskChip }
-    val chipDone = provider { taskChipDone }
-    val onChipDone = provider { onTaskChipDone }
 
     private const val EMPTY_SLOT_ALPHA = 0.14f
 

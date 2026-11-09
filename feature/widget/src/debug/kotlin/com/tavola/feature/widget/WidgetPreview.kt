@@ -68,7 +68,7 @@ object WidgetPreview {
             override fun openRecipeIntent(recipeId: String): Intent = Intent()
         }
         return GlanceRemoteViews().compose(context, size.dp) {
-            TodayWidgetContent(state(scenario), launcher, scrollable = false)
+            TodayWidgetContent(state(scenario), launcher)
         }.remoteViews
     }
 }

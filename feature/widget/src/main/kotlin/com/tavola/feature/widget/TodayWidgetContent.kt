@@ -19,8 +19,6 @@ import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
-import androidx.glance.appwidget.lazy.LazyColumn
-import androidx.glance.appwidget.lazy.items
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -36,9 +34,7 @@ import androidx.glance.layout.width
 import androidx.glance.text.FontFamily
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
-import androidx.glance.text.TextDecoration
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import com.tavola.domain.model.DayTask
 import com.tavola.domain.model.MealType
 import com.tavola.domain.model.PlannedMeal
@@ -60,10 +56,10 @@ private val CompactBadgeSize = 22.dp
 
 /**
  * The widget for [state], drawn like the card of today in the app: the day, the lunch and dinner slots and the task chips. It is the
- * same whole day at every size, laid out to fit ([DayLayout]), and it scrolls when it does not fit.
+ * same day at every size, laid out to fit ([DayLayout]), with the tasks only where there is room for two.
  */
 @Composable
-internal fun TodayWidgetContent(state: TodayWidgetState, launcher: WidgetLauncher, scrollable: Boolean = true) {
+internal fun TodayWidgetContent(state: TodayWidgetState, launcher: WidgetLauncher) {
     val openApp = actionStartActivity(launcher.openAppIntent())
     Box(
         modifier = GlanceModifier
@@ -76,7 +72,7 @@ internal fun TodayWidgetContent(state: TodayWidgetState, launcher: WidgetLaunche
         when (state) {
             TodayWidgetState.SignedOut, TodayWidgetState.NoGroup -> Message(R.string.widget_open_app)
             TodayWidgetState.Unavailable -> Message(R.string.widget_unavailable)
-            is TodayWidgetState.Content -> DayCard(state, launcher, openApp, scrollable)
+            is TodayWidgetState.Content -> DayCard(state, launcher, openApp)
         }
     }
 }
@@ -118,33 +114,23 @@ private fun CompactMeal(
 }
 
 /**
- * The whole day: header, the two slots and a chip per task. If it is thought not to fit it is one list that scrolls; if it fits it is
- * a plain column. The difference is not only the scroll: the launcher runs a tap on the item of a list through an activity and plays
- * its app-launch animation for it, while a tap on a plain column is a direct broadcast with no animation, so the list is only used when
- * it is needed. The debug preview cannot draw lists, so it asks for the column ([scrollable] off).
+ * The day as in the card of the app: header, the two slots and, when there is room for two, the first two tasks still to do. It is
+ * always a plain column, never a list: the launcher runs a tap on the item of a Glance list through an activity and plays its
+ * app-launch animation for it, while a tap on a plain column is a direct broadcast with no animation. Nothing scrolls.
  */
 @Composable
-private fun DayCard(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action, scrollable: Boolean) {
+private fun DayCard(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action) {
     val size = LocalSize.current
     val layout = dayLayoutFor(size)
     val fontScale = LocalContext.current.resources.configuration.fontScale
-    val fits = dayFits(layout, state.tasks.map { task -> task.text }, size, fontScale)
-    if (scrollable && !fits) {
-        LazyColumn(modifier = GlanceModifier.fillMaxSize().padding(horizontal = CardPadding)) {
-            item { TopBlock(state, layout) }
-            item { SlotsBlock(state, launcher, openApp, layout) }
-            if (state.tasks.isEmpty()) {
-                item { NoTasks() }
-            } else {
-                items(state.tasks, itemId = { task -> task.id.hashCode().toLong() }) { task -> TaskChip(state, task) }
-            }
-            item { Spacer(GlanceModifier.height(CardPadding)) }
-        }
-    } else {
-        Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = CardPadding)) {
-            TopBlock(state, layout)
-            SlotsBlock(state, launcher, openApp, layout)
-            if (state.tasks.isEmpty()) NoTasks() else state.tasks.forEach { task -> TaskChip(state, task) }
+    val tasks = visibleTasks(layout, state.tasks, size, fontScale)
+    Column(modifier = GlanceModifier.fillMaxSize().padding(horizontal = CardPadding)) {
+        TopBlock(state, layout)
+        SlotsBlock(state, launcher, openApp, layout)
+        when {
+            tasks == null -> Unit
+            tasks.isEmpty() -> NoTasks()
+            else -> tasks.forEach { task -> TaskChip(state, task) }
         }
     }
 }
@@ -261,40 +247,37 @@ private fun MealSlot(type: MealType, meal: PlannedMeal?, launcher: WidgetLaunche
     }
 }
 
-/** A task as a chip, like in the app: a circle that is empty or ticked, and its text. Tapping it ticks or unticks it everywhere. */
+/**
+ * A task still to do as a chip, like in the app: an empty circle and its text. Tapping it ticks it everywhere and it leaves the
+ * widget, the next task still to do taking its place.
+ */
 @Composable
 private fun TaskChip(state: TodayWidgetState.Content, task: DayTask) {
-    val ink: ColorProvider = if (task.done) WidgetColors.onChipDone else WidgetColors.onChip
     Column(modifier = GlanceModifier.fillMaxWidth()) {
         Spacer(GlanceModifier.height(Gap))
         Row(
             modifier = GlanceModifier
                 .fillMaxWidth()
-                .background(if (task.done) WidgetColors.chipDone else WidgetColors.chip)
+                .background(WidgetColors.chip)
                 .cornerRadius(ChipCorner)
                 .padding(horizontal = 12.dp, vertical = 9.dp)
                 .clickable(
                     actionRunCallback<ToggleTaskAction>(
-                        actionParametersOf(TaskDateKey to state.date.toString(), TaskIdKey to task.id, TaskDoneKey to !task.done),
+                        actionParametersOf(TaskDateKey to state.date.toString(), TaskIdKey to task.id, TaskDoneKey to true),
                     ),
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Image(
-                provider = ImageProvider(if (task.done) R.drawable.ic_widget_task_done else R.drawable.ic_widget_task_open),
+                provider = ImageProvider(R.drawable.ic_widget_task_open),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(ink),
+                colorFilter = ColorFilter.tint(WidgetColors.onChip),
                 modifier = GlanceModifier.size(TaskIconSize),
             )
             Spacer(GlanceModifier.width(10.dp))
             Text(
                 text = task.text,
-                style = TextStyle(
-                    color = ink,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    textDecoration = if (task.done) TextDecoration.LineThrough else null,
-                ),
+                style = TextStyle(color = WidgetColors.onChip, fontSize = 14.sp, fontWeight = FontWeight.Medium),
                 maxLines = 2,
             )
         }

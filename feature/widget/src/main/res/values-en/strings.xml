@@ -7,7 +7,7 @@
     <string name="widget_lunch">Lunch</string>
     <string name="widget_dinner">Dinner</string>
     <string name="widget_nothing_planned">Nothing planned</string>
-    <string name="widget_no_tasks">No tasks</string>
+    <string name="widget_no_tasks">No pending tasks</string>
     <string name="widget_open_app">Open Tavola to get started</string>
     <string name="widget_unavailable">Could not load. Tap to open Tavola.</string>
 </resources>

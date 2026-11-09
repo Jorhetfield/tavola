@@ -1,30 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+    <group
+        android:rotation="40"
+        android:scaleX="1.06"
+        android:scaleY="1.06"
+        android:translateX="52"
+        android:translateY="56">
+        <!-- fork -->
+        <path
+            android:fillColor="#1A3A5C"
+            android:pathData="M-7,-29.7a1.3,1.3 0 0 1 2.6,0v9.4a1.3,1.3 0 0 1 -2.6,0z" />
+        <path
+            android:fillColor="#1A3A5C"
+            android:pathData="M-3.2,-29.7a1.3,1.3 0 0 1 2.6,0v9.4a1.3,1.3 0 0 1 -2.6,0z" />
+        <path
+            android:fillColor="#1A3A5C"
+            android:pathData="M0.6,-29.7a1.3,1.3 0 0 1 2.6,0v9.4a1.3,1.3 0 0 1 -2.6,0z" />
+        <path
+            android:fillColor="#1A3A5C"
+            android:pathData="M4.4,-29.7a1.3,1.3 0 0 1 2.6,0v9.4a1.3,1.3 0 0 1 -2.6,0z" />
+        <path
+            android:fillColor="#1A3A5C"
+            android:pathData="M-7,-21H7V-13C7,-8 3.6,-5 2.2,-2H-2.2C-3.6,-5 -7,-8 -7,-13Z" />
+        <path
+            android:fillColor="#1A3A5C"
+            android:pathData="M-2.2,-2C-2.2,8 -3.8,15 -3.8,20.5A3.8,3.8 0 0 0 3.8,20.5C3.8,15 2.2,8 2.2,-2Z" />
+        <!-- strands hanging under the nest, upright in world space -->
+        <group
+            android:rotation="-40"
+            android:translateX="4"
+            android:translateY="0.5">
+            <path
+                android:pathData="M0,0C1.5,4 -2,7 -0.5,11C0.3,13 2.4,13.2 3.2,11.8"
+                android:strokeColor="#FDF4E0"
+                android:strokeLineCap="round"
+                android:strokeWidth="2.6" />
+        </group>
+        <group
+            android:rotation="-40"
+            android:translateX="10.5"
+            android:translateY="-3">
+            <path
+                android:pathData="M0,0C0.8,3 -1,5 -0.4,7.5"
+                android:strokeColor="#FDF4E0"
+                android:strokeLineCap="round"
+                android:strokeWidth="2.6" />
+        </group>
+        <!-- nest of spaghetti -->
+        <path
+            android:fillColor="#F0B840"
+            android:pathData="M-15.5,-10C-15.5,-19 -8,-24 0,-24C8,-24 15.5,-19 15.5,-10C15.5,-2 8,2.5 0,2.5C-8,2.5 -15.5,-2 -15.5,-10Z" />
+        <path
+            android:pathData="M-9,-19C-9,-24.5 9,-24.5 9,-19"
+            android:strokeColor="#FDF4E0"
+            android:strokeLineCap="round"
+            android:strokeWidth="3" />
+        <path
+            android:pathData="M-11.5,-18C-11.5,-13.5 11.5,-13.5 11.5,-18"
+            android:strokeColor="#FDF4E0"
+            android:strokeLineCap="round"
+            android:strokeWidth="3.2" />
+        <path
+            android:pathData="M-15,-13C-15,-8 15,-8 15,-13"
+            android:strokeColor="#FDF4E0"
+            android:strokeLineCap="round"
+            android:strokeWidth="3.2" />
+        <path
+            android:pathData="M-16,-7.5C-16,-2.5 16,-2.5 16,-7.5"
+            android:strokeColor="#FDF4E0"
+            android:strokeLineCap="round"
+            android:strokeWidth="3.2" />
+        <path
+            android:pathData="M-13,-2.5C-13,1.5 13,1.5 13,-2.5"
+            android:strokeColor="#FDF4E0"
+            android:strokeLineCap="round"
+            android:strokeWidth="3.2" />
+        <!-- tomato sauce lying on the nest -->
+        <path
+            android:fillColor="#B85C38"
+            android:pathData="M-8.5,-17C-8,-20 -3,-20.6 0,-20.2C3.5,-20.6 8.5,-20 8.5,-17C8.5,-15 6.4,-14.4 5.2,-13.6C4.5,-13 4.2,-11.2 2.9,-11.4C1.8,-11.6 1.9,-13 1,-13.5C-0.6,-14.2 -2.6,-13.2 -4.8,-13.8C-7.2,-14.4 -8.7,-15.4 -8.5,-17Z" />
+        <path
+            android:fillColor="#E8A87C"
+            android:pathData="M1.6,-18.2a1.6,0.7 0 1 0 3.2,0a1.6,0.7 0 1 0 -3.2,0z" />
+        <!-- basil, upright in world space -->
+        <group
+            android:rotation="-40"
+            android:translateX="-1"
+            android:translateY="-19">
+            <group
+                android:rotation="-44"
+                android:translateX="-1">
+                <path
+                    android:fillColor="#5D8A3C"
+                    android:pathData="M0,0C-4.6,-2.5 -5.6,-9 -1,-14C3.2,-9.6 3.6,-3 0,0Z" />
+                <path
+                    android:pathData="M0,-1.5Q-0.6,-7 -1,-11.5"
+                    android:strokeColor="#C8E6A0"
+                    android:strokeLineCap="round"
+                    android:strokeWidth="0.7" />
+            </group>
+            <group
+                android:rotation="30"
+                android:scaleX="0.85"
+                android:scaleY="0.85"
+                android:translateX="1">
+                <path
+                    android:fillColor="#5D8A3C"
+                    android:pathData="M0,0C-4.6,-2.5 -5.6,-9 -1,-14C3.2,-9.6 3.6,-3 0,0Z" />
+                <path
+                    android:pathData="M0,-1.5Q-0.6,-7 -1,-11.5"
+                    android:strokeColor="#C8E6A0"
+                    android:strokeLineCap="round"
+                    android:strokeWidth="0.8" />
+            </group>
+        </group>
+    </group>
 </vector>

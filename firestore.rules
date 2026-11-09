@@ -9,6 +9,7 @@ rules_version = '2';
 //   groups/{groupId}/recipes/{recipeId} { title, prepTimeMinutes?, tags, ingredients, steps, createdBy? }
 //   groups/{groupId}/meals/{date}_{type} { date, type, title, recipeId?, prepTimeMinutes?, tags, note?, createdBy? }
 //   groups/{groupId}/tasks/{taskId}     { date, text, done, createdAt, createdBy? }
+//   groups/{groupId}/shopping/{itemId}  { name, category, quantity?, checked, createdAt, addedBy? }
 //   invites/{code}                    { groupId }                  lets a person who knows the code find the group
 //
 // The ideas, from the decisions in docs/PLAN.md:
@@ -96,6 +97,18 @@ service cloud.firestore {
         && task.done is bool
         && task.createdAt is int
         && (!('createdBy' in task.keys()) || task.createdBy is string);
+    }
+
+    // An item of the shopping list: a name, one of the fixed categories, an optional free-text quantity, whether it is ticked, and
+    // when it was added (which orders the list). `addedBy` is who added it; it is only written when the item is created.
+    function validShoppingItem(item) {
+      return item.keys().hasOnly(['name', 'category', 'quantity', 'checked', 'createdAt', 'addedBy'])
+        && item.name is string && item.name.size() >= 1 && item.name.size() <= 120
+        && item.category in ['FruitAndVegetables', 'MeatAndFish', 'DairyAndEggs', 'Pantry', 'Bakery', 'Frozen', 'Drinks', 'Household', 'Other']
+        && (!('quantity' in item.keys()) || item.quantity == null || (item.quantity is string && item.quantity.size() <= 60))
+        && item.checked is bool
+        && item.createdAt is int
+        && (!('addedBy' in item.keys()) || item.addedBy is string);
     }
 
     function invitePath(code) {
@@ -194,6 +207,13 @@ service cloud.firestore {
       match /tasks/{taskId} {
         allow read: if signedIn() && isMember(get(groupPath(groupId)).data);
         allow create, update: if signedIn() && isMember(get(groupPath(groupId)).data) && validTask(request.resource.data);
+        allow delete: if signedIn() && isMember(get(groupPath(groupId)).data);
+      }
+
+      // The shopping list of the group: one document per item. Every member reads and writes it; only the shape is checked.
+      match /shopping/{itemId} {
+        allow read: if signedIn() && isMember(get(groupPath(groupId)).data);
+        allow create, update: if signedIn() && isMember(get(groupPath(groupId)).data) && validShoppingItem(request.resource.data);
         allow delete: if signedIn() && isMember(get(groupPath(groupId)).data);
       }
 

@@ -9,7 +9,7 @@ Tick `[x]` when done. One task at a time; build and verify before the next one.
 4. ~~Close 0.0.3 and open 0.1.0~~ Done: `release/0.0.3` is in `main` (PR #13, pre-release `v0.0.3`) and `release/0.1.0` is open for Firebase.
 5. ~~Firebase + Auth + groups, then the shared calendar in real time~~ Done in release 0.1.0 (decisions below): the biggest change to the data layer, in 4 or 5 small PRs. It goes before the widget because the widget reads through the repositories and would have to be reworked after the move.
 6. **Interactive widget** (Phase 3): it can be defined on paper any time (open questions below), but it is built after Firebase.
-7. Shopping list, recipe photos and carousel, import by URL, push notifications (Phase 4).
+7. ~~Shopping list~~ Done in release 0.1.1 (PRs #21, #22 and #23, decisions below). Still to do: recipe photos and carousel, import by URL, push notifications (Phase 4).
 8. AI (Phase 5), last.
 
 ## Firebase decisions (agreed)
@@ -70,16 +70,18 @@ Shopping list decisions (agreed):
 | 2 | Item: `name`, `category`, `checked`, `quantity?` (free text), `createdAt`, `addedBy` (stored, not shown). |
 | 3 | Fixed Mediterranean categories: fruit and vegetables, meat and fish, dairy and eggs, pantry, bakery, frozen, drinks, household, other (default). Not editable. |
 | 4 | New "Shopping" tab in the floating bar, items grouped by category; ticking strikes the item and sends it to the bottom of its category. |
-| 5 | Quick add field on top (type and press enter, a chip changes the category). **Autocomplete from the group history is a second iteration.** |
+| 5 | **Changed while building it:** adding is done from a bottom sheet opened by the "+" docked to the floating bar (like "New recipe"), not from an inline field with chips. The sheet has the name, an optional quantity and the category, which is **guessed from the name** (`ShoppingCategorySuggester`, Spanish and English); tapping it opens a grid of tiles to pick another. It stays open after adding. **Autocomplete from the group history is a second iteration.** |
 | 6 | Swipe to remove with a 5 s Undo, and "Remove ticked" after shopping, also with Undo. |
-| 7 | From a recipe: "Add to shopping list" opens a sheet where the user **picks ingredients by hand** (some may already be at home). Items already on the list are not duplicated; "to taste" ingredients go without quantity. |
+| 7 | From a recipe: "Add to shopping list" opens a sheet where the user **picks ingredients by hand** (some may already be at home). Items already on the list are not duplicated; "to taste" ingredients go without quantity. | Done: the sheet is provided by `:app` from `:feature:shopping`; ingredients already on the list (same name ignoring case, accents and plural) cannot be picked, and everything is added in one batched write.
 | 8 | Adding a whole week from the calendar is out for now. |
 | 9 | New `:feature:shopping`. `:app` hands the recipe button to `:feature:recipes` through a slot; communication goes through the domain repository. |
 | 10 | Quantities are free text: no summing or unit conversion. |
 | 11 | Same rule as recipes and the calendar: only group members read and write. |
 | 12 | Design: Material 3 Expressive like the rest of the app, with `motionScheme` for every animation, touch feedback on everything pressable, light and dark, and screenshots (light, dark, large text). |
 
-PRs: 1 domain, Firestore repository, rules, fake and tests; 2 the screen and the tab; 3 add from a recipe.
+PRs (all merged into 0.1.1): 1 domain, Firestore repository, rules, fake and tests (#21); 2 the screen, the tab and the add sheet (#22); 3 add from a recipe (#23). The swipe-to-remove gesture and the entrance motion moved to `:core:designsystem` so recipes and shopping share them.
+
+To check: the add sheets were never tried on a device (keyboard and focus), and the Firestore rules for `shopping` must be published by hand in the console.
 
 ## Phase 0 — Project base
 - [x] `libs.versions.toml` with the stack (recent Compose BOM, M3 Expressive, Hilt+KSP, Navigation 3, Kotlinx Serialization, Coil 3, Firebase BOM, JUnit5/Turbine, fakes instead of mocks)
@@ -151,7 +153,7 @@ The items are grouped by topic, not in work order: follow "Next up" above.
   - Depends on: tasks per day (done) and, to be built, on Firebase (see "Firebase decisions"). Define it with the user before building.
 
 ## Phase 4 — Shopping list and premium design
-- [ ] Manual shopping list by category
+- [x] Manual shopping list by category (release 0.1.1: tab, add sheet with a guessed category, tick, swipe to remove with Undo, "Remove ticked", add the ingredients of a recipe)
 - [ ] Recipe photos, recipe book carousel
 - [ ] Import a recipe by URL
 - [ ] Push notifications

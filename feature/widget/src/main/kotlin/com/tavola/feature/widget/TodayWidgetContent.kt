@@ -58,34 +58,6 @@ private val CompactGap = 6.dp
 private val CompactSlotPadding = 8.dp
 private val CompactBadgeSize = 22.dp
 
-/** How the day is laid out at the size the widget has now. */
-private enum class DayLayout {
-    /** Tall and wide enough for the full slots, side by side. */
-    Full,
-
-    /** Short (a 4x2): the slots are compact and side by side. */
-    Short,
-
-    /** Narrow (a 2x2): the compact slots go one under the other. */
-    Narrow,
-}
-
-/** Under this width the two slots do not fit side by side. */
-private val NarrowWidth = 200.dp
-
-/** Under this height the full slots do not fit under the header. */
-private val ShortHeight = 200.dp
-
-@Composable
-private fun currentLayout(): DayLayout {
-    val size = LocalSize.current
-    return when {
-        size.width < NarrowWidth -> DayLayout.Narrow
-        size.height < ShortHeight -> DayLayout.Short
-        else -> DayLayout.Full
-    }
-}
-
 /**
  * The widget for [state], drawn like the card of today in the app: the day, the lunch and dinner slots and the task chips. It is the
  * same whole day at every size, laid out to fit ([DayLayout]), and it scrolls when it does not fit.
@@ -146,13 +118,18 @@ private fun CompactMeal(
 }
 
 /**
- * The whole day: header, the two slots and a chip per task. When [scrollable] it is one list that scrolls if the widget is not tall
- * enough (what the launcher shows); the debug preview cannot draw lists, so it asks for it laid out in full.
+ * The whole day: header, the two slots and a chip per task. If it is thought not to fit it is one list that scrolls; if it fits it is
+ * a plain column. The difference is not only the scroll: the launcher runs a tap on the item of a list through an activity and plays
+ * its app-launch animation for it, while a tap on a plain column is a direct broadcast with no animation, so the list is only used when
+ * it is needed. The debug preview cannot draw lists, so it asks for the column ([scrollable] off).
  */
 @Composable
 private fun DayCard(state: TodayWidgetState.Content, launcher: WidgetLauncher, openApp: Action, scrollable: Boolean) {
-    val layout = currentLayout()
-    if (scrollable) {
+    val size = LocalSize.current
+    val layout = dayLayoutFor(size)
+    val fontScale = LocalContext.current.resources.configuration.fontScale
+    val fits = dayFits(layout, state.tasks.map { task -> task.text }, size, fontScale)
+    if (scrollable && !fits) {
         LazyColumn(modifier = GlanceModifier.fillMaxSize().padding(horizontal = CardPadding)) {
             item { TopBlock(state, layout) }
             item { SlotsBlock(state, launcher, openApp, layout) }

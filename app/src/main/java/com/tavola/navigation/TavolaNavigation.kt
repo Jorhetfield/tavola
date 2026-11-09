@@ -44,16 +44,16 @@ import com.tavola.feature.shopping.ShoppingScreen
  * The floating bar is a single one drawn above the whole navigation, so changing tab only moves the content and the
  * bar animates its own selection. It slides away while a full-screen detail is open.
  *
- * @param recipeToOpen the recipe a widget asked to open (the app opens its detail on top of the calendar), or `null`.
+ * @param recipeToOpen the recipe a widget asked to open, or `null`. The app starts already on its detail (with the calendar under it,
+ * for going back), so it does not pass through the calendar on its way; if the app was already open, the detail is opened on top.
  * @param onRecipeOpened tells the caller that [recipeToOpen] was opened, so it is not opened again.
  */
 @Composable
 fun TavolaNavigation(recipeToOpen: String? = null, onRecipeOpened: () -> Unit = {}) {
-    val backStack = rememberNavBackStack(CalendarRoute)
+    val backStack = rememberNavBackStack(*initialBackStack(recipeToOpen).toTypedArray())
     LaunchedEffect(recipeToOpen) {
         if (recipeToOpen != null) {
-            backStack.navigateToTopLevel(CALENDAR_KEY)
-            backStack.add(RecipeDetailRoute(recipeToOpen))
+            backStack.openRecipe(recipeToOpen)
             onRecipeOpened()
         }
     }

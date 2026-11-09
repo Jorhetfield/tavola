@@ -20,3 +20,7 @@ data class RecipeEditorRoute(val recipeId: String = "") : NavKey
 /** The group of the person: its code, its members and what a member can do. Opened from the top bar of the calendar. */
 @Serializable
 data object GroupRoute : NavKey
+
+/** The shared shopping list of the group. */
+@Serializable
+data object ShoppingRoute : NavKey

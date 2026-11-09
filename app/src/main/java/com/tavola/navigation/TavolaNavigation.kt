@@ -31,6 +31,7 @@ import com.tavola.feature.recipes.MealPickerSheetContent
 import com.tavola.feature.recipes.RecipeDetailScreen
 import com.tavola.feature.recipes.RecipeEditorScreen
 import com.tavola.feature.recipes.RecipeListScreen
+import com.tavola.feature.shopping.ShoppingScreen
 
 /**
  * Navigation root (Navigation 3). The calendar is the landing screen.
@@ -82,6 +83,9 @@ fun TavolaNavigation() {
                         RecipeListScreen(
                             onRecipeClick = { recipeId -> backStack.add(RecipeDetailRoute(recipeId)) },
                         )
+                    }
+                    entry<ShoppingRoute>(clazzContentKey = { SHOPPING_KEY }, metadata = motion.tabMetadata) {
+                        ShoppingScreen()
                     }
                     entry<RecipeDetailRoute>(metadata = motion.sheetMetadata) { route ->
                         SheetEntrySurface {

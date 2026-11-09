@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="shopping_title">Compra</string>
+    <plurals name="shopping_pending">
+        <item quantity="one">%d pendiente</item>
+        <item quantity="other">%d pendientes</item>
+    </plurals>
+    <string name="shopping_all_done">Todo en la cesta</string>
+    <string name="shopping_add_placeholder">Añadir a la lista</string>
+    <string name="shopping_add">Añadir</string>
+    <string name="shopping_category_fruit_and_vegetables">Frutas y verduras</string>
+    <string name="shopping_category_meat_and_fish">Carne y pescado</string>
+    <string name="shopping_category_dairy_and_eggs">Lácteos y huevos</string>
+    <string name="shopping_category_pantry">Despensa</string>
+    <string name="shopping_category_bakery">Panadería</string>
+    <string name="shopping_category_frozen">Congelados</string>
+    <string name="shopping_category_drinks">Bebidas</string>
+    <string name="shopping_category_household">Hogar</string>
+    <string name="shopping_category_other">Otros</string>
+    <string name="shopping_remove">Quitar de la lista</string>
+    <string name="shopping_remove_checked">Quitar los marcados (%1$d)</string>
+    <plurals name="shopping_removed">
+        <item quantity="one">Artículo quitado</item>
+        <item quantity="other">%d artículos quitados</item>
+    </plurals>
+    <string name="shopping_undo">Deshacer</string>
+    <string name="shopping_empty_title">La lista está vacía</string>
+    <string name="shopping_empty_hint">Escribe arriba lo que falta en casa.</string>
+    <string name="shopping_error">No se ha podido cargar la lista</string>
+    <string name="shopping_retry">Reintentar</string>
+</resources>

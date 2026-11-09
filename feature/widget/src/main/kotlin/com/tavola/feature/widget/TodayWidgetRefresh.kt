@@ -39,10 +39,15 @@ object TodayWidgetRefresh {
 
     /** Stops every refresh, once there is no widget left. */
     fun cancel(context: Context) {
+        cancelScheduled(context)
+        WorkManager.getInstance(context).cancelUniqueWork(NOW_WORK)
+    }
+
+    /** Stops the periodic and the midnight refresh, which keep themselves going, but not a refresh that is running. */
+    internal fun cancelScheduled(context: Context) {
         val workManager = WorkManager.getInstance(context)
         workManager.cancelUniqueWork(PERIODIC_WORK)
         workManager.cancelUniqueWork(MIDNIGHT_WORK)
-        workManager.cancelUniqueWork(NOW_WORK)
     }
 
     /** Draws the widget again as soon as possible: the app calls it when it goes to the background, since it may have changed something. */
@@ -67,9 +72,16 @@ internal fun millisUntilAfterMidnight(now: LocalDateTime): Long {
     return Duration.between(now, target).toMillis()
 }
 
-/** Draws every "Today" widget again, and lines up the next midnight refresh. */
+/**
+ * Draws every "Today" widget again, and lines up the next midnight refresh. With no widget on the screen there is nothing to draw, and
+ * the refreshes stop here: the app asks for one every time it goes to the background, so this is where a removed widget's are ended.
+ */
 internal class TodayWidgetWorker(context: Context, parameters: WorkerParameters) : CoroutineWorker(context, parameters) {
     override suspend fun doWork(): Result {
+        if (!TodayWidget.isOnScreen(applicationContext)) {
+            TodayWidgetRefresh.cancelScheduled(applicationContext)
+            return Result.success()
+        }
         TodayWidget.refresh(applicationContext)
         TodayWidgetRefresh.scheduleMidnight(applicationContext)
         return Result.success()

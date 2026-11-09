@@ -80,6 +80,10 @@ internal class TodayWidget : GlanceAppWidget() {
     }
 
     companion object {
+        /** Whether there is a "Today" widget on a home screen. */
+        suspend fun isOnScreen(context: Context): Boolean =
+            GlanceAppWidgetManager(context).getGlanceIds(TodayWidget::class.java).isNotEmpty()
+
         /** Draws every "Today" widget again with what is in the calendar now. */
         suspend fun refresh(context: Context) {
             val widget = TodayWidget()

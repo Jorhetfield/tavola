@@ -1,7 +1,5 @@
 package com.tavola.domain.model
 
-import java.text.Normalizer
-
 /**
  * Guesses the category of a shopping item from what is typed, so the person almost never has to pick one. It knows the common
  * Spanish and English names of food and household things; anything else has no suggestion and the caller falls back to
@@ -61,23 +59,16 @@ object ShoppingCategorySuggester {
         "agua de colonia" to ShoppingCategory.Household,
     )
 
-    private val nonLetters = Regex("[^a-z]+")
-
     /**
      * The category [name] most likely belongs to: a known phrase if the name has one, otherwise the first word that is known.
      * `null` if nothing is known.
      */
     fun suggest(name: String): ShoppingCategory? {
-        val words = name.words()
+        val words = ShoppingNames.words(name)
         val text = words.joinToString(separator = " ", prefix = " ", postfix = " ")
         return phrases.entries.firstOrNull { (phrase, _) -> text.contains(" $phrase ") }?.value
             ?: words.firstNotNullOfOrNull { word -> word.known() }
     }
 
     private fun String.known(): ShoppingCategory? = knownWords[this] ?: knownWords[removeSuffix("s")] ?: knownWords[removeSuffix("es")]
-
-    private fun String.words(): List<String> = Normalizer.normalize(lowercase(), Normalizer.Form.NFD)
-        .filter { character -> Character.getType(character) != Character.NON_SPACING_MARK.toInt() }
-        .split(nonLetters)
-        .filter { word -> word.isNotEmpty() }
 }

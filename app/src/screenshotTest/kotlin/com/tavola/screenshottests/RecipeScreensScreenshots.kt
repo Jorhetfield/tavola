@@ -165,3 +165,11 @@ fun RecipeEditorErrorScreenshot() = RecipeEditor(RecipeEditorUiState.Error)
 @TavolaFontScalePreviews
 @Composable
 fun RecipeEditorLargeFontScreenshot() = RecipeEditor(editingPaella)
+
+/** The detail of a recipe with the button that adds its ingredients to the shopping list. */
+@PreviewTest
+@TavolaScreenPreviews
+@Composable
+fun RecipeDetailWithShoppingScreenshot() {
+    TavolaTheme { RecipeDetailContent(RecipeDetailUiState.Success(paella), onBack = {}, onRetryClick = {}, onAddToShoppingClick = {}) }
+}

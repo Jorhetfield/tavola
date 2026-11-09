@@ -35,6 +35,7 @@ import com.tavola.feature.recipes.MealPickerSheetContent
 import com.tavola.feature.recipes.RecipeDetailScreen
 import com.tavola.feature.recipes.RecipeEditorScreen
 import com.tavola.feature.recipes.RecipeListScreen
+import com.tavola.feature.shopping.AddToShoppingSheetContent
 import com.tavola.feature.shopping.ShoppingScreen
 
 /**
@@ -104,6 +105,7 @@ fun TavolaNavigation() {
                                 recipeId = route.recipeId,
                                 onBack = { backStack.removeLastOrNull() },
                                 onEditClick = { recipeId -> backStack.add(RecipeEditorRoute(recipeId)) },
+                                addToShopping = { candidates, onClose -> AddToShoppingSheetContent(candidates, onClose) },
                             )
                         }
                     }

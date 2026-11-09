@@ -62,6 +62,11 @@
     <string name="recipe_detail_error">The recipe could not be loaded</string>
     <string name="recipe_detail_retry">Retry</string>
     <string name="recipe_detail_edit">Edit recipe</string>
+    <string name="recipe_detail_add_to_shopping">Add to the shopping list</string>
+    <plurals name="recipe_detail_added_to_shopping">
+        <item quantity="one">%d item added to the shopping list</item>
+        <item quantity="other">%d items added to the shopping list</item>
+    </plurals>
 
     <string name="recipe_list_removed">Recipe deleted</string>
     <string name="recipe_list_undo">Undo</string>

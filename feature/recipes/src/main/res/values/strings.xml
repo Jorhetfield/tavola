@@ -62,6 +62,11 @@
     <string name="recipe_detail_error">No se ha podido cargar la receta</string>
     <string name="recipe_detail_retry">Reintentar</string>
     <string name="recipe_detail_edit">Editar receta</string>
+    <string name="recipe_detail_add_to_shopping">Añadir a la compra</string>
+    <plurals name="recipe_detail_added_to_shopping">
+        <item quantity="one">%d artículo añadido a la compra</item>
+        <item quantity="other">%d artículos añadidos a la compra</item>
+    </plurals>
 
     <string name="recipe_list_removed">Receta eliminada</string>
     <string name="recipe_list_undo">Deshacer</string>

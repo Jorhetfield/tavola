@@ -27,9 +27,14 @@ import com.tavola.core.designsystem.shopping.ShoppingRowModel
 import com.tavola.core.designsystem.shopping.TavolaShoppingCategoryHeader
 import com.tavola.core.designsystem.shopping.TavolaShoppingRow
 import com.tavola.core.designsystem.theme.TavolaTheme
+import com.tavola.domain.model.ShoppingCandidate
 import com.tavola.domain.model.ShoppingCategory
 import com.tavola.domain.model.ShoppingItem
 import com.tavola.feature.shopping.AddItemDraft
+import com.tavola.feature.shopping.AddToShoppingActions
+import com.tavola.feature.shopping.AddToShoppingContent
+import com.tavola.feature.shopping.AddToShoppingRow
+import com.tavola.feature.shopping.AddToShoppingUiState
 import com.tavola.feature.shopping.ShoppingActions
 import com.tavola.feature.shopping.ShoppingAddSheetContent
 import com.tavola.feature.shopping.ShoppingContent
@@ -173,3 +178,45 @@ fun ShoppingComponentsScreenshot() {
 @Composable
 fun ShoppingAddSheetCategoriesFontScaleScreenshot() =
     AddSheet(AddItemDraft(name = "Detergente", pickedCategory = ShoppingCategory.Household), categoriesOpen = true, sheetHeight = 1600.dp)
+
+private val offered = listOf(
+    ShoppingCandidate("Arroz bomba", "400 g"),
+    ShoppingCandidate("Caldo de pollo", "1,2 l"),
+    ShoppingCandidate("Pollo troceado", "1 kg"),
+    ShoppingCandidate("Azafrán", "1 pizca"),
+    ShoppingCandidate("Aceite de oliva", "4 cdas"),
+    ShoppingCandidate("Sal"),
+)
+
+private fun pickRows(vararg unpicked: Int, onList: Set<Int> = setOf(4)): AddToShoppingUiState.Success = AddToShoppingUiState.Success(
+    offered.mapIndexed { index, candidate ->
+        AddToShoppingRow(index, candidate, onList = index in onList, selected = index !in onList && index !in unpicked.toSet())
+    },
+)
+
+@Composable
+private fun AddToShopping(state: AddToShoppingUiState) {
+    SheetSurface { AddToShoppingContent(state, AddToShoppingActions()) }
+}
+
+/** The sheet that adds the ingredients of a recipe: everything picked but what is already on the list. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun AddToShoppingScreenshot() = AddToShopping(pickRows())
+
+/** Some ingredients unpicked, as when the person already has them at home. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun AddToShoppingUnpickedScreenshot() = AddToShopping(pickRows(1, 5))
+
+@PreviewTest
+@TavolaFontScalePreviews
+@Composable
+fun AddToShoppingFontScaleScreenshot() = AddToShopping(pickRows(1))
+
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun AddToShoppingErrorScreenshot() = AddToShopping(AddToShoppingUiState.Error)

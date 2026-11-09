@@ -81,28 +81,96 @@ class ShoppingViewModelTest {
     }
 
     @Test
-    fun `adding trims the name, uses the chosen category and empties the field but keeps the category`() = runTest {
+    fun `adding trims the name, empties the draft and says what was added`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {
             awaitSuccess()
 
-            viewModel.onDraftCategoryChange(ShoppingCategory.Bakery)
             viewModel.onDraftNameChange("  Pan de payés ")
-            awaitSuccess { state -> state.draftName == "  Pan de payés " }
+            awaitSuccess { state -> state.draft.name == "  Pan de payés " }
             viewModel.onAddClick()
 
             val state = awaitSuccess { loaded -> loaded.totalCount == 1 }
-            val item = state.sections.single().items.single()
-            assertEquals("Pan de payés", item.name)
-            assertEquals(ShoppingCategory.Bakery, item.category)
-            assertEquals("", state.draftName)
-            assertEquals(ShoppingCategory.Bakery, state.draftCategory)
+            assertEquals("Pan de payés", state.sections.single().items.single().name)
+            assertEquals("", state.draft.name)
+            assertEquals("Pan de payés", state.draft.addedName)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `adding with a blank field does nothing`() = runTest {
+    fun `the category is guessed from the name when none was picked`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onDraftNameChange("Leche")
+            val typed = awaitSuccess { state -> state.draft.name == "Leche" }
+            assertEquals(ShoppingCategory.DairyAndEggs, typed.draft.category)
+            assertTrue(typed.draft.isSuggested)
+
+            viewModel.onAddClick()
+            val added = awaitSuccess { loaded -> loaded.totalCount == 1 }
+            assertEquals(ShoppingCategory.DairyAndEggs, added.sections.single().category)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a name that is not known goes to other and is not marked as suggested`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onDraftNameChange("Cosa rara")
+
+            val typed = awaitSuccess { state -> state.draft.name == "Cosa rara" }
+            assertEquals(ShoppingCategory.Other, typed.draft.category)
+            assertEquals(false, typed.draft.isSuggested)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a picked category wins over the guess and is forgotten once the item is added`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onDraftNameChange("Leche")
+            viewModel.onDraftCategoryPick(ShoppingCategory.Household)
+            val picked = awaitSuccess { state -> state.draft.pickedCategory != null }
+            assertEquals(ShoppingCategory.Household, picked.draft.category)
+            assertEquals(false, picked.draft.isSuggested)
+
+            viewModel.onAddClick()
+            val added = awaitSuccess { loaded -> loaded.totalCount == 1 }
+            assertEquals(ShoppingCategory.Household, added.sections.single().category)
+            assertEquals(null, added.draft.pickedCategory)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `the quantity is saved with the item and trimmed`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+
+            viewModel.onDraftNameChange("Tomates")
+            viewModel.onDraftQuantityChange(" 2 kg ")
+            awaitSuccess { state -> state.draft.quantity == " 2 kg " }
+            viewModel.onAddClick()
+
+            val state = awaitSuccess { loaded -> loaded.totalCount == 1 }
+            assertEquals("2 kg", state.sections.single().items.single().quantity)
+            assertEquals("", state.draft.quantity)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `adding with a blank name does nothing`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {
             awaitSuccess()
@@ -110,21 +178,58 @@ class ShoppingViewModelTest {
             viewModel.onDraftNameChange("   ")
             viewModel.onAddClick()
 
-            assertEquals(0, awaitSuccess { state -> state.draftName == "   " }.totalCount)
+            val state = awaitSuccess { loaded -> loaded.draft.name == "   " }
+            assertEquals(0, state.totalCount)
+            assertEquals(false, state.draft.canAdd)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun `a name longer than an item can have is cut as it is typed`() = runTest {
+    fun `typing again clears the added notice`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+            viewModel.onDraftNameChange("Pan")
+            viewModel.onAddClick()
+            awaitSuccess { state -> state.draft.addedName == "Pan" }
+
+            viewModel.onDraftNameChange("L")
+
+            assertEquals(null, awaitSuccess { state -> state.draft.name == "L" }.draft.addedName)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `closing the sheet drops what was typed`() = runTest {
+        val viewModel = viewModel()
+        viewModel.uiState.test {
+            awaitSuccess()
+            viewModel.onDraftNameChange("Leche")
+            viewModel.onDraftQuantityChange("2")
+            viewModel.onDraftCategoryPick(ShoppingCategory.Drinks)
+            awaitSuccess { state -> state.draft.pickedCategory != null && state.draft.quantity == "2" }
+
+            viewModel.onAddSheetDismiss()
+
+            assertEquals(AddItemDraft(), awaitSuccess { state -> state.draft.name.isEmpty() }.draft)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `a name and a quantity longer than an item can have are cut as they are typed`() = runTest {
         val viewModel = viewModel()
         viewModel.uiState.test {
             awaitSuccess()
 
             viewModel.onDraftNameChange("a".repeat(ShoppingItem.MAX_NAME_LENGTH + 20))
+            viewModel.onDraftQuantityChange("b".repeat(ShoppingItem.MAX_QUANTITY_LENGTH + 20))
 
-            val state = awaitSuccess { loaded -> loaded.draftName.isNotEmpty() }
-            assertEquals(ShoppingItem.MAX_NAME_LENGTH, state.draftName.length)
+            val state = awaitSuccess { loaded -> loaded.draft.name.isNotEmpty() && loaded.draft.quantity.isNotEmpty() }
+            assertEquals(ShoppingItem.MAX_NAME_LENGTH, state.draft.name.length)
+            assertEquals(ShoppingItem.MAX_QUANTITY_LENGTH, state.draft.quantity.length)
             cancelAndIgnoreRemainingEvents()
         }
     }

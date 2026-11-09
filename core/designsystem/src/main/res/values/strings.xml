@@ -11,6 +11,7 @@
     <string name="nav_recipes">Recetas</string>
     <string name="nav_shopping">Compra</string>
     <string name="nav_action_new_recipe">Nueva receta</string>
+    <string name="nav_action_add_item">Añadir a la compra</string>
 
     <string name="meal_slot_lunch">Comida</string>
     <string name="meal_slot_dinner">Cena</string>

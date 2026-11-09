@@ -1,7 +1,6 @@
 package com.tavola.feature.shopping
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -21,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.tavola.core.designsystem.field.TavolaQuickAddField
 import com.tavola.core.designsystem.motion.LocalPlayedEntrances
 import com.tavola.core.designsystem.motion.PlayedEntrances
 import com.tavola.core.designsystem.motion.staggeredEntrance
@@ -30,13 +28,11 @@ import com.tavola.core.designsystem.shopping.TavolaShoppingCategoryHeader
 import com.tavola.core.designsystem.shopping.TavolaShoppingRow
 import com.tavola.core.designsystem.swipe.TavolaSwipeToRemove
 import com.tavola.core.designsystem.theme.TavolaTheme
-import com.tavola.domain.model.ShoppingCategory
 
-private const val ADD_KEY = "add"
 private const val EMPTY_KEY = "empty"
 private const val REMOVE_CHECKED_KEY = "remove-checked"
 
-/** The quick add field and the category chips on top; below them the items by category, or the empty state, and "Remove ticked". */
+/** The items by category, or the empty state, and "Remove ticked" at the end. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun ShoppingBody(state: ShoppingUiState.Success, actions: ShoppingActions, contentPadding: PaddingValues) {
@@ -58,9 +54,6 @@ internal fun ShoppingBody(state: ShoppingUiState.Success, actions: ShoppingActio
         ),
         verticalArrangement = Arrangement.spacedBy(spacing.sm),
     ) {
-        item(key = ADD_KEY) {
-            ShoppingAddBar(state.draftName, state.draftCategory, actions, modifier = Modifier.padding(bottom = spacing.sm))
-        }
         if (state.sections.isEmpty()) {
             item(key = EMPTY_KEY) { ShoppingEmpty() }
         }
@@ -108,21 +101,6 @@ internal fun ShoppingBody(state: ShoppingUiState.Success, actions: ShoppingActio
                 }
             }
         }
-    }
-}
-
-/** The quick add field with the chips that pick its category. */
-@Composable
-internal fun ShoppingAddBar(draftName: String, draftCategory: ShoppingCategory, actions: ShoppingActions, modifier: Modifier = Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm)) {
-        TavolaQuickAddField(
-            value = draftName,
-            onValueChange = actions.onDraftNameChange,
-            placeholder = stringResource(R.string.shopping_add_placeholder),
-            addContentDescription = stringResource(R.string.shopping_add),
-            onAdd = actions.onAddClick,
-        )
-        ShoppingCategoryChips(selected = draftCategory, onSelect = actions.onDraftCategoryChange)
     }
 }
 

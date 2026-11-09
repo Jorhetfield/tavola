@@ -6,8 +6,15 @@
         <item quantity="other">%d to buy</item>
     </plurals>
     <string name="shopping_all_done">All in the basket</string>
-    <string name="shopping_add_placeholder">Add to the list</string>
     <string name="shopping_add">Add</string>
+    <string name="shopping_add_done">Done</string>
+    <string name="shopping_add_sheet_title">Add to the list</string>
+    <string name="shopping_add_name_label">What are you missing?</string>
+    <string name="shopping_add_quantity_label">Quantity (optional)</string>
+    <string name="shopping_add_category_label">Category</string>
+    <string name="shopping_add_category_change">Change category</string>
+    <string name="shopping_add_suggested">Suggested</string>
+    <string name="shopping_add_added">Added: %1$s</string>
     <string name="shopping_category_fruit_and_vegetables">Fruit and vegetables</string>
     <string name="shopping_category_meat_and_fish">Meat and fish</string>
     <string name="shopping_category_dairy_and_eggs">Dairy and eggs</string>
@@ -25,7 +32,7 @@
     </plurals>
     <string name="shopping_undo">Undo</string>
     <string name="shopping_empty_title">The list is empty</string>
-    <string name="shopping_empty_hint">Type above what you are missing at home.</string>
+    <string name="shopping_empty_hint">Tap + to add what you are missing at home.</string>
     <string name="shopping_error">The list could not be loaded</string>
     <string name="shopping_retry">Retry</string>
 </resources>

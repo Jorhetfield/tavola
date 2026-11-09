@@ -9,7 +9,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -55,9 +59,14 @@ fun TavolaNavigation() {
     // A new destination starts with the bar fully visible, even if the previous one had it hidden by scrolling.
     LaunchedEffect(currentTabKey) { barState.show() }
 
-    // The recipes tab is the only one with a main action; it is docked to the bar and opens the editor on a blank recipe.
+    // The recipes and shopping tabs have a main action, docked to the bar: a blank recipe in the editor, or the sheet that adds
+    // items to the list. The sheet itself lives in the shopping screen; its visibility is owned here because the button is.
     val newRecipeAction = remember(backStack) {
         TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_new_recipe) { backStack.add(RecipeEditorRoute()) }
+    }
+    var shoppingAddSheetOpen by rememberSaveable { mutableStateOf(false) }
+    val addShoppingItemAction = remember {
+        TavolaNavBarAction(Icons.Rounded.Add, R.string.nav_action_add_item) { shoppingAddSheetOpen = true }
     }
 
     Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -85,7 +94,7 @@ fun TavolaNavigation() {
                         )
                     }
                     entry<ShoppingRoute>(clazzContentKey = { SHOPPING_KEY }, metadata = motion.tabMetadata) {
-                        ShoppingScreen()
+                        ShoppingScreen(addSheetOpen = shoppingAddSheetOpen, onAddSheetDismiss = { shoppingAddSheetOpen = false })
                     }
                     entry<RecipeDetailRoute>(metadata = motion.sheetMetadata) { route ->
                         SheetEntrySurface {
@@ -117,7 +126,11 @@ fun TavolaNavigation() {
             TopLevelNavBar(
                 selectedKey = lastTab.key,
                 onItemClick = { key -> backStack.navigateToTopLevel(key) },
-                action = newRecipeAction.takeIf { lastTab.key == RECIPES_KEY },
+                action = when (lastTab.key) {
+                    RECIPES_KEY -> newRecipeAction
+                    SHOPPING_KEY -> addShoppingItemAction
+                    else -> null
+                },
             )
         }
     }

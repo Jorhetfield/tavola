@@ -18,15 +18,31 @@ import com.tavola.core.designsystem.snackbar.TavolaSnackbarHost
 import com.tavola.core.designsystem.snackbar.TavolaUndoSnackbarEffect
 import com.tavola.core.designsystem.topbar.TavolaTopBar
 
-/** The shopping list tab. */
+/**
+ * The shopping list tab.
+ *
+ * @param addSheetOpen whether the sheet that adds items is open. `:app` owns it, because the button that opens it is the action
+ * docked to the floating bar, which lives in the app shell.
+ * @param onAddSheetDismiss asks `:app` to close the sheet.
+ */
 @Composable
-fun ShoppingScreen(modifier: Modifier = Modifier, viewModel: ShoppingViewModel = hiltViewModel()) {
+fun ShoppingScreen(
+    addSheetOpen: Boolean,
+    onAddSheetDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: ShoppingViewModel = hiltViewModel(),
+) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel) {
+    val actions = remember(viewModel, onAddSheetDismiss) {
         ShoppingActions(
             onDraftNameChange = viewModel::onDraftNameChange,
-            onDraftCategoryChange = viewModel::onDraftCategoryChange,
+            onDraftQuantityChange = viewModel::onDraftQuantityChange,
+            onDraftCategoryPick = viewModel::onDraftCategoryPick,
             onAddClick = viewModel::onAddClick,
+            onAddSheetDismiss = {
+                viewModel.onAddSheetDismiss()
+                onAddSheetDismiss()
+            },
             onItemCheckedChange = viewModel::onItemCheckedChange,
             onItemRemove = viewModel::onItemRemove,
             onRemoveCheckedClick = viewModel::onRemoveCheckedClick,
@@ -35,13 +51,13 @@ fun ShoppingScreen(modifier: Modifier = Modifier, viewModel: ShoppingViewModel =
             onRetryClick = viewModel::onRetryClick,
         )
     }
-    ShoppingContent(state, actions, modifier)
+    ShoppingContent(state, actions, addSheetOpen, modifier)
 }
 
 /** Stateless part of the screen: it receives the state and the actions, so it can be previewed and tested. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShoppingContent(state: ShoppingUiState, actions: ShoppingActions, modifier: Modifier = Modifier) {
+fun ShoppingContent(state: ShoppingUiState, actions: ShoppingActions, addSheetOpen: Boolean, modifier: Modifier = Modifier) {
     val topBarScroll = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val resources = LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -80,6 +96,7 @@ fun ShoppingContent(state: ShoppingUiState, actions: ShoppingActions, modifier: 
             is ShoppingUiState.Success -> ShoppingBody(state, actions, contentPadding)
         }
     }
+    if (addSheetOpen && success != null) ShoppingAddSheet(success.draft, actions)
 }
 
 /** What the title bar says under the title: how many items are left, "all done" once everything is ticked, nothing for an empty list. */

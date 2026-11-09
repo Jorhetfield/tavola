@@ -23,8 +23,7 @@ import kotlinx.coroutines.launch
 /** The shopping list tab: the items grouped by category, a quick add field, ticking, and removing with undo. */
 @HiltViewModel
 class ShoppingViewModel @Inject constructor(private val shoppingRepository: ShoppingRepository) : ViewModel() {
-    private val draftName = MutableStateFlow("")
-    private val draftCategory = MutableStateFlow(ShoppingCategory.Other)
+    private val draft = MutableStateFlow(AddItemDraft())
     private val retryCount = MutableStateFlow(0)
     private val removedItems = MutableStateFlow<List<ShoppingItem>>(emptyList())
 
@@ -36,42 +35,45 @@ class ShoppingViewModel @Inject constructor(private val shoppingRepository: Shop
             .catch { emit(null) }
     }
 
-    val uiState: StateFlow<ShoppingUiState> = combine(items, draftName, draftCategory, removedItems) { all, name, category, removed ->
+    val uiState: StateFlow<ShoppingUiState> = combine(items, draft, removedItems) { all, typed, removed ->
         if (all == null) {
             ShoppingUiState.Error
         } else {
-            ShoppingUiState.Success(
-                sections = all.groupedByCategory(),
-                draftName = name,
-                draftCategory = category,
-                removedItems = removed,
-            )
+            ShoppingUiState.Success(sections = all.groupedByCategory(), draft = typed, removedItems = removed)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), ShoppingUiState.Loading)
 
-    /** The text is cut to the longest name an item can have, so what is typed is always what is saved. */
-    fun onDraftNameChange(text: String) = draftName.update { text.take(ShoppingItem.MAX_NAME_LENGTH) }
+    /** The text is cut to the longest name an item can have, so what is typed is always what is saved. Typing clears the "added" notice. */
+    fun onDraftNameChange(text: String) =
+        draft.update { typed -> typed.copy(name = text.take(ShoppingItem.MAX_NAME_LENGTH), addedName = null) }
 
-    fun onDraftCategoryChange(category: ShoppingCategory) = draftCategory.update { category }
+    fun onDraftQuantityChange(text: String) = draft.update { typed -> typed.copy(quantity = text.take(ShoppingItem.MAX_QUANTITY_LENGTH)) }
+
+    /** The person picked a category themselves, which wins over the one guessed from the name. */
+    fun onDraftCategoryPick(category: ShoppingCategory) = draft.update { typed -> typed.copy(pickedCategory = category) }
+
+    /** The sheet that adds items was closed: what was typed is dropped, so the next time it opens it is empty. */
+    fun onAddSheetDismiss() = draft.update { AddItemDraft() }
 
     fun onRetryClick() = retryCount.update { count -> count + 1 }
 
     /**
-     * Adds what is typed to the list and empties the field at once, so the next item can be typed. The category stays, since
-     * several items of the same kind are often added in a row. If saving fails the text comes back (unless something else was typed).
+     * Adds what is typed to the list and empties the draft at once, so the next item can be typed (the sheet stays open); the
+     * category goes back to being guessed for each one, and [AddItemDraft.addedName] tells what was just added. If saving fails
+     * the draft comes back (unless something else was typed meanwhile).
      */
     fun onAddClick() {
-        val name = draftName.value.trim()
+        val typed = draft.value
+        val name = typed.name.trim()
         if (name.isEmpty()) return
-        val category = draftCategory.value
-        draftName.value = ""
+        draft.value = AddItemDraft(addedName = name)
         viewModelScope.launch {
             try {
-                shoppingRepository.saveItem(ShoppingItem(id = "", name = name, category = category))
+                shoppingRepository.saveItem(ShoppingItem(id = "", name = name, category = typed.category, quantity = typed.quantity))
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
-                draftName.update { typed -> typed.ifEmpty { name } }
+                draft.update { current -> if (current.name.isEmpty()) typed else current }
             }
         }
     }

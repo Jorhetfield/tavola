@@ -2,14 +2,22 @@ package com.tavola.screenshottests
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Eco
+import androidx.compose.material.icons.rounded.Inventory2
 import androidx.compose.material.icons.rounded.SetMeal
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.android.tools.screenshot.PreviewTest
-import com.tavola.core.designsystem.field.TavolaQuickAddField
+import com.tavola.core.designsystem.choice.TavolaChoiceTile
 import com.tavola.core.designsystem.preview.TavolaAdaptivePreviews
 import com.tavola.core.designsystem.preview.TavolaFontScalePreviews
 import com.tavola.core.designsystem.preview.TavolaPreviews
@@ -20,7 +28,9 @@ import com.tavola.core.designsystem.shopping.TavolaShoppingRow
 import com.tavola.core.designsystem.theme.TavolaTheme
 import com.tavola.domain.model.ShoppingCategory
 import com.tavola.domain.model.ShoppingItem
+import com.tavola.feature.shopping.AddItemDraft
 import com.tavola.feature.shopping.ShoppingActions
+import com.tavola.feature.shopping.ShoppingAddSheetContent
 import com.tavola.feature.shopping.ShoppingContent
 import com.tavola.feature.shopping.ShoppingSection
 import com.tavola.feature.shopping.ShoppingUiState
@@ -46,19 +56,19 @@ private val shoppingSections = listOf(
 
 @Composable
 private fun Shopping(state: ShoppingUiState) {
-    TavolaTheme { ShoppingContent(state, ShoppingActions()) }
+    TavolaTheme { ShoppingContent(state, ShoppingActions(), addSheetOpen = false) }
 }
 
 /** The shopping list in phone (light and dark), foldable and tablet. */
 @PreviewTest
 @TavolaAdaptivePreviews
 @Composable
-fun ShoppingScreenshot() = Shopping(ShoppingUiState.Success(shoppingSections, draftCategory = ShoppingCategory.Pantry))
+fun ShoppingScreenshot() = Shopping(ShoppingUiState.Success(shoppingSections))
 
 @PreviewTest
 @TavolaScreenPreviews
 @Composable
-fun ShoppingEmptyScreenshot() = Shopping(ShoppingUiState.Success(emptyList(), draftName = "Leche"))
+fun ShoppingEmptyScreenshot() = Shopping(ShoppingUiState.Success(emptyList()))
 
 @PreviewTest
 @TavolaScreenPreviews
@@ -78,6 +88,51 @@ fun ShoppingErrorScreenshot() = Shopping(ShoppingUiState.Error)
 @Composable
 fun ShoppingFontScaleScreenshot() = Shopping(ShoppingUiState.Success(shoppingSections))
 
+/** The sheet content on a surface with the shape of the sheet (the real sheet is a window and is not captured). */
+@Composable
+private fun SheetSurface(content: @Composable () -> Unit) {
+    TavolaTheme {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(720.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            shape = MaterialTheme.shapes.extraLarge.copy(bottomStart = CornerSize(0f), bottomEnd = CornerSize(0f)),
+        ) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun AddSheet(draft: AddItemDraft, categoriesOpen: Boolean = false) {
+    SheetSurface { ShoppingAddSheetContent(draft, ShoppingActions(), onDone = {}, startWithCategoriesOpen = categoriesOpen) }
+}
+
+/** The sheet with a name whose category is guessed. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun ShoppingAddSheetScreenshot() = AddSheet(AddItemDraft(name = "Leche", quantity = "2 l"))
+
+/** The sheet with the grid of categories open and one picked by hand. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun ShoppingAddSheetCategoriesScreenshot() =
+    AddSheet(AddItemDraft(name = "Detergente", pickedCategory = ShoppingCategory.Household), categoriesOpen = true)
+
+/** The sheet right after adding an item, ready for the next one. */
+@PreviewTest
+@TavolaPreviews
+@Composable
+fun ShoppingAddSheetAddedScreenshot() = AddSheet(AddItemDraft(addedName = "Leche"))
+
+@PreviewTest
+@TavolaFontScalePreviews
+@Composable
+fun ShoppingAddSheetFontScaleScreenshot() = AddSheet(AddItemDraft(name = "Leche", quantity = "2 l"))
+
 @PreviewTest
 @TavolaPreviews
 @Composable
@@ -87,10 +142,11 @@ fun ShoppingComponentsScreenshot() {
             modifier = Modifier.padding(TavolaTheme.spacing.lg),
             verticalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm),
         ) {
-            TavolaQuickAddField(value = "", onValueChange = {
-            }, placeholder = "Añadir a la lista", addContentDescription = "Añadir", onAdd = {})
-            TavolaQuickAddField(value = "Leche", onValueChange = {
-            }, placeholder = "Añadir a la lista", addContentDescription = "Añadir", onAdd = {})
+            Row(horizontalArrangement = Arrangement.spacedBy(TavolaTheme.spacing.sm)) {
+                TavolaChoiceTile("Frutas y verduras", Icons.Rounded.Eco, selected = true, onClick = {}, modifier = Modifier.weight(1f))
+                TavolaChoiceTile("Carne y pescado", Icons.Rounded.SetMeal, selected = false, onClick = {}, modifier = Modifier.weight(1f))
+                TavolaChoiceTile("Despensa", Icons.Rounded.Inventory2, selected = false, onClick = {}, modifier = Modifier.weight(1f))
+            }
             TavolaShoppingCategoryHeader("Frutas y verduras", Icons.Rounded.Eco, count = 4)
             TavolaShoppingRow(ShoppingRowModel("1", "Tomates", "1 kg"), onCheckedChange = {})
             TavolaShoppingRow(ShoppingRowModel("2", "Aceite de oliva virgen extra", checked = true), onCheckedChange = {})

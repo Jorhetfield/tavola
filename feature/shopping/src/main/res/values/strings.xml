@@ -33,6 +33,15 @@
     <string name="shopping_undo">Deshacer</string>
     <string name="shopping_empty_title">La lista está vacía</string>
     <string name="shopping_empty_hint">Pulsa + para añadir lo que falta en casa.</string>
+    <string name="shopping_pick_title">Añadir a la compra</string>
+    <string name="shopping_pick_hint">Marca lo que te falta. Lo que ya tienes en casa, déjalo sin marcar.</string>
+    <string name="shopping_pick_on_list">Ya está en la lista</string>
+    <string name="shopping_pick_select_all">Marcar todo</string>
+    <string name="shopping_pick_select_none">Desmarcar todo</string>
+    <plurals name="shopping_pick_add">
+        <item quantity="one">Añadir %d artículo</item>
+        <item quantity="other">Añadir %d artículos</item>
+    </plurals>
     <string name="shopping_error">No se ha podido cargar la lista</string>
     <string name="shopping_retry">Reintentar</string>
 </resources>

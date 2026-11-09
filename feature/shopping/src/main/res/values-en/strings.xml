@@ -33,6 +33,15 @@
     <string name="shopping_undo">Undo</string>
     <string name="shopping_empty_title">The list is empty</string>
     <string name="shopping_empty_hint">Tap + to add what you are missing at home.</string>
+    <string name="shopping_pick_title">Add to the shopping list</string>
+    <string name="shopping_pick_hint">Tick what you are missing. Leave unticked what you already have at home.</string>
+    <string name="shopping_pick_on_list">Already on the list</string>
+    <string name="shopping_pick_select_all">Select all</string>
+    <string name="shopping_pick_select_none">Select none</string>
+    <plurals name="shopping_pick_add">
+        <item quantity="one">Add %d item</item>
+        <item quantity="other">Add %d items</item>
+    </plurals>
     <string name="shopping_error">The list could not be loaded</string>
     <string name="shopping_retry">Retry</string>
 </resources>

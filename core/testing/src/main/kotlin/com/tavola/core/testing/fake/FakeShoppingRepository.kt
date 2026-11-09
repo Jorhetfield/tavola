@@ -20,6 +20,10 @@ class FakeShoppingRepository(initialItems: List<ShoppingItem> = emptyList()) : S
         return saved.id
     }
 
+    override suspend fun addItems(items: List<ShoppingItem>) {
+        items.forEach { item -> saveItem(item.copy(id = "")) }
+    }
+
     override suspend fun setChecked(id: String, checked: Boolean) {
         items.update { stored -> stored.map { item -> if (item.id == id) item.copy(checked = checked) else item } }
     }

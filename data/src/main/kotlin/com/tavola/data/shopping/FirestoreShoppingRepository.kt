@@ -46,7 +46,8 @@ internal class FirestoreShoppingRepository @Inject constructor(
             items(groupId).snapshotFlow().map { snapshot ->
                 snapshot.documents
                     .mapNotNull { document -> document.estimatedData()?.toShoppingItem(document.id) }
-                    .sortedWith(compareBy({ item -> item.createdAt }, { item -> item.id }))
+                    // Items added in one batch share their time, so they are told apart by name and then by id.
+                    .sortedWith(compareBy({ item -> item.createdAt }, { item -> item.name.lowercase() }, { item -> item.id }))
             }
         }
     }
@@ -65,6 +66,19 @@ internal class FirestoreShoppingRepository @Inject constructor(
         }
         groupWrites.write { reference.set(document, SetOptions.merge()).await() }
         return reference.id
+    }
+
+    override suspend fun addItems(items: List<ShoppingItem>) {
+        if (items.isEmpty()) return
+        val collection = items(groupWrites.requireGroupId("items"))
+        val addedBy = authRepository.currentUser.first()?.id
+        val documents = items.map { item -> item.normalized().toDocument(addedBy, createdAtValue = FieldValue.serverTimestamp()) }
+        groupWrites.write {
+            // A batch holds at most 500 writes. Each batch is all or nothing.
+            documents.chunked(MAX_BATCH_WRITES).forEach { chunk ->
+                firestore.batch().apply { chunk.forEach { document -> set(collection.document(), document) } }.commit().await()
+            }
+        }
     }
 
     override suspend fun setChecked(id: String, checked: Boolean) = groupWrites.write { groupId ->
